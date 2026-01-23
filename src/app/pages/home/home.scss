@@ -1,0 +1,23 @@
+#frontimage {
+  height: 80vh;
+  background-image: url("/assets/images/main.jpg");
+  background-size: cover;
+  background-position: center;
+}
+.products {
+  padding: 60px 0;
+}
+
+.section-title {
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  justify-items: center;
+}

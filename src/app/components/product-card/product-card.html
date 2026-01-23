@@ -1,0 +1,12 @@
+<div class="product-card" [routerLink]="['/product', product.id]">
+  <img
+    class="product-img"
+    src="assets/images/beautiful-bride-white-dress-crown-his-head-park-holding-bouquet.jpg"
+    alt="{{ product.name }}"
+  />
+
+  <div class="product-info">
+    <h5>{{ product.name }}</h5>
+    <p>{{ product.price | currency:'INR' }}</p>
+  </div>
+</div>

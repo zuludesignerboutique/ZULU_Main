@@ -1,0 +1,84 @@
+.contact-section {
+  padding: 80px 0;
+  background: #fafafa;
+}
+
+/* Title */
+.contact-title {
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.contact-subtitle {
+  color: #666;
+  margin-top: 10px;
+}
+
+/* Card */
+.contact-card {
+  background: #fff;
+  padding: 50px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Form */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: #000;
+}
+
+/* Button */
+.btn-submit {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 30px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+  background: #333;
+}
+
+/* Info */
+.contact-info h5 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.contact-info p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.contact-info ul {
+  list-style: none;
+  padding: 0;
+}
+
+.contact-info li {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+

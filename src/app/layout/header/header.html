@@ -1,0 +1,45 @@
+<!-- Free shipping bar -->
+<p class="top-bar">
+  FREE SHIPPING WORLDWIDE
+</p>
+
+<!-- Main Header -->
+<header class="main-header" style="height: 150px; background-image: url(assets/images/cinematic-style-mall.jpg);background-size: cover;
+  background-position: center;" >
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center py-3">
+
+      <!-- Logo -->
+      <div class="logo" routerLink="/" style="color: white;">
+        ZORA
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav-menu">
+        <a
+          routerLink="/"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-link"
+        >HOME</a>
+
+        <a routerLink="/products" routerLinkActive="active" class="nav-link">
+          PRODUCTS
+        </a>
+
+        <a routerLink="/gallery" routerLinkActive="active" class="nav-link">
+          GALLERY
+        </a>
+
+        <a routerLink="/reviews" routerLinkActive="active" class="nav-link">
+          REVIEWS
+        </a>
+
+        <a routerLink="/contact" routerLinkActive="active" class="nav-link">
+          CONTACT
+        </a>
+      </nav>
+
+    </div>
+  </div>
+</header>

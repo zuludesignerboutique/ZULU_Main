@@ -1,0 +1,62 @@
+<section class="reviews-section">
+  <h2 class="section-title">CUSTOMER REVIEWS</h2>
+
+  <!-- Review Form -->
+  <form class="review-form" (ngSubmit)="submitReview()">
+    <input
+      type="text"
+      placeholder="Your Name"
+      [(ngModel)]="newReview.name"
+      name="name"
+      required
+    />
+
+    <select [(ngModel)]="newReview.rating" name="rating" required>
+      <option *ngFor="let r of [5,4,3,2,1]" [value]="r">
+        {{ r }} Star
+      </option>
+    </select>
+
+    <textarea
+      placeholder="Write your review..."
+      [(ngModel)]="newReview.comment"
+      name="comment"
+      required>
+    </textarea>
+
+    <button type="submit">Submit Review</button>
+  </form>
+
+  <!-- Review Cards -->
+  <div class="reviews-grid">
+    <div class="review-card" *ngFor="let review of reviews">
+
+      <!-- Header -->
+      <div class="review-header">
+        <div class="avatar">
+          {{ review.name.charAt(0) }}
+        </div>
+
+        <div class="user-info">
+          <h5>{{ review.name }}</h5>
+          <span class="date">
+            {{ review.createdAt | date:'mediumDate' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Stars -->
+      <div class="stars">
+        <ng-container *ngFor="let star of [1,2,3,4,5]">
+          <span [class.filled]="star <= review.rating">★</span>
+        </ng-container>
+      </div>
+
+      <!-- Comment -->
+      <p class="comment">
+        “{{ review.comment }}”
+      </p>
+
+    </div>
+  </div>
+</section>

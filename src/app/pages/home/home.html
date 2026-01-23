@@ -1,0 +1,33 @@
+<!-- Hero Section -->
+<section
+  id="frontimage"
+  class="d-flex align-items-center justify-content-center text-white">
+</section>
+
+
+
+<!-- Products Section -->
+<section class="products">
+  <h2 class="section-title">OUR NEW COLLECTION</h2>
+
+  <div class="product-grid">
+    <app-product-card
+      *ngFor="let product of products"
+      [product]="product">
+    </app-product-card>
+  </div>
+
+  <div class="text-center mt-4">
+    <button class="btn btn-outline-dark">
+      Explore Collection
+    </button>
+  </div>
+</section>
+
+
+<!-- CTA -->
+<!-- <div class="d-flex justify-content-center">
+  <button class="btn btn-primary" routerLink="/products">
+    Shop Best Sellers
+  </button>
+</div> -->

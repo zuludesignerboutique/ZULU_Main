@@ -1,0 +1,18 @@
+<section class="gallery-section">
+  <div class="container">
+    <h2 class="section-title">Our Collection</h2>
+
+    <div class="gallery-grid">
+      <div
+        class="gallery-card"
+        *ngFor="let img of images"
+      >
+        <img [src]="img.imageUrl" [alt]="img.title" />
+
+        <div class="overlay">
+          <h3>{{ img.title }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

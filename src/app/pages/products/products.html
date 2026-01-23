@@ -1,0 +1,23 @@
+<section class="products-section">
+  <h2 class="section-title">OUR COLLECTIONS</h2>
+
+  <div class="products-grid">
+    <div class="product-card" *ngFor="let product of products">
+
+      <div class="image-box">
+        <img [src]="product.image" [alt]="product.name" />
+      </div>
+
+      <div class="product-info">
+        <h4>{{ product.name }}</h4>
+        <p class="category">{{ product.category }}</p>
+
+        <div class="price-row">
+          <span class="price">₹{{ product.price }}</span>
+          <button class="view-btn">View</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>

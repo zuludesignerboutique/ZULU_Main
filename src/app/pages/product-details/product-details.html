@@ -1,0 +1,41 @@
+<!-- <div class="container mt-5" *ngIf="product">
+  <div class="row">
+    <div class="col-md-6">
+      <img [src]="product.image" class="img-fluid rounded" />
+    </div>
+    <div class="col-md-6">
+      <h2>{{ product.name }}</h2>
+      <h4 class="text-success">{{ product.price | currency }}</h4>
+      <p>{{ product.description }}</p>
+    </div>
+  </div>
+</div> -->
+<div class="container my-5" *ngIf="product">
+  <div class="row align-items-center">
+
+    <!-- Image -->
+    <div class="col-md-5 text-center">
+      <img
+        [src]="product.image"
+        class="detail-img"
+        alt="{{ product.name }}"
+      />
+    </div>
+
+    <!-- Info -->
+    <div class="col-md-7">
+      <h2>{{ product.name }}</h2>
+      <h4 class="text-muted">{{ product.price | currency:'INR' }}</h4>
+
+      <p class="mt-3">
+        A timeless boutique piece crafted with elegance and grace.
+        Perfect for special occasions.
+      </p>
+
+      <button class="btn btn-dark mt-3">
+        Enquire Now
+      </button>
+    </div>
+
+  </div>
+</div>
