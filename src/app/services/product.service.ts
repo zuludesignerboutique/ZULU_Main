@@ -12,7 +12,7 @@ export class ProductService {
       id: 1,
       name: 'Bridal Silk Saree',
       price: 12999,
-      image: 'assets/products/saree1.jpg',
+      image: 'assets/images/saree-look.jpg',
       category: 'Bridal',
       description: 'Premium handcrafted bridal silk saree',
       createdAt: new Date()
