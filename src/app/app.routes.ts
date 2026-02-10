@@ -10,6 +10,10 @@ import { TermsConditions } from './pages/terms-conditions/terms-conditions';
 import { ShippingPolicy } from './pages/shipping-policy/shipping-policy';
 import { AboutZora } from './pages/about-zora/about-zora';
 import { ReturnsExchange } from './pages/returns-exchange/returns-exchange';
+import { LoginComponent } from './pages/login/login';
+import { SignupComponent } from './pages/signup/signup';
+import { CartComponent } from './pages/cart/cart';
+import { WishlistComponent } from './pages/wishlist/wishlist';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -23,6 +27,10 @@ export const routes: Routes = [
   { path: 'terms-conditions', component: TermsConditions},
   { path: 'about-zora', component: AboutZora },
 { path: 'returns-exchange', component: ReturnsExchange },
+{ path: 'login', component: LoginComponent },
+{ path: 'signup', component: SignupComponent },
+{ path: 'cart', component: CartComponent },
+{ path: 'wishlist', component: WishlistComponent },
   {path: 'reviews',
   loadComponent: () =>
     import('./pages/reviews/reviews').then(m => m.Reviews)

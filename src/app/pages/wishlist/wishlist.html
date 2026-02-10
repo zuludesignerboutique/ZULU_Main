@@ -1,0 +1,8 @@
+<h2>Your Wishlist</h2>
+
+<div *ngFor="let item of wishlist">
+  <h4>{{ item.name }}</h4>
+  <button (click)="remove(item.id)">Remove</button>
+</div>
+
+<p *ngIf="!wishlist.length">Your wishlist is empty.</p>

@@ -1,6 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { CartService } from '../../services/cart.service';
+import { WishlistService } from '../../services/wishlist.service';
+import { Product } from '../../core/models/product.model';
 
 @Component({
   selector: 'app-product-card',
@@ -10,11 +13,24 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./product-card.scss']
 })
 export class ProductCard {
-  @Input() product!: {
-    id: number;
-    name: string;
-    price: number;
-    image: string;
-    
-  };
+  @Input() product!: Product;
+
+  constructor(
+    private cartService: CartService,
+    private wishlistService: WishlistService
+  ) {}
+
+addedToCart = false;
+addedToWishlist = false;
+
+addToCart() {
+  this.cartService.add(this.product);
+  this.addedToCart = true;
+}
+
+addToWishlist() {
+  this.wishlistService.add(this.product);
+  this.addedToWishlist = true;
+}
+
 }

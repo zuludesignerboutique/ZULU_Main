@@ -9,4 +9,15 @@
     <h5>{{ product.name }}</h5>
     <p>{{ product.price | currency:'INR' }}</p>
   </div>
+<div class="actions">
+  <button (click)="addToCart(); $event.stopPropagation(); $event.preventDefault()">
+    Add to Cart
+  </button>
+
+  <button (click)="addToWishlist(); $event.stopPropagation(); $event.preventDefault()">
+    Wishlist
+  </button>
+</div>
+
+
 </div>

@@ -63,3 +63,44 @@
   font-weight: 600;
   color: #333;
 }
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.actions button {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 999px; /* pill shape */
+  border: 1px solid #111;
+  background: transparent;
+  color: #111;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.actions button:hover {
+  background: #111;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.actions button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Optional: make Wishlist look softer */
+.actions button:last-child {
+  border-color: #b76e79;   /* soft rose-gold vibe */
+  color: #b76e79;
+}
+
+.actions button:last-child:hover {
+  background: #b76e79;
+  color: #fff;
+}
