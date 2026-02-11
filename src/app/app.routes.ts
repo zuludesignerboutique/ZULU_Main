@@ -26,11 +26,11 @@ export const routes: Routes = [
   { path: 'privacy-policy', component: PrivacyPolicy },
   { path: 'terms-conditions', component: TermsConditions},
   { path: 'about-zora', component: AboutZora },
-{ path: 'returns-exchange', component: ReturnsExchange },
-{ path: 'login', component: LoginComponent },
-{ path: 'signup', component: SignupComponent },
-{ path: 'cart', component: CartComponent },
-{ path: 'wishlist', component: WishlistComponent },
+  { path: 'returns-exchange', component: ReturnsExchange },
+  { path: 'login', component: LoginComponent },
+  { path: 'signup', component: SignupComponent },
+  { path: 'cart', loadComponent: () => import('./pages/cart/cart').then(m => m.CartComponent) },
+  { path: 'wishlist', loadComponent: () => import('./pages/wishlist/wishlist').then(m => m.WishlistComponent) },
   {path: 'reviews',
   loadComponent: () =>
     import('./pages/reviews/reviews').then(m => m.Reviews)

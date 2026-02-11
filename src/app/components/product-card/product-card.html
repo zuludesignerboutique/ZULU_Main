@@ -1,7 +1,8 @@
-<div class="product-card" [routerLink]="['/product', product.id]">
+<div class="product-card" [routerLink]="['/products', product.id]">
+
   <img
     class="product-img"
-    src="assets/images/beautiful-bride-white-dress-crown-his-head-park-holding-bouquet.jpg"
+    [src]="product.image"
     alt="{{ product.name }}"
   />
 
@@ -9,15 +10,9 @@
     <h5>{{ product.name }}</h5>
     <p>{{ product.price | currency:'INR' }}</p>
   </div>
-<div class="actions">
-  <button (click)="addToCart(); $event.stopPropagation(); $event.preventDefault()">
-    Add to Cart
-  </button>
 
-  <button (click)="addToWishlist(); $event.stopPropagation(); $event.preventDefault()">
-    Wishlist
-  </button>
-</div>
-
-
+  <div class="actions">
+    <button (click)="addToCart($event)">Add to Cart</button>
+    <button (click)="addToWishlist($event)">Wishlist</button>
+  </div>
 </div>

@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-import { ProductCard } from '../../components/product-card/product-card';
+import { ProductCardComponent } from '../../components/product-card/product-card';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ProductCard],
+  imports: [CommonModule, ProductCardComponent],
   templateUrl: './home.html',
   styleUrls: ['./home.scss']
 })
