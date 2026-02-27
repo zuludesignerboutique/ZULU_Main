@@ -14,26 +14,28 @@ import { LoginComponent } from './pages/login/login';
 import { SignupComponent } from './pages/signup/signup';
 import { CartComponent } from './pages/cart/cart';
 import { WishlistComponent } from './pages/wishlist/wishlist';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'products', component: Products },
-  { path: 'products/:id', component: ProductDetailsComponent },
-  { path: 'gallery', component: Gallery },
-  { path: 'reviews', component: Reviews },
-  { path: 'contact', component: Contact },
-  {path: 'shipping-policy', component: ShippingPolicy},
-  { path: 'privacy-policy', component: PrivacyPolicy },
-  { path: 'terms-conditions', component: TermsConditions},
-  { path: 'about-zora', component: AboutZora },
-  { path: 'returns-exchange', component: ReturnsExchange },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
-  { path: 'cart', loadComponent: () => import('./pages/cart/cart').then(m => m.CartComponent) },
-  { path: 'wishlist', loadComponent: () => import('./pages/wishlist/wishlist').then(m => m.WishlistComponent) },
-  {path: 'reviews',
-  loadComponent: () =>
-    import('./pages/reviews/reviews').then(m => m.Reviews)
-},
- { path: '**', redirectTo: '' }
+
+{ path: 'home', component: HomeComponent, canActivate: [authGuard] },
+{ path: 'products', component: Products, canActivate: [authGuard] },
+{ path: 'gallery', component: Gallery, canActivate: [authGuard] },
+{ path: 'reviews', component: Reviews, canActivate: [authGuard] },
+{ path: 'contact', component: Contact, canActivate: [authGuard] },
+{ path: 'cart', component: CartComponent, canActivate: [authGuard] },
+{ path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
+{ path: 'products/:id', component: ProductDetailsComponent, canActivate: [authGuard] },
+
+   { path: 'shipping-policy', component: ShippingPolicy },
+  { path: 'privacy-policy', component: PrivacyPolicy },
+  { path: 'terms-conditions', component: TermsConditions },
+  { path: 'about-zora', component: AboutZora },
+  { path: 'returns-exchange', component: ReturnsExchange },
+
+  { path: '**', redirectTo: 'login' }
 ];

@@ -1,10 +1,27 @@
-<p>cart works!</p>
-<h2>Your Cart</h2>
+<div class="container my-5">
+  <h2 class="mb-4 cart-title">Your Cart</h2>
 
-<div *ngFor="let item of cart">
-  <h4>{{ item.name }}</h4>
-  <p>₹ {{ item.price }}</p>
-  <button (click)="remove(item.id)">Remove</button>
+  <div *ngIf="cartItems.length === 0" class="empty-cart">
+    <p>Your cart is empty ✨</p>
+  </div>
+
+  <div class="cart-card" *ngFor="let item of cartItems">
+    <div class="cart-img">
+      <img [src]="item.image" [alt]="item.name" />
+    </div>
+
+    <div class="cart-info">
+      <h4>{{ item.name }}</h4>
+      <p class="cart-desc">{{ item.description }}</p>
+      <p class="cart-price">{{ item.price | currency:'INR' }}</p>
+
+      <button class="btn-remove" (click)="removeFromCart(item.id)">
+        Remove
+      </button>
+    </div>
+  </div>
+
+  <div class="cart-footer" *ngIf="cartItems.length > 0">
+    <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
+  </div>
 </div>
-
-<p *ngIf="!cart.length">Your cart is empty.</p>

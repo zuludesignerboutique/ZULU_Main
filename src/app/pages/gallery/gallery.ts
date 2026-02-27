@@ -15,6 +15,9 @@ export class Gallery implements OnInit {
   images: GalleryImage[] = [];
 
   constructor(private galleryService: GalleryService) {}
+  trackById(index: number, item: any) {
+  return item.id || item.imageUrl;
+}
 
   ngOnInit(): void {
     this.galleryService.getGalleryImages()

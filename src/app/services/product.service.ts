@@ -21,7 +21,7 @@ export class ProductService {
       id: 2,
       name: 'Designer Lehenga',
       price: 18999,
-      image: 'assets/products/lehenga1.jpg',
+      image: 'assets/images/Lehenga.jpeg',
       category: 'Designer',
       description: 'Elegant designer lehenga for weddings',
       createdAt: new Date()
@@ -30,7 +30,7 @@ export class ProductService {
     id: 3,
     name: 'Party Wear Gown',
     price: 9999,
-    image: 'assets/products/gown1.jpg',
+    image: 'assets/images/party wear gown.jpg',
     category: 'Party Wear',
     description: 'Stylish party wear gown with premium finish',
     createdAt: new Date()
@@ -39,7 +39,7 @@ export class ProductService {
     id: 4,
     name: 'Casual Kurti Set',
     price: 3499,
-    image: 'assets/products/kurti1.jpg',
+    image: 'assets/images/kurta set.jpg',
     category: 'Casual',
     description: 'Comfortable and elegant daily wear kurti set',
     createdAt: new Date()
@@ -48,7 +48,7 @@ export class ProductService {
     id: 5,
     name: 'Wedding Anarkali',
     price: 11499,
-    image: 'assets/products/anarkali1.jpg',
+    image: 'assets/images/wedding anarkali.jpg',
     category: 'Wedding',
     description: 'Royal wedding Anarkali with detailed embroidery',
     createdAt: new Date()
@@ -57,7 +57,7 @@ export class ProductService {
     id: 6,
     name: 'Designer Blouse',
     price: 2999,
-    image: 'assets/products/blouse1.jpg',
+    image: 'assets/images/designer blouse.jpg',
     category: 'Designer',
     description: 'Trendy designer blouse with modern cuts',
     createdAt: new Date()

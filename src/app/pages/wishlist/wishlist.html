@@ -1,8 +1,23 @@
-<h2>Your Wishlist</h2>
+<div class="container my-5">
+  <h2 class="wishlist-title">Your Wishlist</h2>
 
-<div *ngFor="let item of wishlist">
-  <h4>{{ item.name }}</h4>
-  <button (click)="remove(item.id)">Remove</button>
+  <p class="empty" *ngIf="!wishlist.length">
+    Your wishlist is empty ✨
+  </p>
+
+  <div class="wishlist-card" *ngFor="let item of wishlist">
+    <div class="wishlist-img">
+      <img [src]="item.image" [alt]="item.name" />
+    </div>
+
+    <div class="wishlist-info">
+      <h4>{{ item.name }}</h4>
+      <p class="wishlist-desc">{{ item.description }}</p>
+      <p class="wishlist-price">{{ item.price | currency:'INR' }}</p>
+
+      <button class="btn-remove" (click)="remove(item.id)">
+        Remove
+      </button>
+    </div>
+  </div>
 </div>
-
-<p *ngIf="!wishlist.length">Your wishlist is empty.</p>

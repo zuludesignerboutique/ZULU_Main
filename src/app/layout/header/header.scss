@@ -25,6 +25,8 @@
 .main-header {
   background: #fff;
   border-bottom: 1px solid #eee;
+    max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Logo */
@@ -39,6 +41,7 @@
 .nav-menu {
   display: flex;
   gap: 30px;
+    flex-wrap: wrap;
 }
 
 .nav-link {
@@ -48,6 +51,12 @@
   text-decoration: none;
   position: relative;
   padding-bottom: 4px;
+   white-space: nowrap;
+}
+.nav-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none; // 🔒 cannot click
 }
 
 /* Hover + Active underline */
@@ -65,4 +74,26 @@
 .nav-link:hover::after,
 .nav-link.active::after {
   width: 100%;
+}
+
+// logout 
+.logout-icon-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  
+  margin-right: 0px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  line-height: 1;
+}
+
+.logout-icon-btn:hover {
+  transform: scale(1.15);
+  opacity: 0.85;
+}
+
+.logout-icon-btn:active {
+  transform: scale(0.95);
 }

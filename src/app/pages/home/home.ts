@@ -15,29 +15,29 @@ export class HomeComponent {
   {
     id: 1,
     name: 'ZORA Dress',
-    price: 2499,
+    price: 6799,
     image: 'assets/images/beautiful-bride-white-dress-crown-his-head-park-holding-bouquet.jpg',
     category: 'bridal'
   },
   {
     id: 2,
-    name: 'Ivory Bridal Gown',
-    price: 3199,
-    image: 'assets/images/bridal2.jpg',
+    name: 'Party wear',
+    price: 4999,
+    image: 'assets/images/party wear.jpeg',
     category: 'bridal'
   },
   {
     id: 3,
-    name: 'Classic White Elegance',
+    name: 'Ethnic Saree',
     price: 2899,
-    image: 'assets/images/bridal3.jpg',
+    image: 'assets/images/saree 2.jpg',
     category: 'bridal'
   },
   {
     id: 4,
     name: 'Royal Lace Dress',
-    price: 3499,
-    image: 'assets/images/bridal4.jpg',
+    price: 5499,
+    image: 'assets/images/redlace.jpg',
     category: 'bridal'
   }
 ];

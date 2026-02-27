@@ -21,5 +21,4 @@ export class Products implements OnInit {
       this.products = data;
     });
   }
-
 }

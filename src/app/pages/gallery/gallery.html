@@ -5,9 +5,14 @@
     <div class="gallery-grid">
       <div
         class="gallery-card"
-        *ngFor="let img of images"
+        *ngFor="let img of images; trackBy: trackById"
       >
-        <img [src]="img.imageUrl" [alt]="img.title" />
+        <img
+          [src]="img.imageUrl"
+          [alt]="img.title"
+          loading="lazy"        
+          decoding="async"      
+        />
 
         <div class="overlay">
           <h3>{{ img.title }}</h3>

@@ -1,24 +1,31 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../core/models/product.model';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-cart',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './cart.html',
-  styleUrls: ['./cart.scss']
+  styleUrls: ['./cart.scss'],
+  imports: [CommonModule],
+  standalone: true
 })
-export class CartComponent {
-  cart: Product[] = [];
+export class CartComponent implements OnInit {
+  cartItems: Product[] = [];
 
-  constructor(private cartService: CartService) {
-    this.cart = this.cartService.getAll();
+  constructor(private cartService: CartService) {}
+
+  ngOnInit(): void {
+    this.cartItems = this.cartService.getAll();
   }
 
-  remove(id: number) {
+  removeFromCart(id: number) {
     this.cartService.remove(id);
-    this.cart = this.cartService.getAll();
+    this.cartItems = this.cartService.getAll();
+  }
+
+  clearCart() {
+    this.cartService.clear();
+    this.cartItems = [];
   }
 }

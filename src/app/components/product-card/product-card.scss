@@ -1,28 +1,4 @@
-// .card {
-//   margin: 10px;
-// }
 
-// .card img {
-//   height: 250px;
-//   object-fit: cover;
-// }
-// :host {
-//   display: block;
-// }
-
-// .product-card {
-//   border: 1px solid #ddd;
-//   padding: 15px;
-//   border-radius: 8px;
-//   text-align: center;
-//   background: #fff;
-//   width: 300px;
-// }
-// img {
-//   max-height: 420px;
-//   width: 100%;
-//   object-fit: cover;
-// }
 
 :host {
   display: block;
@@ -67,6 +43,7 @@
   display: flex;
   gap: 12px;
   margin-top: 12px;
+  padding: 10px;
 }
 
 .actions button {

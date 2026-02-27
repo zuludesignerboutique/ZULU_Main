@@ -1,30 +1,38 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private loggedIn = false;
-  private userEmail: string | null = null;
+  private platformId = inject(PLATFORM_ID);
+  loggedInSignal = signal<boolean>(false);
 
-  login(email: string) {
-    this.loggedIn = true;
-    this.userEmail = email;
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('loggedIn');
+      this.loggedInSignal.set(stored === 'true');
+    } else {
+      this.loggedInSignal.set(false); // 🔒 force false on server
+    }
   }
 
-  signup(email: string) {
-    this.loggedIn = true;
-    this.userEmail = email;
+  login() {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('loggedIn', 'true');
+    }
+    this.loggedInSignal.set(true);
   }
 
   logout() {
-    this.loggedIn = false;
-    this.userEmail = null;
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('loggedIn');
+    }
+    this.loggedInSignal.set(false);
   }
 
-  isLoggedIn() {
-    return this.loggedIn;
-  }
-
-  getUserEmail() {
-    return this.userEmail;
+  isLoggedIn(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    return localStorage.getItem('loggedIn') === 'true';
   }
 }
