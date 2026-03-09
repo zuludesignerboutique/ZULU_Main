@@ -1,80 +1,107 @@
-<!-- Free shipping bar -->
+
+
 <p class="top-bar">
   ✨ Turn moments into looks ✨
 </p>
 
 <!-- Main Header -->
+
 <header class="main-header" style="height: 150px; background-image: url(assets/images/header2.jpg); background-size: cover; background-position: center;">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center py-3">
+  <div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center py-4">
 
-      <!-- Logo -->
-      <div
-        class="logo"
-        [routerLink]="isLoggedIn() ? '/home' : '/login'"
-        style="color: white; cursor: pointer;"
-        aria-label="ZORA home"
-      >
-        ZORA
-      </div>
 
-      <!-- Navigation -->
-      <nav class="nav-menu">
+  <!-- Logo -->
+  <div
+    class="logo"
+    routerLink="/home"
+    style="color: white; cursor: pointer;"
+    aria-label="ZULU home"
+  >
+    ZULU
+  </div>
 
-        <!-- HOME -->
-        <a *ngIf="isLoggedIn(); else homeDisabled" routerLink="/home" class="nav-link">HOME</a>
-        <ng-template #homeDisabled>
-          <span class="nav-link disabled" aria-disabled="true">HOME</span>
-        </ng-template>
+  <!-- Navigation -->
+  <nav class="nav-menu">
 
-        <!-- PRODUCTS -->
-        <a *ngIf="isLoggedIn(); else productsDisabled" routerLink="/products" routerLinkActive="active" class="nav-link">
-          PRODUCTS
-        </a>
-        <ng-template #productsDisabled>
-          <span class="nav-link disabled" aria-disabled="true">PRODUCTS</span>
-        </ng-template>
+    <!-- HOME -->
+    <a routerLink="/home" routerLinkActive="active" class="nav-link">HOME</a>
 
-        <!-- GALLERY -->
-        <a *ngIf="isLoggedIn(); else galleryDisabled" routerLink="/gallery" routerLinkActive="active" class="nav-link">
-          GALLERY
-        </a>
-        <ng-template #galleryDisabled>
-          <span class="nav-link disabled" aria-disabled="true">GALLERY</span>
-        </ng-template>
+    <!-- PRODUCTS -->
+    <a routerLink="/products" routerLinkActive="active" class="nav-link">
+      PRODUCTS
+    </a>
 
-        <!-- REVIEWS -->
-        <a *ngIf="isLoggedIn(); else reviewsDisabled" routerLink="/reviews" routerLinkActive="active" class="nav-link">
-          REVIEWS
-        </a>
-        <ng-template #reviewsDisabled>
-          <span class="nav-link disabled" aria-disabled="true">REVIEWS</span>
-        </ng-template>
+    <!-- GALLERY -->
+    <a routerLink="/gallery" routerLinkActive="active" class="nav-link">
+      GALLERY
+    </a>
 
-        <!-- CONTACT -->
-        <a *ngIf="isLoggedIn(); else contactDisabled" routerLink="/contact" routerLinkActive="active" class="nav-link">
-          CONTACT
-        </a>
-        <ng-template #contactDisabled>
-          <span class="nav-link disabled" aria-disabled="true">CONTACT</span>
-        </ng-template>
+    <!-- REVIEWS -->
+    <a routerLink="/reviews" routerLinkActive="active" class="nav-link">
+      REVIEWS
+    </a>
 
-        <!-- CART -->
-        <a *ngIf="isLoggedIn(); else cartDisabled" routerLink="/cart" routerLinkActive="active" class="nav-link">🛒 Cart</a>
-        <ng-template #cartDisabled>
-          <span class="nav-link disabled" aria-disabled="true">🛒 Cart</span>
-        </ng-template>
+    <!-- CONTACT -->
+    <a routerLink="/contact" routerLinkActive="active" class="nav-link">
+      CONTACT
+    </a>
 
-        <!-- WISHLIST -->
-        <a *ngIf="isLoggedIn(); else wishlistDisabled" routerLink="/wishlist" routerLinkActive="active" class="nav-link">❤️ Wishlist</a>
-        <ng-template #wishlistDisabled>
-          <span class="nav-link disabled" aria-disabled="true">❤️ Wishlist</span>
-        </ng-template>
+    <!-- CART (login required) -->
+    <a *ngIf="isLoggedIn(); else cartLogin"
+       routerLink="/cart"
+       routerLinkActive="active"
+       class="nav-link">
+       🛒 Cart
+    </a>
 
-        <!-- LOGOUT -->
+    <ng-template #cartLogin>
+      <a routerLink="/login"
+         [queryParams]="{ returnUrl: '/cart' }"
+         class="nav-link">
+         🛒 Cart
+      </a>
+    </ng-template>
 
-        <button  *ngIf="isLoggedIn()" (click)="logout()" class="logout-icon-btn" type="button" aria-label="Logout" title="Logout">🔓</button>
-      </nav>
-    </div>
+    <!-- WISHLIST (login required) -->
+    <a *ngIf="isLoggedIn(); else wishlistLogin"
+       routerLink="/wishlist"
+       routerLinkActive="active"
+       class="nav-link">
+       ❤️ Wishlist
+    </a>
+
+    <ng-template #wishlistLogin>
+      <a routerLink="/login"
+         [queryParams]="{ returnUrl: '/wishlist' }"
+         class="nav-link">
+         ❤️ Wishlist
+      </a>
+    </ng-template>
+
+    <!-- LOGIN BUTTON -->
+    <a *ngIf="!isLoggedIn()"
+       routerLink="/login"
+       class="nav-link">
+       Login
+    </a>
+
+    <!-- LOGOUT -->
+    <button
+      *ngIf="isLoggedIn()"
+      (click)="logout()"
+      class="logout-icon-btn"
+      type="button"
+      aria-label="Logout"
+      title="Logout">
+      🔓
+    </button>
+
+  </nav>
+</div>
+```
+
   </div>
 </header>
+
+ 

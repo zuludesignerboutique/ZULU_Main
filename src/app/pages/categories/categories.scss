@@ -1,0 +1,22 @@
+.categories-page {
+  padding: 80px 0;
+}
+
+.category-card {
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-8px);
+}
+
+.category-card img {
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.category-card h4 {
+  font-weight: 600;
+}

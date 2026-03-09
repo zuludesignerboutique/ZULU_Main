@@ -1,6 +1,11 @@
-<app-header></app-header>
+<div class="app-wrapper">
 
-<router-outlet></router-outlet>
+  <app-header *ngIf="showLayout"></app-header>
 
-<app-footer></app-footer>
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
 
+  <app-footer *ngIf="showLayout"></app-footer>
+
+</div>

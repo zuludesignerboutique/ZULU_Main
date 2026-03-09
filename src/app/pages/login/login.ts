@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-
+import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -16,24 +16,29 @@ export class LoginComponent {
   password = '';
   error = '';
 
-  constructor(
-    private router: Router,
-    private auth: AuthService
-  ) {}
+    constructor(
+  private router: Router,
+  private route: ActivatedRoute,
+  private http: HttpClient,
+  private auth: AuthService
+) {}
 
   login() {
-    if (!this.email || !this.password) {
-      this.error = 'Please enter email and password';
-      return;
-    }
-if (this.email === 'test@test.com' && this.password === '123456') {
-  this.auth.login();              // 🔥 THIS WAS MISSING
-  this.router.navigate(['/home']); // 🔐 now allowed
-}
+    this.http.post<any>('http://localhost:4000/login', {
+      email: this.email,
+      password: this.password
+    }).subscribe({
+     next: (res: any) => {
+  this.auth.login();
 
- 
-else {
-      this.error = 'Invalid credentials (try test@test.com / 123456)';
-    }
+  const returnUrl =
+    this.route.snapshot.queryParams['returnUrl'] || '/home';
+
+  this.router.navigateByUrl(returnUrl);
+},
+      error: () => {
+        this.error = 'Invalid email or password';
+      }
+    });
   }
 }

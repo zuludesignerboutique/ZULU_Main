@@ -1,0 +1,41 @@
+<section class="categories-page container">
+
+  <h2 class="text-center mb-5">Shop by Category</h2>
+
+  <div class="row">
+
+    <!-- UNISEX COLLECTION -->
+    <div class="col-md-3 col-sm-6 mb-4">
+      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'unisex' }">
+        <img src="assets/images/unisex.jpg" class="img-fluid" alt="Unisex Collection">
+        <h4>Bridal Collection</h4>
+      </div>
+    </div>
+
+    <!-- BRIDAL COLLECTION -->
+    <div class="col-md-3 col-sm-6 mb-4">
+      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'bridal' }">
+        <img src="assets/images/bridal.jpg" class="img-fluid" alt="Bridal Collection">
+        <h4>Groom Collection</h4>
+      </div>
+    </div>
+
+    <!-- MENS COLLECTION -->
+    <div class="col-md-3 col-sm-6 mb-4">
+      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'mens' }">
+        <img src="assets/images/mens.jpg" class="img-fluid" alt="Mens Collection">
+        <h4>Party Wear</h4>
+      </div>
+    </div>
+
+    <!-- PARTY WEAR -->
+    <div class="col-md-3 col-sm-6 mb-4">
+      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'party' }">
+        <img src="assets/images/party.jpg" class="img-fluid" alt="Party Wear">
+        <h4>Casual Wear</h4>
+      </div>
+    </div>
+
+  </div>
+
+</section>

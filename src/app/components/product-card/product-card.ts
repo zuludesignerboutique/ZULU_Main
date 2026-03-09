@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { CartService } from '../../services/cart.service';
 import { WishlistService } from '../../services/wishlist.service';
 import { Product } from '../../core/models/product.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-product-card',
@@ -18,18 +19,35 @@ export class ProductCardComponent {
   constructor(
     private cartService: CartService,
     private wishlistService: WishlistService,
+    private auth: AuthService,
     private router: Router
   ) {}
 
-  addToCart(event: Event) {
-    event.stopPropagation(); // 🔥 stops routerLink click
-    this.cartService.add(this.product);
-    this.router.navigate(['/cart']); // optional redirect
+ addToCart(product: Product) {
+
+  if (!this.auth.isLoggedIn()) {
+
+    this.router.navigate(['/login'], {
+      queryParams: { returnUrl: this.router.url }
+    });
+
+    return;
   }
 
-  addToWishlist(event: Event) {
-    event.stopPropagation(); // 🔥 stops routerLink click
-    this.wishlistService.add(this.product);
-    this.router.navigate(['/wishlist']); // optional redirect
+  // existing add-to-cart logic
+}
+
+  addToWishlist(product: Product) {
+
+  if (!this.auth.isLoggedIn()) {
+
+    this.router.navigate(['/login'], {
+      queryParams: { returnUrl: this.router.url }
+    });
+
+    return;
   }
+
+  // wishlist logic
+}
 }

@@ -15,21 +15,29 @@ import { SignupComponent } from './pages/signup/signup';
 import { CartComponent } from './pages/cart/cart';
 import { WishlistComponent } from './pages/wishlist/wishlist';
 import { authGuard } from './guards/auth.guard';
+import { CategoryLandingComponent } from './pages/category-landing/category-landing';
+import { CategoriesComponent } from './pages/categories/categories';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
 
+  // { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', component: CategoryLandingComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
 
-{ path: 'home', component: HomeComponent, canActivate: [authGuard] },
-{ path: 'products', component: Products, canActivate: [authGuard] },
-{ path: 'gallery', component: Gallery, canActivate: [authGuard] },
-{ path: 'reviews', component: Reviews, canActivate: [authGuard] },
-{ path: 'contact', component: Contact, canActivate: [authGuard] },
+  
+{ path: 'home', component: HomeComponent },
+{ path: 'categories', component: CategoriesComponent },
+{ path: 'products', component: Products },
+{ path: 'gallery', component: Gallery },
+{ path: 'reviews', component: Reviews },
+{ path: 'contact', component: Contact },
+{ path: 'products/:id', component: ProductDetailsComponent },
+
+
+// Login required
 { path: 'cart', component: CartComponent, canActivate: [authGuard] },
 { path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
-{ path: 'products/:id', component: ProductDetailsComponent, canActivate: [authGuard] },
 
    { path: 'shipping-policy', component: ShippingPolicy },
   { path: 'privacy-policy', component: PrivacyPolicy },
@@ -37,5 +45,5 @@ export const routes: Routes = [
   { path: 'about-zora', component: AboutZora },
   { path: 'returns-exchange', component: ReturnsExchange },
 
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' }
 ];
