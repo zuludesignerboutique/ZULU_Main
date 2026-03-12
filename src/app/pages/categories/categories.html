@@ -4,36 +4,26 @@
 
   <div class="row">
 
-    <!-- UNISEX COLLECTION -->
-    <div class="col-md-3 col-sm-6 mb-4">
-      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'unisex' }">
-        <img src="assets/images/unisex.jpg" class="img-fluid" alt="Unisex Collection">
-        <h4>Bridal Collection</h4>
-      </div>
-    </div>
+    <div
+      class="col-md-3 mb-4"
+      *ngFor="let category of categories"
+    >
 
-    <!-- BRIDAL COLLECTION -->
-    <div class="col-md-3 col-sm-6 mb-4">
-      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'bridal' }">
-        <img src="assets/images/bridal.jpg" class="img-fluid" alt="Bridal Collection">
-        <h4>Groom Collection</h4>
-      </div>
-    </div>
+      <div
+        class="category-card text-center"
+        [routerLink]="category.route"
+      >
 
-    <!-- MENS COLLECTION -->
-    <div class="col-md-3 col-sm-6 mb-4">
-      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'mens' }">
-        <img src="assets/images/mens.jpg" class="img-fluid" alt="Mens Collection">
-        <h4>Party Wear</h4>
-      </div>
-    </div>
+        <img
+          [src]="category.image"
+          class="img-fluid"
+          alt="{{category.name}}"
+        >
 
-    <!-- PARTY WEAR -->
-    <div class="col-md-3 col-sm-6 mb-4">
-      <div class="category-card" routerLink="/products" [queryParams]="{ category: 'party' }">
-        <img src="assets/images/party.jpg" class="img-fluid" alt="Party Wear">
-        <h4>Casual Wear</h4>
+        <h4 class="mt-3">{{ category.name }}</h4>
+
       </div>
+
     </div>
 
   </div>

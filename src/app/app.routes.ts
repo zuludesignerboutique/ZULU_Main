@@ -17,6 +17,7 @@ import { WishlistComponent } from './pages/wishlist/wishlist';
 import { authGuard } from './guards/auth.guard';
 import { CategoryLandingComponent } from './pages/category-landing/category-landing';
 import { CategoriesComponent } from './pages/categories/categories';
+import { SubcategoriesComponent } from './pages/subcategories/subcategories';
 
 export const routes: Routes = [
 
@@ -33,6 +34,8 @@ export const routes: Routes = [
 { path: 'reviews', component: Reviews },
 { path: 'contact', component: Contact },
 { path: 'products/:id', component: ProductDetailsComponent },
+{ path: 'categories', component: CategoriesComponent },
+{ path: 'categories/:type', component: SubcategoriesComponent },
 
 
 // Login required
