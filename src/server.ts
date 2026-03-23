@@ -27,6 +27,7 @@ const db = await mysql.createPool({
    ANGULAR ENGINE
 ================================ */
 const angularApp = new AngularNodeAppEngine();
+app.use(express.json());
 
 /* ==============================
    API ROUTES
@@ -60,6 +61,50 @@ app.get('/api/subcategories/:categoryId', async (req, res) => {
   }
 });
 
+// GET all products
+app.get('/api/products', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM products');
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+
+// ADD product
+app.post('/api/products', async (req, res) => {
+  try {
+
+    const { name, description, price, category, subcategory, image, stock } = req.body;
+
+    const sql = `
+      INSERT INTO products 
+      (name, description, price, category, subcategory, image, stock)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const [result] = await db.query(sql, [
+      name,
+      description,
+      price,
+      category,
+      subcategory,
+      image,
+      stock
+    ]);
+
+    res.json({
+      message: "Product added successfully",
+      result
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 /* ==============================
    STATIC FILES
 ================================ */

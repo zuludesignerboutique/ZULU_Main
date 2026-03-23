@@ -9,25 +9,39 @@ import { AuthService } from './services/auth.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule,RouterOutlet, Header, Footer],
+  imports: [CommonModule, RouterOutlet, Header, Footer],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
 export class App {
 
- showLayout = true;
+  showLayout = true;
 
-constructor(
-  private auth: AuthService,
-  private router: Router
-) {
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) {
 
-  this.auth.logout(); // your existing logic
+    this.auth.logout(); // keep your existing logic
 
-  this.router.events.subscribe((event: any) => {
-    if (event instanceof NavigationEnd) {
-      this.showLayout = event.urlAfterRedirects !== '/';
-    }
-  });
-}
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+
+        const url = event.urlAfterRedirects;
+
+        // ❌ hide header/footer for admin routes
+        if (url.startsWith('/admin')) {
+          this.showLayout = false;
+        } 
+        // ❌ also hide for landing page if needed
+        else if (url === '/') {
+          this.showLayout = false;
+        } 
+        else {
+          this.showLayout = true;
+        }
+
+      });
+  }
 }

@@ -1,0 +1,43 @@
+<h2>Manage Products</h2>
+
+<button class="add-btn" routerLink="/admin/add-product">
+Add Product
+</button>
+
+<table class="product-table">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Price</th>
+<th>Action</th>
+<th>Image</th>
+</tr>
+<tbody *ngIf="products.length > 0">
+
+<tr *ngFor="let product of products">
+
+  <td>{{product.id}}</td>
+  <td>{{product.name}}</td>
+  <td>₹{{product.price}}</td>
+
+  <td>
+    <button class="delete" (click)="deleteProduct(product.id)">Delete</button>
+    <button class="edit" [routerLink]="['/admin/edit-product', product.id]">
+      Edit
+    </button>
+  </td>
+
+  <td>
+    <img 
+      [src]="'http://localhost:4000/uploads/' + product.image_url" 
+      width="50"
+    >
+  </td>
+<tr *ngFor="let product of products; trackBy: trackById">
+</tr>
+
+</tbody>
+
+</table>

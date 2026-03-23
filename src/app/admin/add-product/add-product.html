@@ -1,0 +1,42 @@
+<h2>Add Product</h2>
+
+<form (ngSubmit)="addProduct()">
+
+<div>
+<label>Product Name</label>
+<input type="text" [(ngModel)]="product.name" name="name" required>
+</div>
+
+<div>
+<label>Description</label>
+<input type="text" [(ngModel)]="product.description" name="description">
+</div>
+
+<div>
+<label>Price</label>
+<input type="number" [(ngModel)]="product.price" name="price" required>
+</div>
+
+<div>
+<label>Category</label>
+<input type="text" [(ngModel)]="product.category" name="category">
+</div>
+
+<div>
+<label>Subcategory</label>
+<input type="text" [(ngModel)]="product.subcategory" name="subcategory">
+</div>
+
+<div>
+<label>Image Name</label>
+<input type="file" (change)="onFileSelect($event)">
+</div>
+
+<div>
+<label>Stock</label>
+<input type="number" [(ngModel)]="product.stock" name="stock">
+</div>
+
+<button type="submit">Add Product</button>
+
+</form>

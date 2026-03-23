@@ -1,0 +1,29 @@
+<div class="admin-container">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2 class="logo">ZULU Admin</h2>
+
+    <a routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a>
+    <a routerLink="/admin/products" routerLinkActive="active">Products</a>
+    <a routerLink="/admin/add-product" routerLinkActive="active">Add Product</a>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main">
+
+    <!-- Header -->
+    <div class="header">
+      <h3>Admin Panel</h3>
+     
+      <button (click)="logout()"class="logout-btn">Logout</button>
+    </div>
+
+    <!-- Page Content -->
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+
+  </div>
+
+</div>

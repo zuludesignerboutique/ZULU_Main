@@ -1,0 +1,18 @@
+<h2>Edit Product</h2>
+
+<form (ngSubmit)="updateProduct()">
+
+<input [(ngModel)]="product.name" name="name" placeholder="Name">
+<input [(ngModel)]="product.description" name="description" placeholder="Description">
+<input [(ngModel)]="product.price" name="price" type="number" placeholder="Price">
+<input [(ngModel)]="product.category" name="category" placeholder="Category">
+<input [(ngModel)]="product.subcategory" name="subcategory" placeholder="Subcategory">
+<input [(ngModel)]="product.image" name="image" placeholder="Image">
+<div>
+  <label>Change Image</label>
+  <input type="file" (change)="onFileSelect($event)">
+</div>
+
+<button type="submit">Update</button>
+
+</form>

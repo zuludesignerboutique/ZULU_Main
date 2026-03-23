@@ -23,22 +23,30 @@ export class LoginComponent {
   private auth: AuthService
 ) {}
 
-  login() {
-    this.http.post<any>('http://localhost:4000/login', {
-      email: this.email,
-      password: this.password
-    }).subscribe({
-     next: (res: any) => {
-  this.auth.login();
+  login(){
 
-  const returnUrl =
-    this.route.snapshot.queryParams['returnUrl'] || '/home';
+  this.http.post<any>('http://localhost:4000/login', {
+    email: this.email,
+    password: this.password
+  }).subscribe(res => {
 
-  this.router.navigateByUrl(returnUrl);
-},
-      error: () => {
-        this.error = 'Invalid email or password';
-      }
-    });
-  }
+    if(res.user.role === 'admin'){
+
+      localStorage.setItem('admin', 'true');
+      this.router.navigate(['/admin/dashboard']);
+
+    } else {
+
+      localStorage.setItem('user', 'true');
+      this.router.navigate(['/home']);
+
+    }
+
+  }, err => {
+
+    alert("Invalid login");
+
+  });
+
+}
 }

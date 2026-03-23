@@ -18,7 +18,7 @@ import { authGuard } from './guards/auth.guard';
 import { CategoryLandingComponent } from './pages/category-landing/category-landing';
 import { CategoriesComponent } from './pages/categories/categories';
 import { SubcategoriesComponent } from './pages/subcategories/subcategories';
-
+import { adminGuard } from './admin/admin-guard';
 export const routes: Routes = [
 
   // { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -28,7 +28,6 @@ export const routes: Routes = [
 
   
 { path: 'home', component: HomeComponent },
-{ path: 'categories', component: CategoriesComponent },
 { path: 'products', component: Products },
 { path: 'gallery', component: Gallery },
 { path: 'reviews', component: Reviews },
@@ -37,8 +36,40 @@ export const routes: Routes = [
 { path: 'categories', component: CategoriesComponent },
 { path: 'categories/:type', component: SubcategoriesComponent },
 
+// admin login
 
-// Login required
+
+{
+  path: 'admin',
+  loadComponent: () =>
+    import('./admin/admin-layout/admin-layout').then(m => m.AdminLayoutComponent),
+  canActivate: [adminGuard],
+  children: [
+
+    {
+      path: 'dashboard',
+      loadComponent: () =>
+        import('./admin/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard)
+    },
+    {
+      path: 'products',
+      loadComponent: () =>
+        import('./admin/admin-products/admin-products').then(m => m.AdminProducts)
+    },
+    {
+      path: 'add-product',
+      loadComponent: () =>
+        import('./admin/add-product/add-product').then(m => m.AddProduct)
+    },
+    {
+      path: 'edit-product/:id',
+      loadComponent: () =>
+        import('./admin/edit-product/edit-product').then(m => m.EditProduct)
+    }
+
+  ]
+},
+
 { path: 'cart', component: CartComponent, canActivate: [authGuard] },
 { path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
 
