@@ -54,7 +54,8 @@ formData.append('price', this.product.price || 0);
 formData.append('category', this.product.category || '');
 formData.append('subcategory', this.product.subcategory || '');
 formData.append('stock', this.product.stock ? this.product.stock.toString() : '0');
-
+formData.append('product_code', this.product.product_code || '');
+formData.append('size', this.product.size || '');
     // ✅ only if new image selected
     if(this.selectedFile){
       formData.append('image', this.selectedFile);

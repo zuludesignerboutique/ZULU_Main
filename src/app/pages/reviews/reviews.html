@@ -1,62 +1,138 @@
-<section class="reviews-section">
-  <h2 class="section-title">CUSTOMER REVIEWS</h2>
+<section class="reviews-section container-fluid">
 
-  <!-- Review Form -->
-  <form class="review-form" (ngSubmit)="submitReview()">
-    <input
-      type="text"
-      placeholder="Your Name"
-      [(ngModel)]="newReview.name"
-      name="name"
-      required
-    />
+  <div class="row align-items-center">
 
-    <select [(ngModel)]="newReview.rating" name="rating" required>
-      <option *ngFor="let r of [5,4,3,2,1]" [value]="r">
-        {{ r }} Star
-      </option>
-    </select>
+    <!-- ══ LEFT CONTENT ══════════════════════════ -->
+    <div class="col-md-5 left-content">
 
-    <textarea
-      placeholder="Write your review..."
-      [(ngModel)]="newReview.comment"
-      name="comment"
-      required>
-    </textarea>
+      <span class="eyebrow">Client Testimonials</span>
 
-    <button type="submit">Submit Review</button>
-  </form>
+      <h2>What Our Happy<br><em>Clients Say</em></h2>
 
-  <!-- Review Cards -->
-  <div class="reviews-grid">
-    <div class="review-card" *ngFor="let review of reviews">
-
-      <!-- Header -->
-      <div class="review-header">
-        <div class="avatar">
-          {{ review.name.charAt(0) }}
-        </div>
-
-        <div class="user-info">
-          <h5>{{ review.name }}</h5>
-          <span class="date">
-            {{ review.createdAt | date:'mediumDate' }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Stars -->
-      <div class="stars">
-        <ng-container *ngFor="let star of [1,2,3,4,5]">
-          <span [class.filled]="star <= review.rating">★</span>
-        </ng-container>
-      </div>
-
-      <!-- Comment -->
-      <p class="comment">
-        “{{ review.comment }}”
+      <p>
+        Hear genuine feedback from clients who trust us for quality,
+        reliability, and results that speak for themselves.
       </p>
 
+      <!-- STATS ROW -->
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-number">4.9</div>
+          <div class="stat-label">Avg. Rating</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">200+</div>
+          <div class="stat-label">Reviews</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">98%</div>
+          <div class="stat-label">Satisfaction</div>
+        </div>
+      </div>
+
     </div>
+
+    <!-- ══ RIGHT REVIEWS ═════════════════════════ -->
+    <div class="col-md-7">
+
+      <!-- WRAPPER -->
+      <div class="reviews-wrapper">
+
+        <!-- SLIDER TRACK -->
+        <div
+          class="reviews-grid slider-track"
+          [style.transform]="'translateX(-' + currentIndex * 310 + 'px)'"
+        >
+
+          <div
+            class="review-card"
+            *ngFor="let review of reviews; let i = index"
+          >
+
+            <span class="quote">"</span>
+
+            <p class="review-text">{{ review.comment }}</p>
+
+            <div class="review-footer">
+
+              <!-- AVATAR -->
+              <div class="avatar">{{ review.name.charAt(0) }}</div>
+
+              <div>
+                <h6>{{ review.name }}</h6>
+
+                <!-- STARS -->
+                <div class="stars">
+                  <span
+                    *ngFor="let s of [1,2,3,4,5]"
+                    [class.filled]="s <= review.rating"
+                  >★</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- DOTS -->
+      <div class="slider-dots">
+        <button
+          class="dot"
+          *ngFor="let review of reviews; let i = index"
+          [class.active]="i === currentIndex"
+          (click)="goToSlide(i)"
+          [attr.aria-label]="'Go to review ' + (i + 1)"
+        ></button>
+      </div>
+
+    </div>
+
   </div>
+
+  <!-- ══ REVIEW FORM ══════════════════════════════ -->
+  <div class="review-form-container mt-5">
+
+    <div class="form-header">
+      <span>Share Your Experience</span>
+      <h3>Leave a Review</h3>
+    </div>
+
+    <form (ngSubmit)="submitReview()" class="review-form">
+
+      <input
+        type="text"
+        placeholder="Your Name"
+        [(ngModel)]="newReview.name"
+        name="name"
+        required
+      >
+
+      <select [(ngModel)]="newReview.rating" name="rating">
+        <option *ngFor="let r of [5,4,3,2,1]" [value]="r">
+          {{ r }} Star{{ r > 1 ? 's' : '' }}
+        </option>
+      </select>
+
+      <textarea
+        placeholder="Share your experience with us..."
+        [(ngModel)]="newReview.comment"
+        name="comment"
+      ></textarea>
+
+      <input
+        type="file"
+        (change)="onFileSelect($event)"
+        accept="image/*"
+      >
+
+      <button type="submit">Submit Review</button>
+
+    </form>
+
+  </div>
+
 </section>

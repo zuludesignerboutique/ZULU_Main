@@ -30,9 +30,9 @@ export const routes: Routes = [
 { path: 'home', component: HomeComponent },
 { path: 'products', component: Products },
 { path: 'gallery', component: Gallery },
-{ path: 'reviews', component: Reviews },
+{ path: 'reviews', component: Reviews, runGuardsAndResolvers: 'always' },
 { path: 'contact', component: Contact },
-{ path: 'products/:id', component: ProductDetailsComponent },
+
 { path: 'categories', component: CategoriesComponent },
 { path: 'categories/:type', component: SubcategoriesComponent },
 
@@ -68,6 +68,11 @@ export const routes: Routes = [
     }
 
   ]
+},
+{
+  path: 'product/:id',
+  loadComponent: () =>
+    import('./pages/product-view/product-view').then(m => m.ProductView)
 },
 
 { path: 'cart', component: CartComponent, canActivate: [authGuard] },

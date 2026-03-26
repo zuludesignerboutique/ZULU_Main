@@ -1,0 +1,33 @@
+<div class="container mt-5" *ngIf="product">
+
+  <div class="row">
+
+    <!-- IMAGE -->
+    <div class="col-md-6">
+      <img 
+  *ngIf="product.image_url"
+  [src]="'http://localhost:4000/uploads/' + product.image_url"
+        class="img-fluid rounded shadow"
+      >
+    </div>
+
+    <!-- DETAILS -->
+    <div class="col-md-6">
+
+      <h2 class="mb-3">{{ product.name }}</h2>
+
+      <p class="text-muted">{{ product.description }}</p>
+
+      <h4 class="text-danger mb-3">₹{{ product.price }}</h4>
+
+      <p><strong>Occasion:</strong> {{ product.category }}</p>
+
+      <p><strong>Size:</strong> {{ product.size || 'Not specified' }}</p>
+
+      <p><strong>Product Code:</strong> {{ product.product_code || 'N/A' }}</p>
+
+    </div>
+
+  </div>
+
+</div>

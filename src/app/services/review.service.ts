@@ -1,37 +1,29 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { Review } from '../core/models/review.model';
-
+import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
 export class ReviewService {
+  constructor(private http: HttpClient) {}
 
-  private reviews: Review[] = [
-    {
-      id: 1,
-      name: 'Aishwarya',
-      rating: 5,
-      comment: 'Absolutely loved the bridal collection!',
-      createdAt: new Date()
-    },
-    {
-      id: 2,
-      name: 'Sneha',
-      rating: 4,
-      comment: 'Elegant designs and good quality.',
-      createdAt: new Date()
-    }
-  ];
+apiUrl = 'http://localhost:4000/reviews';
 
-  private reviewsSubject = new BehaviorSubject<Review[]>(this.reviews);
-
-  getReviews(): Observable<Review[]> {
-    return this.reviewsSubject.asObservable();
-  }
-
-  addReview(review: Review): void {
-    this.reviews.unshift(review);
-    this.reviewsSubject.next(this.reviews);
-  }
+getReviews(): Observable<Review[]> {
+  return this.http.get<any[]>(this.apiUrl).pipe(
+    map((data) =>
+      data.map((item) => ({
+        ...item,
+        createdAt: item.created_at // 🔥 FIX HERE
+      }))
+    )
+  );
 }
+
+addReview(review: Review | FormData) {
+  return this.http.post(this.apiUrl, review);
+}
+}
+

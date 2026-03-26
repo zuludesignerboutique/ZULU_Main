@@ -5,7 +5,8 @@
     <div class="product-card" *ngFor="let product of products$ | async">
 
       <div class="image-box">
-       <img [src]="'http://localhost:4000/uploads/' + product.image_url"[alt]="product.name" />
+       <img [src]="'http://localhost:4000/uploads/' + product.image_url"
+       [alt]="product.name" />
       </div>
 
       <div class="product-info">
@@ -14,7 +15,12 @@
 
         <div class="price-row">
           <span class="price">₹{{ product.price }}</span>
-          <button class="view-btn">View</button>
+         <button 
+  class="view-btn"
+  [routerLink]="['/product', product.id]"
+>
+  View
+</button>
         </div>
       </div>
 

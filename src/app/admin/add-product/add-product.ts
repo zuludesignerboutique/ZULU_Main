@@ -45,7 +45,8 @@ export class AddProduct {
     formData.append('category', this.product.category);
     formData.append('subcategory', this.product.subcategory);
     formData.append('stock', this.product.stock.toString());
-
+    formData.append('product_code', this.product.product_code || '');
+    formData.append('size', this.product.size || '');
     if(this.selectedFile){
       formData.append('image', this.selectedFile);
     }
