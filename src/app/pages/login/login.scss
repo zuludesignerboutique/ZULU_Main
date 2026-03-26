@@ -1,47 +1,434 @@
-.auth-container {
-  max-width: 380px;
-  margin: 80px auto;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  background: white;
+// ─────────────────────────────────────────────
+//  TOKENS (consistent with landing / header / footer)
+// ─────────────────────────────────────────────
+
+$font-display : 'Playfair Display', Georgia, serif;
+$font-body    : 'DM Sans', 'Segoe UI', sans-serif;
+$font-mono    : 'DM Mono', monospace;
+
+$bg-base      : #faf8f5;
+$gold         : #a8843a;
+$gold-light   : #c9a84c;
+$gold-dim     : rgba(168, 132, 58, 0.13);
+$gold-border  : rgba(168, 132, 58, 0.35);
+
+$ink          : #1a1814;
+$ink-soft     : #3d3a35;
+$muted        : #8a8070;
+$border       : rgba(0, 0, 0, 0.09);
+$border-focus : rgba(168, 132, 58, 0.55);
+
+$error-color  : #b84040;
+$error-bg     : rgba(184, 64, 64, 0.07);
+
+// Left panel palette
+$panel-bg-from : #1a1410;
+$panel-bg-to   : #0e0b08;
+$panel-gold    : #c9a84c;
+$panel-muted   : rgba(255, 255, 255, 0.38);
+
+// ─────────────────────────────────────────────
+//  PAGE SHELL — full-viewport split layout
+// ─────────────────────────────────────────────
+
+.auth-page {
+  display: flex;
+  min-height: 100vh;
+  background: $bg-base;
+  font-family: $font-body;
+}
+
+// ─────────────────────────────────────────────
+//  LEFT BRAND PANEL
+// ─────────────────────────────────────────────
+
+.auth-panel-left {
+  position: relative;
+  width: 42%;
+  flex-shrink: 0;
+  background: linear-gradient(155deg, $panel-bg-from 0%, $panel-bg-to 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 48px;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    display: none; // hide on mobile, show form full-width
+  }
+}
+
+// Noise texture
+.panel-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+}
+
+// Soft orbs
+.panel-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.orb-a {
+  width: 360px; height: 360px;
+  background: rgba(201, 168, 76, 0.09);
+  top: -80px; left: -80px;
+  animation: orbDrift 14s ease-in-out infinite;
+}
+
+.orb-b {
+  width: 280px; height: 280px;
+  background: rgba(168, 132, 58, 0.07);
+  bottom: -60px; right: -60px;
+  animation: orbDrift 10s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+@keyframes orbDrift {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-24px); }
+}
+
+// Brand content
+.panel-brand {
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
-h2 {
-  margin-bottom: 20px;
+.panel-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: $panel-gold;
+  margin-bottom: 24px;
+  opacity: 0.7;
 }
 
-input {
+.eyebrow-line {
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: $panel-gold;
+  opacity: 0.5;
+}
+
+.panel-logo {
+  font-family: $font-display;
+  font-size: clamp(3.5rem, 6vw, 5.5rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #ffffff;
+  margin: 0 0 18px;
+  line-height: 1;
+}
+
+.panel-tagline {
+  font-family: $font-body;
+  font-size: 1rem;
+  color: $panel-muted;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.panel-footer-quote {
+  position: absolute;
+  bottom: 40px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: $font-display;
+  font-style: italic;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.22);
+  line-height: 1.75;
+  padding: 0 40px;
+  z-index: 1;
+}
+
+// Vertical gold divider between panels
+.auth-panel-left::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  right: 0;
+  bottom: 10%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.25) 30%, rgba(201,168,76,0.25) 70%, transparent);
+}
+
+// ─────────────────────────────────────────────
+//  RIGHT FORM PANEL
+// ─────────────────────────────────────────────
+
+.auth-panel-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 32px;
+  background: $bg-base;
+}
+
+// ─────────────────────────────────────────────
+//  AUTH CARD
+// ─────────────────────────────────────────────
+
+.auth-card {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
+  max-width: 420px;
+  animation: cardReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─────────────────────────────────────────────
+//  HEADER
+// ─────────────────────────────────────────────
+
+.auth-header {
+  margin-bottom: 36px;
+}
+
+.auth-eyebrow {
+  font-family: $font-mono;
+  font-size: 0.67rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $gold;
+  margin-bottom: 10px;
+}
+
+.auth-title {
+  font-family: $font-display;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  color: $ink;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 10px;
+}
+
+.auth-sub {
+  font-size: 0.88rem;
+  color: $muted;
+  font-weight: 300;
+  margin: 0;
+  line-height: 1.6;
+}
+
+// ─────────────────────────────────────────────
+//  FORM
+// ─────────────────────────────────────────────
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+// Side-by-side password fields (signup only)
+.fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  FIELD
+// ─────────────────────────────────────────────
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $ink-soft;
+}
+
+.field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-icon {
+  position: absolute;
+  left: 14px;
+  width: 15px;
+  height: 15px;
+  color: $muted;
+  pointer-events: none;
+  flex-shrink: 0;
+  transition: color 0.25s ease;
+}
+
+.field-input {
+  width: 100%;
+  padding: 11px 14px 11px 40px;
+  background: #ffffff;
+  border: 1px solid $border;
+  border-radius: 10px;
+  font-family: $font-body;
+  font-size: 0.88rem;
+  color: $ink;
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+
+  &::placeholder {
+    color: rgba($muted, 0.7);
+  }
+
+  &:focus {
+    border-color: $border-focus;
+    box-shadow: 0 0 0 3px rgba(168, 132, 58, 0.1);
+  }
+
+  &:focus ~ .field-icon,
+  .field-wrap:focus-within .field-icon {
+    color: $gold;
+  }
+}
+
+// Focus-within icon color
+.field-wrap:focus-within .field-icon {
+  color: $gold;
+}
+
+// ─────────────────────────────────────────────
+//  ERROR MESSAGE
+// ─────────────────────────────────────────────
+
+.error-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: $error-bg;
+  border: 1px solid rgba(184, 64, 64, 0.2);
   border-radius: 8px;
-  border: 1px solid #ddd;
+  padding: 10px 14px;
+  font-size: 0.83rem;
+  color: $error-color;
+  margin: 0;
+
+  svg {
+    width: 15px; height: 15px;
+    flex-shrink: 0;
+  }
 }
 
-button {
+// ─────────────────────────────────────────────
+//  SUBMIT BUTTON
+// ─────────────────────────────────────────────
+
+.auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
-  padding: 12px;
-  border-radius: 999px;
-  background: black;
-  color: white;
-  border: none;
+  padding: 13px 24px;
+  background: $ink;
+  color: #ffffff;
+  border: 1px solid $ink;
+  border-radius: 10px;
+  font-family: $font-body;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  margin-top: 4px;
+
+  svg {
+    width: 15px; height: 15px;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    background: $gold;
+    border-color: $gold;
+    box-shadow: 0 8px 24px rgba(168, 132, 58, 0.28);
+    transform: translateY(-1px);
+
+    svg { transform: translateX(4px); }
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
 }
 
-button:hover {
-  transform: translateY(-1px);
-  opacity: 0.9;
+// ─────────────────────────────────────────────
+//  SWITCH LINK
+// ─────────────────────────────────────────────
+
+.auth-switch {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: $muted;
+  font-weight: 300;
 }
 
-.error {
-  color: crimson;
-  margin-top: 10px;
+.auth-link {
+  color: $gold;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: darken($gold, 10%);
+  }
 }
 
-.switch {
-  margin-top: 15px;
-  font-size: 14px;
+// ─────────────────────────────────────────────
+//  RESPONSIVE — mobile full-width
+// ─────────────────────────────────────────────
+
+@media (max-width: 900px) {
+  .auth-panel-right {
+    padding: 48px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-title {
+    font-size: 1.8rem;
+  }
+
+  .auth-panel-right {
+    padding: 40px 20px;
+    align-items: flex-start;
+    padding-top: 60px;
+  }
 }

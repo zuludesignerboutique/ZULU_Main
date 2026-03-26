@@ -1,80 +1,101 @@
-<footer class="zora-footer" style="background-image: url(assets/images/header2.jpg) ;"> 
-  <!-- changes done in background image -->
-  <div class="container">
+<footer class="zora-footer" style="background-image: url(assets/images/header2.jpg); background-size: cover; background-position: center;">
 
-    <!-- Brand -->
-    <div class="footer-brand text-center mb-5">
+  <div class="footer-overlay"></div>
+
+  <div class="footer-inner container">
+
+    <!-- BRAND HEADER -->
+    <div class="footer-brand text-center">
+      <div class="footer-brand-eyebrow">
+        <span class="eyebrow-line"></span>
+        <span>Est. 2024</span>
+        <span class="eyebrow-line"></span>
+      </div>
       <h2 class="brand-name">ZULU</h2>
       <p class="brand-tagline">Where Elegance Meets Identity</p>
     </div>
 
-    <div class="row">
+    <div class="footer-divider-top"></div>
+
+    <!-- COLUMNS -->
+    <div class="row footer-cols">
 
       <!-- OUR STORE -->
-      <div class="col-md-3 col-sm-6 mb-4">
+      <div class="col-md-3 col-sm-6 mb-5">
         <h5 class="footer-title">Our Store</h5>
         <ul class="footer-list">
           <li><a routerLink="/about-zora">About ZORA</a></li>
-          
-          <li><a href="#">shop1</a></li>
-          <li><a href="#">shop2</a></li>
+          <li><a href="#">Shop Zulu</a></li>
+          <li><a href="#">New Arrivals</a></li>
         </ul>
       </div>
 
-      <!-- NEED ASSISTANCE -->
-      <div class="col-md-3 col-sm-6 mb-4">
+      <!-- ASSISTANCE -->
+      <div class="col-md-3 col-sm-6 mb-5">
         <h5 class="footer-title">Need Assistance</h5>
         <ul class="footer-list">
           <li><a routerLink="/contact">Contact Us</a></li>
-          <li><a routerLink="/returns-exchange">Returns & Exchange</a></li>
+          <li><a routerLink="/returns-exchange">Returns &amp; Exchange</a></li>
           <li><a href="#">FAQs</a></li>
         </ul>
       </div>
 
-      <!-- TERMS + SOCIAL -->
-      <div class="col-md-3 col-sm-6 mb-4">
+      <!-- LEGAL -->
+      <div class="col-md-3 col-sm-6 mb-5">
         <h5 class="footer-title">Legal</h5>
-       <ul class="footer-list">
-  <li><a routerLink="/privacy-policy">Privacy Policy</a></li>
-  <li><a routerLink="/terms-conditions">Terms & Conditions</a></li>
-  <li><a routerLink="/shipping-policy">Shipping Policy</a></li>
-</ul>
+        <ul class="footer-list">
+          <li><a routerLink="/privacy-policy">Privacy Policy</a></li>
+          <li><a routerLink="/terms-conditions">Terms &amp; Conditions</a></li>
+          <li><a routerLink="/shipping-policy">Shipping Policy</a></li>
+        </ul>
 
-
-        <div class="social-icons mt-3">
-          <a href="#"><i class="bi bi-instagram"></i></a>
-          <a href=""><i class="bi bi-whatsapp"></i></a>
-          <a href="#"><i class="bi bi-facebook"></i></a>
-          
+        <div class="social-icons">
+          <a href="#" aria-label="Instagram" class="social-btn">
+            <i class="bi bi-instagram"></i>
+          </a>
+          <a href="#" aria-label="WhatsApp" class="social-btn">
+            <i class="bi bi-whatsapp"></i>
+          </a>
+          <a href="#" aria-label="Facebook" class="social-btn">
+            <i class="bi bi-facebook"></i>
+          </a>
         </div>
       </div>
 
       <!-- NEWSLETTER -->
-      <div class="col-md-3 col-sm-6 mb-4">
+      <div class="col-md-3 col-sm-6 mb-5">
         <h5 class="footer-title">Stay Connected</h5>
         <p class="newsletter-text">
-          Subscribe for exclusive collections & offers.
+          Subscribe for exclusive collections &amp; early access offers.
         </p>
-
         <form class="newsletter-form">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            class="form-control mb-2"
-          />
-          <button type="submit" class="btn subscribe-btn w-100">
-            Subscribe
+          <div class="newsletter-input-wrap">
+            <input type="email" placeholder="Your email address" class="newsletter-input" />
+          </div>
+          <button type="submit" class="subscribe-btn">
+            <span>Subscribe</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </button>
         </form>
       </div>
 
     </div>
+    <!-- END COLUMNS -->
 
-    <hr class="footer-divider">
+    <div class="footer-divider"></div>
 
-    <p class="footer-bottom text-center">
-      © 2025 ZORA Boutique. Crafted with elegance.
-    </p>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 ZORA Boutique. Crafted with elegance.</p>
+      <div class="footer-bottom-links">
+        <a routerLink="/privacy-policy">Privacy</a>
+        <span class="sep">·</span>
+        <a routerLink="/terms-conditions">Terms</a>
+        <span class="sep">·</span>
+        <a routerLink="/sitemap">Sitemap</a>
+      </div>
+    </div>
 
   </div>
 </footer>

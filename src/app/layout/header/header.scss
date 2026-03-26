@@ -1,112 +1,292 @@
+// ─────────────────────────────────────────────
+//  TOKENS (mirror landing page)
+// ─────────────────────────────────────────────
+
+$font-display : 'Playfair Display', Georgia, serif;
+$font-body    : 'DM Sans', 'Segoe UI', sans-serif;
+$font-mono    : 'DM Mono', monospace;
+
+$gold         : #c9a84c;
+$gold-dim     : rgba(201, 168, 76, 0.25);
+$white        : #ffffff;
+$white-soft   : rgba(255, 255, 255, 0.88);
+$white-muted  : rgba(255, 255, 255, 0.55);
+$white-dim    : rgba(255, 255, 255, 0.12);
+
+// ─────────────────────────────────────────────
+//  TOP BAR
+// ─────────────────────────────────────────────
 
 .top-bar {
-  margin: 0; /* remove default paragraph margin */
-  padding: 10px 0; /* optional spacing */
-  font-family: "Pacifico", cursive;
-  font-weight: 400;
-  font-style: normal;
-  letter-spacing: 2px;
-  word-spacing: 2px;
-  font-size: 20px;
-  color: rgba(0, 0, 0, 0.9);
+  background: $gold;
+  padding: 8px 0;
   text-align: center;
+  overflow: hidden;
 }
 
-/* Header */
-.main-header {
-  background: #fff;
-  border-bottom: 1px solid #eee;
-    max-width: 100%;
-  overflow-x: hidden;
-}
-.main-header .d-flex {
-  padding: 0 20px;
-}
-/* Logo */
-.logo {
-  margin-left: 0px;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  cursor: pointer;
-}
-
-/* Nav */
-.nav-menu {
-  display: flex;
-  gap: 25px;
-  flex-wrap: nowrap;
+.top-bar-inner {
+  display: inline-flex;
   align-items: center;
-}
-
-.nav-link {
-  color: #ffffff;
-  font-size: 20px;
+  gap: 14px;
+  font-family: $font-mono;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #3a2800;
   font-weight: 500;
-  text-decoration: none;
+}
+
+.top-bar-dot {
+  font-size: 0.55rem;
+  opacity: 0.7;
+}
+
+// ─────────────────────────────────────────────
+//  MAIN HEADER
+// ─────────────────────────────────────────────
+
+.main-header {
   position: relative;
-  padding-bottom: 4px;
-   white-space: nowrap;
-}
-.nav-link.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none; // 🔒 cannot click
-}
-
-/* Hover + Active underline */
-.nav-link::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 0;
-  height: 2px;
-  background: #ffffff;
-  transition: width 0.3s ease;
-}
-
-.nav-link:hover::after,
-.nav-link.active::after {
   width: 100%;
+  height: 90px;
+  overflow: hidden;
+
+  // keep background-image from HTML; just override old bg color
+  background-color: transparent;
 }
 
-// logout 
-.logout-icon-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 20px;
-  
-  margin-right: 0px;
+// Overlay — dark gradient so text stays legible on any photo
+.header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 8, 4, 0.62) 0%,
+    rgba(10, 8, 4, 0.42) 100%
+  );
+  backdrop-filter: blur(0px);
+  z-index: 0;
+}
+
+// Inner layout row
+.header-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+// ─────────────────────────────────────────────
+//  LOGO
+// ─────────────────────────────────────────────
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
   cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  text-decoration: none;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: $font-display;
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: $white;
   line-height: 1;
 }
 
-.logout-icon-btn:hover {
-  transform: scale(1.15);
-  opacity: 0.85;
+.logo-tagline {
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: $gold;
 }
 
-.logout-icon-btn:active {
-  transform: scale(0.95);
+// ─────────────────────────────────────────────
+//  NAV LINKS
+// ─────────────────────────────────────────────
+
+.nav-menu {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
+.nav-link {
+  font-family: $font-body;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $white-soft;
+  text-decoration: none;
+  position: relative;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: color 0.25s ease, background 0.25s ease;
+  white-space: nowrap;
 
+  &::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 2px;
+    height: 1px;
+    background: $gold;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 
+  &:hover,
+  &.active {
+    color: $white;
 
+    &::after {
+      transform: scaleX(1);
+    }
+  }
 
+  &.active {
+    color: $gold;
+  }
 
-// .top-bar {
+  &.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
 
-//   margin-top: 10px;
-//  font-family: "Pacifico", cursive;
-//   font-weight: 400;
-//   font-style: normal;
-//   letter-spacing: 2px;
-//   word-spacing: 2px;
-//   font-size: 20px;
-//   color: rgba(0, 0, 0, 0.9);  /* Soft luxury white on image */
-//   text-align: center;
-// }
+// ─────────────────────────────────────────────
+//  ACTION BUTTONS (cart / wishlist / login)
+// ─────────────────────────────────────────────
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: $font-body;
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: $white-soft;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  white-space: nowrap;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    color: $white;
+    background: $white-dim;
+    border-color: rgba(255,255,255,0.18);
+
+    svg { transform: scale(1.1); }
+  }
+
+  &.active {
+    color: $gold;
+  }
+}
+
+.login-btn {
+  background: $gold-dim;
+  border-color: rgba(201, 168, 76, 0.45);
+  color: $gold;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+
+  &:hover {
+    background: rgba(201, 168, 76, 0.35);
+    border-color: $gold;
+    color: #fff8e1;
+  }
+}
+
+.logout-btn {
+  padding: 6px 10px;
+
+  svg { width: 17px; height: 17px; }
+
+  &:hover {
+    color: #ffb3b3;
+    background: rgba(255,100,100,0.1);
+    border-color: rgba(255,100,100,0.25);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  RESPONSIVE
+// ─────────────────────────────────────────────
+
+@media (max-width: 992px) {
+  .nav-menu {
+    gap: 0px;
+  }
+
+  .nav-link {
+    font-size: 0.72rem;
+    padding: 6px 8px;
+  }
+
+  .action-btn span {
+    display: none; // hide text labels on tablet, keep icons
+  }
+}
+
+@media (max-width: 768px) {
+  .main-header {
+    height: auto;
+  }
+
+  .header-inner {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .nav-menu {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
+
+  .logo-text {
+    font-size: 1.5rem;
+  }
+}

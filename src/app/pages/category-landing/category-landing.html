@@ -1,12 +1,29 @@
 <!-- LANDING HERO SECTION -->
 <section class="landing-container">
 
-  <div class="overlay"></div>
+  <div class="hero-bg">
+    <div class="noise-overlay"></div>
+    <div class="gradient-mesh"></div>
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
+  </div>
 
   <div class="content text-center">
 
-    <h1 class="title">Welcome to Our Boutique Collection</h1>
-    <p class="subtitle">Choose your style and explore elegance</p>
+    <div class="eyebrow-label">
+      <span class="eyebrow-line"></span>
+      <span>Est. 2024</span>
+      <span class="eyebrow-line"></span>
+    </div>
+
+    <h1 class="title">
+      <span class="title-line line-1">Welcome to</span>
+      <span class="title-line line-2">Our Boutique</span>
+      <span class="title-line line-3">Collection</span>
+    </h1>
+
+    <p class="subtitle">Choose your style &mdash; explore where elegance lives</p>
 
     <!-- CATEGORY CARDS -->
     <div class="row category-row">
@@ -14,105 +31,181 @@
       <!-- ZULU -->
       <div class="col-md-4 mb-4">
         <div class="category-card zulu" (click)="navigateTo('home')">
+          <div class="card-shimmer"></div>
+          <div class="card-bg"></div>
           <div class="card-content">
+            <div class="card-icon">✦</div>
             <h3>Zulu / Zora</h3>
             <p>Elegant. Modern. Timeless.</p>
-            <button class="btn btn-light">Enter Zulu</button>
+            <button class="btn-enter">
+              <span>Enter Zulu</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
           </div>
+          <div class="card-border-glow"></div>
         </div>
       </div>
 
       <!-- POOBOO -->
       <div class="col-md-4 mb-4">
         <div class="category-card pooboo" (click)="navigateTo('POOBOO')">
+          <div class="card-shimmer"></div>
+          <div class="card-bg"></div>
           <div class="card-content">
+            <div class="card-icon">✿</div>
             <h3>Pooboo</h3>
             <p>Cute. Colorful. Playful.</p>
-            <button class="btn btn-light">Enter Pooboo</button>
+            <button class="btn-enter">
+              <span>Enter Pooboo</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
           </div>
+          <div class="card-border-glow"></div>
         </div>
       </div>
 
       <!-- AURUM -->
       <div class="col-md-4 mb-4">
         <div class="category-card aurum" (click)="navigateTo('aurum')">
+          <div class="card-shimmer"></div>
+          <div class="card-bg"></div>
           <div class="card-content">
+            <div class="card-icon">◈</div>
             <h3>Aurum</h3>
             <p>Shine with Grace.</p>
-            <button class="btn btn-light">Coming Soon</button>
+            <button class="btn-enter btn-soon">
+              <span>Coming Soon</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+            </button>
           </div>
+          <div class="card-border-glow"></div>
         </div>
       </div>
 
     </div>
     <!-- CATEGORY CARDS END -->
 
+    <div class="scroll-indicator">
+      <span>Discover Our Story</span>
+      <div class="scroll-line"></div>
+    </div>
+
   </div>
 
 </section>
 <!-- LANDING HERO END -->
-<!-- BRAND STORIES SECTION -->
-<section class="brand-stories container mt-5">
 
-  <h2 class="text-center section-title">Our Brands</h2>
-  <p class="text-center section-subtitle">
-    Three unique identities. One shared vision of creativity and craftsmanship.
-  </p>
+<!-- BRAND STORIES SECTION -->
+<section class="brand-stories">
+
+  <div class="stories-header container">
+    <div class="eyebrow-label light">
+      <span class="eyebrow-line"></span>
+      <span>The Universe</span>
+      <span class="eyebrow-line"></span>
+    </div>
+    <h2 class="section-title">Our Brands</h2>
+    <p class="section-subtitle">
+      Three unique identities. One shared vision of creativity and craftsmanship.
+    </p>
+  </div>
 
   <!-- ZULU STORY -->
-  <div class="brand-story row align-items-center mt-5">
+  <div class="brand-story brand-zulu">
+    <div class="container">
+      <div class="row align-items-center">
 
-    <div class="col-md-6">
-      <h3>Zulu</h3>
-      <p>
-        Zulu represents individuality and creativity. Built around the idea of
-        customizable fashion, Zulu allows people to express themselves through
-        unique designs, modern styles, and personalized clothing. It is a brand
-        where fashion meets identity.
-      </p>
+        <div class="col-md-6 story-text">
+          <div class="brand-tag">01 — Zulu</div>
+          <h3>Where Fashion<br>Meets Identity</h3>
+          <p>
+            Zulu represents individuality and creativity. Built around the idea of
+            customizable fashion, Zulu allows people to express themselves through
+            unique designs, modern styles, and personalized clothing. It is a brand
+            where fashion meets identity.
+          </p>
+          <a class="story-link" href="#">Explore Zulu
+            <span class="story-link-line"></span>
+          </a>
+        </div>
+
+        <div class="col-md-6 story-visual">
+          <div class="story-img-frame zulu-frame">
+            <img src="assets/zulu-story.jpg" class="img-fluid story-img" alt="Zulu Brand">
+            <div class="frame-accent frame-accent-tl"></div>
+            <div class="frame-accent frame-accent-br"></div>
+          </div>
+        </div>
+
+      </div>
     </div>
-
-    <div class="col-md-6">
-      <img src="assets/zulu-story.jpg" class="img-fluid story-img" alt="Zulu Brand">
-    </div>
-
   </div>
 
   <!-- POOBOO STORY -->
-  <div class="brand-story row align-items-center mt-5 flex-md-row-reverse">
+  <div class="brand-story brand-pooboo">
+    <div class="container">
+      <div class="row align-items-center flex-md-row-reverse">
 
-    <div class="col-md-6">
-      <h3>Pooboo</h3>
-      <p>
-        Pooboo is dedicated to the joyful world of children. Designed for babies
-        and kids, Pooboo focuses on comfort, safety, and colorful creativity.
-        Every piece is crafted to bring smiles, warmth, and playful fashion for
-        the little ones.
-      </p>
+        <div class="col-md-6 story-text">
+          <div class="brand-tag">02 — Pooboo</div>
+          <h3>Joy Woven Into<br>Every Stitch</h3>
+          <p>
+            Pooboo is dedicated to the joyful world of children. Designed for babies
+            and kids, Pooboo focuses on comfort, safety, and colorful creativity.
+            Every piece is crafted to bring smiles, warmth, and playful fashion for
+            the little ones.
+          </p>
+          <a class="story-link" href="#">Explore Pooboo
+            <span class="story-link-line"></span>
+          </a>
+        </div>
+
+        <div class="col-md-6 story-visual">
+          <div class="story-img-frame pooboo-frame">
+            <img src="assets/pooboo-story.jpg" class="img-fluid story-img" alt="Pooboo Brand">
+            <div class="frame-accent frame-accent-tl"></div>
+            <div class="frame-accent frame-accent-br"></div>
+          </div>
+        </div>
+
+      </div>
     </div>
-
-    <div class="col-md-6">
-      <img src="assets/pooboo-story.jpg" class="img-fluid story-img" alt="Pooboo Brand">
-    </div>
-
   </div>
 
   <!-- AURUM STORY -->
-  <div class="brand-story row align-items-center mt-5">
+  <div class="brand-story brand-aurum">
+    <div class="container">
+      <div class="row align-items-center">
 
-    <div class="col-md-6">
-      <h3>Aurum</h3>
-      <p>
-        Aurum celebrates elegance and timeless beauty. Focused on ornaments and
-        jewelry, Aurum blends tradition with modern design to create pieces that
-        shine with grace and sophistication.
-      </p>
+        <div class="col-md-6 story-text">
+          <div class="brand-tag">03 — Aurum</div>
+          <h3>Timeless Beauty<br>Redefined</h3>
+          <p>
+            Aurum celebrates elegance and timeless beauty. Focused on ornaments and
+            jewelry, Aurum blends tradition with modern design to create pieces that
+            shine with grace and sophistication.
+          </p>
+          <a class="story-link soon-link" href="#">Launching Soon
+            <span class="story-link-line"></span>
+          </a>
+        </div>
+
+        <div class="col-md-6 story-visual">
+          <div class="story-img-frame aurum-frame">
+            <img src="assets/aurum-story.jpg" class="img-fluid story-img" alt="Aurum Brand">
+            <div class="frame-accent frame-accent-tl"></div>
+            <div class="frame-accent frame-accent-br"></div>
+          </div>
+        </div>
+
+      </div>
     </div>
-
-    <div class="col-md-6">
-      <img src="assets/aurum-story.jpg" class="img-fluid story-img" alt="Aurum Brand">
-    </div>
-
   </div>
 
 </section>

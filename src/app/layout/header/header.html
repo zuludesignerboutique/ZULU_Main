@@ -1,107 +1,97 @@
-
-
-<p class="top-bar">
-  ✨ Turn moments into looks ✨
-</p>
-
-<!-- Main Header -->
-
-<header class="main-header" style="height: 150px; background-image: url(assets/images/header2.jpg); background-size: cover; background-position: center;">
-  <div class="container-fluid px-0">
-    <div class="d-flex justify-content-between align-items-center py-4">
-
-
-  <!-- Logo -->
-  <div
-    class="logo"
-    routerLink="/home"
-    style="color: white; cursor: pointer;"
-    aria-label="ZULU home"
-  >
-    ZULU
-  </div>
-
-  <!-- Navigation -->
-  <nav class="nav-menu">
-
-    <!-- HOME -->
-    <a routerLink="/home" routerLinkActive="active" class="nav-link">HOME</a>
-
-    <!-- PRODUCTS -->
-    <a routerLink="/products" routerLinkActive="active" class="nav-link">
-      PRODUCTS
-    </a>
-
-    <!-- GALLERY -->
-    <a routerLink="/gallery" routerLinkActive="active" class="nav-link">
-      GALLERY
-    </a>
-
-    <!-- REVIEWS -->
-    <a routerLink="/reviews" routerLinkActive="active" class="nav-link">
-      REVIEWS
-    </a>
-
-    <!-- CONTACT -->
-    <a routerLink="/contact" routerLinkActive="active" class="nav-link">
-      CONTACT
-    </a>
-
-    <!-- CART (login required) -->
-    <a *ngIf="isLoggedIn(); else cartLogin"
-       routerLink="/cart"
-       routerLinkActive="active"
-       class="nav-link">
-       🛒 Cart
-    </a>
-
-    <ng-template #cartLogin>
-      <a routerLink="/login"
-         [queryParams]="{ returnUrl: '/cart' }"
-         class="nav-link">
-         🛒 Cart
-      </a>
-    </ng-template>
-
-    <!-- WISHLIST (login required) -->
-    <a *ngIf="isLoggedIn(); else wishlistLogin"
-       routerLink="/wishlist"
-       routerLinkActive="active"
-       class="nav-link">
-       ❤️ Wishlist
-    </a>
-
-    <ng-template #wishlistLogin>
-      <a routerLink="/login"
-         [queryParams]="{ returnUrl: '/wishlist' }"
-         class="nav-link">
-         ❤️ Wishlist
-      </a>
-    </ng-template>
-
-    <!-- LOGIN BUTTON -->
-    <a *ngIf="!isLoggedIn()"
-       routerLink="/login"
-       class="nav-link">
-       Login
-    </a>
-
-    <!-- LOGOUT -->
-    <button
-      *ngIf="isLoggedIn()"
-      (click)="logout()"
-      class="logout-icon-btn"
-      type="button"
-      aria-label="Logout"
-      title="Logout">
-      🔓
-    </button>
-
-  </nav>
+<!-- TOP BAR -->
+<div class="top-bar">
+  <span class="top-bar-inner">
+    <span class="top-bar-dot">✦</span>
+    Turn moments into looks
+    <span class="top-bar-dot">✦</span>
+  </span>
 </div>
-```
+
+<!-- MAIN HEADER -->
+<header class="main-header" style="background-image: url(assets/images/header2.jpg); background-size: cover; background-position: center;">
+
+  <div class="header-overlay"></div>
+
+  <div class="header-inner container-fluid px-4">
+
+    <!-- LOGO -->
+    <div class="logo" routerLink="/home" aria-label="ZULU home">
+      <span class="logo-text">ZULU</span>
+      <span class="logo-tagline">Boutique</span>
+    </div>
+
+    <!-- DESKTOP NAV -->
+    <nav class="nav-menu">
+      <a routerLink="/home"     routerLinkActive="active" class="nav-link">Home</a>
+      <a routerLink="/products" routerLinkActive="active" class="nav-link">Products</a>
+      <a routerLink="/gallery"  routerLinkActive="active" class="nav-link">Gallery</a>
+      <a routerLink="/reviews"  routerLinkActive="active" class="nav-link">Reviews</a>
+      <a routerLink="/contact"  routerLinkActive="active" class="nav-link">Contact</a>
+    </nav>
+
+    <!-- ACTIONS -->
+    <div class="nav-actions">
+
+      <!-- CART -->
+      <a *ngIf="isLoggedIn(); else cartLogin"
+         routerLink="/cart"
+         routerLinkActive="active"
+         class="action-btn"
+         aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+        <span>Cart</span>
+      </a>
+      <ng-template #cartLogin>
+        <a routerLink="/login" [queryParams]="{ returnUrl: '/cart' }" class="action-btn" aria-label="Cart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          <span>Cart</span>
+        </a>
+      </ng-template>
+
+      <!-- WISHLIST -->
+      <a *ngIf="isLoggedIn(); else wishlistLogin"
+         routerLink="/wishlist"
+         routerLinkActive="active"
+         class="action-btn"
+         aria-label="Wishlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+        <span>Wishlist</span>
+      </a>
+      <ng-template #wishlistLogin>
+        <a routerLink="/login" [queryParams]="{ returnUrl: '/wishlist' }" class="action-btn" aria-label="Wishlist">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          </svg>
+          <span>Wishlist</span>
+        </a>
+      </ng-template>
+
+      <!-- LOGIN -->
+      <a *ngIf="!isLoggedIn()" routerLink="/login" class="action-btn login-btn">
+        Login
+      </a>
+
+      <!-- LOGOUT -->
+      <button *ngIf="isLoggedIn()" (click)="logout()" class="action-btn logout-btn" type="button" aria-label="Logout" title="Logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+
+    </div>
 
   </div>
-</header>
 
- 
+</header>

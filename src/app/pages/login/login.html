@@ -1,30 +1,98 @@
-<div class="auth-container">
-  <h2>Login to ZORA</h2>
+<div class="auth-page">
 
-  <form (ngSubmit)="login()">
-    <input
-      type="email"
-      placeholder="Email"
-      [(ngModel)]="email"
-      name="email"
-      required
-    />
+  <!-- LEFT PANEL — decorative brand side -->
+  <div class="auth-panel-left">
+    <div class="panel-noise"></div>
+    <div class="panel-orb orb-a"></div>
+    <div class="panel-orb orb-b"></div>
 
-    <input
-      type="password"
-      placeholder="Password"
-      [(ngModel)]="password"
-      name="password"
-      required
-    />
+    <div class="panel-brand">
+      <div class="panel-eyebrow">
+        <span class="eyebrow-line"></span>
+        <span>Boutique</span>
+        <span class="eyebrow-line"></span>
+      </div>
+      <h1 class="panel-logo">ZULU</h1>
+      <p class="panel-tagline">Where Elegance<br>Meets Identity</p>
+    </div>
 
-    <button type="submit">Login</button>
-  </form>
+    <div class="panel-footer-quote">
+      "Fashion is the armour<br>to survive everyday life."
+    </div>
+  </div>
 
-  <p class="error" *ngIf="error">{{ error }}</p>
+  <!-- RIGHT PANEL — form -->
+  <div class="auth-panel-right">
+    <div class="auth-card">
 
-  <p class="switch">
-    Don’t have an account?
-    <a routerLink="/signup">Sign up</a>
-  </p>
+      <div class="auth-header">
+        <div class="auth-eyebrow">Welcome back</div>
+        <h2 class="auth-title">Sign in to ZORA</h2>
+        <p class="auth-sub">Access your account and explore the collection</p>
+      </div>
+
+      <form (ngSubmit)="login()" class="auth-form">
+
+        <div class="field-group">
+          <label class="field-label" for="login-email">Email address</label>
+          <div class="field-wrap">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <input
+              id="login-email"
+              type="email"
+              placeholder="you@example.com"
+              [(ngModel)]="email"
+              name="email"
+              required
+              class="field-input"
+            />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="login-password">Password</label>
+          <div class="field-wrap">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+            <input
+              id="login-password"
+              type="password"
+              placeholder="••••••••"
+              [(ngModel)]="password"
+              name="password"
+              required
+              class="field-input"
+            />
+          </div>
+        </div>
+
+        <p class="error-msg" *ngIf="error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ error }}
+        </p>
+
+        <button type="submit" class="auth-btn">
+          <span>Sign In</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+      </form>
+
+      <p class="auth-switch">
+        Don't have an account?
+        <a routerLink="/signup" class="auth-link">Create one →</a>
+      </p>
+
+    </div>
+  </div>
+
 </div>

@@ -13,19 +13,21 @@ export class CategoryLandingComponent {
 
   constructor(private router: Router) {}
 
-  navigateTo(site: string) {
+  navigateTo(site: string): void {
+    const normalized = site.toLowerCase();
 
-  if (site === 'pooboo') {
-    window.location.href = 'http://localhost:4300'; // Pooboo project
-    return;
+    if (normalized === 'pooboo') {
+      window.location.href = 'http://localhost:4300';
+      return;
+    }
+
+    if (normalized === 'aurum') {
+      // Aurum is not yet launched — no-op or show a toast instead of alert
+      // alert('Aurum is coming soon!');
+      return;
+    }
+
+    // Default → Zulu / home
+    this.router.navigate(['/home']);
   }
-
-  if (site === 'aurum') {
-    alert('Aurum is coming soon!');
-    return;
-  }
-
-  // Zulu
-  this.router.navigate(['/home']);
-}
 }

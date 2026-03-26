@@ -1,91 +1,348 @@
+// ─────────────────────────────────────────────
+//  TOKENS
+// ─────────────────────────────────────────────
+
+$font-display : 'Playfair Display', Georgia, serif;
+$font-body    : 'DM Sans', 'Segoe UI', sans-serif;
+$font-mono    : 'DM Mono', monospace;
+
+$gold         : #c9a84c;
+$gold-light   : #e8d48a;
+$gold-dim     : rgba(201, 168, 76, 0.18);
+
+$white        : #ffffff;
+$white-soft   : rgba(255, 255, 255, 0.82);
+$white-muted  : rgba(255, 255, 255, 0.45);
+$white-dim    : rgba(255, 255, 255, 0.08);
+$border       : rgba(255, 255, 255, 0.1);
+
+// ─────────────────────────────────────────────
+//  FOOTER SHELL
+// ─────────────────────────────────────────────
+
 .zora-footer {
-  background: #eebbd2;
-  color: #2b2b2b;
-  font-family: 'Poppins', sans-serif;
-  padding-top: 4rem;
-  margin-bottom: 0px;
+  position: relative;
+  // background-image kept via inline style in HTML
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; // parallax feel
+  color: $white-soft;
+  font-family: $font-body;
   margin-top: auto;
+  overflow: hidden;
+}
 
-  .footer-brand {
-    .brand-name {
-      font-size: 2.2rem;
-      font-weight: 600;
-      letter-spacing: 4px;
+// Dark overlay so text is always legible over the photo
+.footer-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 6, 2, 0.78) 0%,
+    rgba(8, 6, 2, 0.88) 100%
+  );
+  z-index: 0;
+}
+
+.footer-inner {
+  position: relative;
+  z-index: 1;
+  padding-top: 64px;
+  padding-bottom: 0;
+}
+
+// ─────────────────────────────────────────────
+//  BRAND BLOCK
+// ─────────────────────────────────────────────
+
+.footer-brand {
+  margin-bottom: 48px;
+}
+
+.footer-brand-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: $font-mono;
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: $gold;
+  margin-bottom: 16px;
+}
+
+.eyebrow-line {
+  display: block;
+  width: 32px;
+  height: 1px;
+  background: $gold;
+  opacity: 0.6;
+}
+
+.brand-name {
+  font-family: $font-display;
+  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: $white;
+  margin: 0 0 8px;
+  line-height: 1;
+}
+
+.brand-tagline {
+  font-family: $font-body;
+  font-size: 0.85rem;
+  color: $white-muted;
+  letter-spacing: 0.12em;
+  font-weight: 300;
+  margin: 0;
+}
+
+.footer-divider-top {
+  height: 1px;
+  background: $border;
+  margin-bottom: 48px;
+}
+
+// ─────────────────────────────────────────────
+//  COLUMNS
+// ─────────────────────────────────────────────
+
+.footer-cols {
+  // handled by Bootstrap row
+}
+
+// ─────────────────────────────────────────────
+//  TITLES & LISTS
+// ─────────────────────────────────────────────
+
+.footer-title {
+  font-family: $font-mono;
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $gold;
+  margin-bottom: 20px;
+  position: relative;
+
+  &::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: $gold;
+    margin-top: 8px;
+    opacity: 0.5;
+  }
+}
+
+.footer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    margin-bottom: 10px;
+  }
+
+  a {
+    font-size: 0.88rem;
+    color: $white-muted;
+    text-decoration: none;
+    font-weight: 300;
+    position: relative;
+    padding-bottom: 1px;
+    transition: color 0.25s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: 0;
+      width: 0;
+      height: 1px;
+      background: $gold;
+      transition: width 0.3s ease;
     }
-
-    .brand-tagline {
-      font-size: 0.9rem;
-      color: #777;
-      letter-spacing: 1px;
-    }
-  }
-
-  .footer-title {
-    font-size: 1rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    letter-spacing: 1px;
-  }
-
-  .footer-list {
-    list-style: none;
-    padding: 0;
-
-    li {
-      margin-bottom: 0.5rem;
-
-      a {
-        color: #555;
-        font-size: 0.9rem;
-        transition: color 0.3s ease;
-
-        &:hover {
-          color: #000;
-        }
-      }
-    }
-  }
-
-  .newsletter-text {
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 0.8rem;
-  }
-
-  .subscribe-btn {
-    background: #000;
-    color: #fff;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    border-radius: 0;
-    transition: background 0.3s ease;
 
     &:hover {
-      background: #333;
+      color: $white;
+
+      &::after { width: 100%; }
     }
   }
+}
 
-  .social-icons {
-    a {
-      color: #000;
-      margin-right: 12px;
-      font-size: 1.2rem;
-      transition: transform 0.3s ease;
+// ─────────────────────────────────────────────
+//  SOCIAL ICONS
+// ─────────────────────────────────────────────
 
-      &:hover {
-        transform: translateY(-3px);
-      }
-    }
+.social-icons {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid $border;
+  color: $white-muted;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    background: $gold-dim;
+    border-color: rgba(201, 168, 76, 0.4);
+    color: $gold-light;
+    transform: translateY(-3px);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  NEWSLETTER
+// ─────────────────────────────────────────────
+
+.newsletter-text {
+  font-size: 0.84rem;
+  color: $white-muted;
+  font-weight: 300;
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+
+.newsletter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.newsletter-input-wrap {
+  position: relative;
+}
+
+.newsletter-input {
+  width: 100%;
+  background: $white-dim;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-family: $font-body;
+  font-size: 0.83rem;
+  color: $white;
+  outline: none;
+  transition: border-color 0.25s ease, background 0.25s ease;
+
+  &::placeholder {
+    color: $white-muted;
   }
 
-  .footer-divider {
-    margin-top: 2rem;
-    border-color: #ddd;
+  &:focus {
+    border-color: rgba(201, 168, 76, 0.5);
+    background: rgba(255,255,255,0.1);
+  }
+}
+
+.subscribe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: $gold-dim;
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  color: $gold;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: $font-body;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    background: rgba(201, 168, 76, 0.3);
+    border-color: $gold;
+    color: $gold-light;
+
+    svg { transform: translateX(4px); }
+  }
+}
+
+// ─────────────────────────────────────────────
+//  DIVIDER + BOTTOM BAR
+// ─────────────────────────────────────────────
+
+.footer-divider {
+  height: 1px;
+  background: $border;
+  margin: 16px 0 0;
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer-copy {
+  font-family: $font-mono;
+  font-size: 0.68rem;
+  color: $white-muted;
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+
+.footer-bottom-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+
+  a {
+    color: $white-muted;
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover { color: $gold; }
+  }
+
+  .sep {
+    color: $white-muted;
+    opacity: 0.4;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  RESPONSIVE
+// ─────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .zora-footer {
+    background-attachment: scroll; // fixed doesn't work well on mobile
   }
 
   .footer-bottom {
-    font-size: 0.8rem;
-    color: #777;
-    padding-bottom: 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .brand-name {
+    font-size: 2.4rem;
   }
 }
