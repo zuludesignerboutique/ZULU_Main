@@ -17,7 +17,7 @@
           <span class="price">₹{{ product.price }}</span>
          <button 
   class="view-btn"
-  [routerLink]="['/product', product.id]"
+  [routerLink]="['/product', product.id]" [state]="{ product: product }"
 >
   View
 </button>
