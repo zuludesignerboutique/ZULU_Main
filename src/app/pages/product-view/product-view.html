@@ -1,4 +1,4 @@
-<div class="product-page" *ngIf="product; else loadingState">
+<div class="product-page" *ngIf="!isLoading && product; else loadingState">
 
   <!-- BREADCRUMB -->
   <nav class="product-breadcrumb">

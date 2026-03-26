@@ -19,6 +19,7 @@ export class ProductView implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   product: any = null;
+  isLoading = true;
   isWishlisted = false;
 
   readonly imageBase = 'http://localhost:4000/uploads/';
@@ -40,15 +41,19 @@ export class ProductView implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   ngOnInit(): void {
-    // Instant paint from router state (avoids blank screen on navigation)
-    const nav = this.router.getCurrentNavigation();
-    const stateProduct = nav?.extras?.state?.['product'];
+    const id = this.route.snapshot.params['id'];
+
+    // ── Read router state via history.state ──────────────────────────────
+    // getCurrentNavigation() is ALWAYS null by the time ngOnInit runs
+    // because the navigation has already completed. history.state is the
+    // correct, reliable way to read extras.state after a routerLink/navigate.
+    const stateProduct = history.state?.product;
     if (stateProduct) {
-      this.product = stateProduct;
+      this.product   = stateProduct;
+      this.isLoading = false; // instant paint — HTTP refresh still runs below
     }
 
-    // Always fetch fresh data in the background
-    const id = this.route.snapshot.params['id'];
+    // Always fetch fresh data from the server
     this.fetchProduct(id);
 
     // Restore wishlist state
@@ -69,8 +74,14 @@ export class ProductView implements OnInit, OnDestroy {
       .get(`http://localhost:4000/api/products/${id}`)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => { this.product = data; },
-        error: (err)  => { console.error('Failed to load product:', err); }
+        next: (data) => {
+          this.product   = data;
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Failed to load product:', err);
+          this.isLoading = false;
+        }
       });
   }
 
