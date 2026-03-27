@@ -1,13 +1,75 @@
-<section
-  id="frontimage"
-  class="d-flex align-items-center justify-content-center text-white">
+<!-- ══ HERO ══════════════════════════════════════ -->
+<section class="hero">
+
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+
+    <div class="hero-eyebrow">
+      <span>New Collection — 2025</span>
+    </div>
+
+    <h1>
+      Crafted for
+      <em>Every Occasion</em>
+    </h1>
+
+    <p class="hero-sub">
+      Timeless silhouettes. Exquisite fabrics.<br>
+      Designs that make you unforgettable.
+    </p>
+
+    <div class="hero-cta">
+      <a routerLink="/categories" class="btn-primary-hero">Shop Collection</a>
+      <a routerLink="/about" class="btn-ghost-hero">Our Story</a>
+    </div>
+
+  </div>
+
+  <!-- Scroll hint -->
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+
 </section>
 
+<!-- ══ MARQUEE STRIP ════════════════════════════ -->
+<div class="marquee-strip" aria-hidden="true">
+  <div class="marquee-inner">
+    <span class="marquee-item">Bridal Couture</span>
+    <span class="marquee-item">Ethnic Sarees</span>
+    <span class="marquee-item">Party Wear</span>
+    <span class="marquee-item">Luxury Fabrics</span>
+    <span class="marquee-item">Handcrafted Details</span>
+    <span class="marquee-item">Free Shipping</span>
+    <!-- Duplicate for seamless loop -->
+    <span class="marquee-item">Bridal Couture</span>
+    <span class="marquee-item">Ethnic Sarees</span>
+    <span class="marquee-item">Party Wear</span>
+    <span class="marquee-item">Luxury Fabrics</span>
+    <span class="marquee-item">Handcrafted Details</span>
+    <span class="marquee-item">Free Shipping</span>
+  </div>
+</div>
 
+<!-- ══ COLLECTION ════════════════════════════════ -->
+<section class="collection">
 
-<!-- Products Section -->
-<section class="products">
-  <h2 class="section-title">OUR NEW COLLECTION</h2>
+  <div class="collection-header">
+    <div class="header-left">
+      <p class="eyebrow">Featured Pieces</p>
+      <h2>Our New <em>Collection</em></h2>
+    </div>
+    <div class="header-right">
+      <p>
+        Each piece is a testament to craftsmanship —
+        designed to celebrate the most important
+        moments of your life.
+      </p>
+    </div>
+  </div>
 
   <div class="product-grid">
     <app-product-card
@@ -16,18 +78,33 @@
     </app-product-card>
   </div>
 
-<div class="text-center mt-4">
-  <button
-    type="button"
-    class="btn btn-outline-dark"
-    routerLink="/categories">
-    Explore Collection
-  </button>
-</div>
-
-
+  <div class="explore-wrap">
+    <a routerLink="/categories" class="btn-explore">
+      <span>Explore Full Collection</span>
+    </a>
+  </div>
 
 </section>
 
+<!-- ══ BRAND STRIP ════════════════════════════════ -->
+<div class="brand-strip">
 
+  <div class="brand-item">
+    <span class="brand-icon">✦</span>
+    <div class="brand-title">Artisan Made</div>
+    <p class="brand-desc">Every stitch placed with intention by skilled craftspeople with decades of heritage.</p>
+  </div>
 
+  <div class="brand-item">
+    <span class="brand-icon">◈</span>
+    <div class="brand-title">Luxe Fabrics</div>
+    <p class="brand-desc">Sourced from the finest mills — silk, georgette, and hand-woven textiles.</p>
+  </div>
+
+  <div class="brand-item">
+    <span class="brand-icon">❋</span>
+    <div class="brand-title">Made to Last</div>
+    <p class="brand-desc">Timeless designs that transcend seasons and stay with you for a lifetime.</p>
+  </div>
+
+</div>
