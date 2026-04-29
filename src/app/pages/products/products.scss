@@ -1,11 +1,11 @@
 /* ════════════════════════════════════════════════
    PRODUCTS LISTING — Dark Luxury Editorial
-   Matches product-view theme
    ════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap');
 
-:root {
+// ✅ Changed :root to :host so CSS variables resolve correctly inside Angular component
+:host {
   --ink:       #0d0d0d;
   --ink-soft:  #1c1c1c;
   --card:      #161616;
@@ -34,17 +34,16 @@
 // ── SECTION ──────────────────────────────────────
 .products-section {
   min-height: 100vh;
-  background: var(--ink);
+  background: #0d0d0d;
   padding: 0 64px 96px;
   font-family: 'Jost', sans-serif;
-  color: var(--text);
+  color: #f0ece4;
 
-  // Top gold rule (matches product-view)
   &::before {
     content: '';
     display: block;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    background: linear-gradient(90deg, transparent, #c8a96e, transparent);
     margin-bottom: 0;
   }
 
@@ -66,7 +65,7 @@
   font-size: 10px;
   letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: #c8a96e;
   margin-bottom: 14px;
   opacity: 0.8;
 }
@@ -76,7 +75,7 @@
   font-size: clamp(28px, 4vw, 48px);
   font-weight: 400;
   letter-spacing: -.01em;
-  color: var(--text);
+  color: #f0ece4;
   margin: 0 0 16px;
   line-height: 1.1;
 }
@@ -84,7 +83,7 @@
 .section-rule {
   width: 48px;
   height: 1px;
-  background: var(--gold);
+  background: #c8a96e;
   opacity: 0.6;
   margin-top: 4px;
 }
@@ -107,18 +106,20 @@
 
 // ── CARD ─────────────────────────────────────────
 .product-card {
-  background: var(--card);
-  border-radius: var(--radius-lg);
+  background: #161616;
+  border-radius: 14px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,0.07);
   cursor: pointer;
+  // ✅ Fixed: use hardcoded cubic-bezier instead of var(--ease) to ensure animation works
   transition:
-    transform 0.4s var(--ease),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.3s,
     box-shadow 0.4s;
-  // Staggered entrance animations
+
+  // ✅ Fixed: opacity starts at 0 but animation brings it to 1 using hardcoded values
   opacity: 0;
-  animation: fadeUp 0.55s var(--ease) forwards;
+  animation: fadeUp 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 
   @for $i from 1 through 12 {
     &:nth-child(#{$i}) {
@@ -130,7 +131,7 @@
     transform: translateY(-8px);
     border-color: rgba(200,169,110,.2);
     box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,169,110,.08);
-    background: var(--card-hover);
+    background: #1e1e1e;
   }
 }
 
@@ -146,14 +147,13 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.7s var(--ease);
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .product-card:hover img {
     transform: scale(1.07);
   }
 
-  // Gradient overlay
   &::after {
     content: '';
     position: absolute;
@@ -179,13 +179,13 @@
 // ── CARD INFO ────────────────────────────────────
 .product-info {
   padding: 18px 20px 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255,255,255,0.07);
 
   h4 {
     font-family: 'Playfair Display', serif;
     font-size: 16px;
     font-weight: 400;
-    color: var(--text);
+    color: #f0ece4;
     margin: 0 0 5px;
     white-space: nowrap;
     overflow: hidden;
@@ -194,7 +194,7 @@
 
   .category {
     font-size: 12px;
-    color: var(--muted);
+    color: rgba(240,236,228,0.45);
     letter-spacing: .03em;
     margin: 0 0 14px;
     white-space: nowrap;
@@ -215,14 +215,14 @@
   font-family: 'Jost', sans-serif;
   font-size: 15px;
   font-weight: 600;
-  color: var(--text);
+  color: #f0ece4;
   letter-spacing: .02em;
 
   &::before {
     content: '₹';
     font-weight: 300;
     font-size: 13px;
-    color: var(--muted);
+    color: rgba(240,236,228,0.45);
     margin-right: 1px;
   }
 }
@@ -240,13 +240,13 @@
   font-weight: 600;
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: #c8a96e;
   overflow: hidden;
   transition:
     background 0.25s,
     border-color 0.25s,
     color 0.25s,
-    transform 0.2s var(--spring),
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.25s;
   white-space: nowrap;
 
@@ -254,10 +254,10 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--gold);
+    background: #c8a96e;
     transform: scaleX(0);
     transform-origin: left;
-    transition: transform 0.25s var(--ease);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
   }
 
@@ -267,9 +267,9 @@
   }
 
   &:hover {
-    color: var(--ink);
-    border-color: var(--gold);
-    box-shadow: 0 4px 20px var(--gold-glow);
+    color: #0d0d0d;
+    border-color: #c8a96e;
+    box-shadow: 0 4px 20px rgba(200,169,110,0.25);
     transform: scale(1.04);
 
     &::before { transform: scaleX(1); }
@@ -282,7 +282,7 @@
 .empty-state {
   text-align: center;
   padding: 80px 20px;
-  color: var(--muted);
+  color: rgba(240,236,228,0.45);
 
   .empty-icon {
     display: block;
@@ -300,18 +300,18 @@
 
 // ── SKELETON / LOADING STATE ─────────────────────
 .skeleton-card {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  background: #161616;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.07);
   overflow: hidden;
 }
 
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--card) 25%,
-    var(--ink-soft) 50%,
-    var(--card) 75%
+    #161616 25%,
+    #1c1c1c 50%,
+    #161616 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
