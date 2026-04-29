@@ -3,10 +3,10 @@
   <!-- BREADCRUMB -->
   <nav class="product-breadcrumb">
     <a routerLink="/">Home</a>
-    <span>/</span>
+    <span class="sep">/</span>
     <a routerLink="/products">Collection</a>
-    <span>/</span>
-    <span class="current">{{ product.name }}</span>
+    <span class="sep">/</span>
+    <span class="current">{{ product?.name || 'Product' }}</span>
   </nav>
 
   <!-- MAIN GRID -->
@@ -19,26 +19,37 @@
       <span
         class="stock-badge"
         [ngClass]="{
-          'in-stock':  product.stock > 5,
-          'low-stock': product.stock > 0 && product.stock <= 5,
-          'out-stock': product.stock === 0
+          'in-stock':  (product?.stock || 0) > 5,
+          'low-stock': (product?.stock || 0) > 0 && (product?.stock || 0) <= 5,
+          'out-stock': (product?.stock || 0) === 0
         }"
       >
-        {{ product.stock > 5 ? 'In Stock' : product.stock > 0 ? 'Only ' + product.stock + ' left' : 'Sold Out' }}
+        <span class="badge-dot"></span>
+        {{
+          (product?.stock || 0) > 5
+            ? 'In Stock'
+            : (product?.stock || 0) > 0
+            ? 'Only ' + product.stock + ' left'
+            : 'Sold Out'
+        }}
       </span>
 
       <div class="image-frame">
         <img
-          *ngIf="product.image_url; else imagePlaceholder"
+          *ngIf="product?.image_url; else imagePlaceholder"
           [src]="imageBase + product.image_url"
-          [alt]="product.name"
-          loading="lazy"
+          [alt]="product?.name"
+          loading="eager"
         >
         <ng-template #imagePlaceholder>
-          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.1);font-size:48px;">
-            ◈
-          </div>
+          <div class="image-placeholder">◈</div>
         </ng-template>
+      </div>
+
+      <!-- Decorative index line -->
+      <div class="panel-index">
+        <span>01</span>
+        <div class="index-line"></div>
       </div>
 
     </div>
@@ -48,20 +59,22 @@
 
       <!-- EYEBROW -->
       <div class="product-eyebrow">
-        <span class="tag" *ngIf="product.category">{{ product.category }}</span>
-        <span class="code" *ngIf="product.product_code"># {{ product.product_code }}</span>
+        <span class="tag" *ngIf="product?.category">{{ product.category }}</span>
+        <span class="code" *ngIf="product?.product_code"># {{ product.product_code }}</span>
       </div>
 
       <!-- NAME -->
-      <h1 class="product-name">{{ product.name }}</h1>
+      <h1 class="product-name">{{ product?.name }}</h1>
 
       <!-- DESCRIPTION -->
-      <p class="product-description">{{ product.description }}</p>
+      <p class="product-description">
+        {{ product?.description || 'No description available.' }}
+      </p>
 
       <!-- PRICE -->
       <div class="product-price">
         <span class="currency">₹</span>
-        <span class="amount">{{ product.price | number }}</span>
+        <span class="amount">{{ product?.price | number }}</span>
         <span class="tax-note">incl. taxes</span>
       </div>
 
@@ -72,22 +85,22 @@
 
         <div class="meta-item">
           <div class="meta-label">Occasion</div>
-          <div class="meta-value">{{ product.category || '—' }}</div>
+          <div class="meta-value">{{ product?.category || '—' }}</div>
         </div>
 
         <div class="meta-item">
           <div class="meta-label">Size</div>
-          <div class="meta-value">{{ product.size || '—' }}</div>
+          <div class="meta-value">{{ product?.size || 'Not specified' }}</div>
         </div>
 
         <div class="meta-item">
           <div class="meta-label">Product Code</div>
-          <div class="meta-value">{{ product.product_code || '—' }}</div>
+          <div class="meta-value">{{ product?.product_code || 'Not available' }}</div>
         </div>
 
         <div class="meta-item">
           <div class="meta-label">Availability</div>
-          <div class="meta-value">{{ product.stock }} units</div>
+          <div class="meta-value">{{ product?.stock ?? 0 }} units</div>
         </div>
 
       </div>
@@ -97,10 +110,20 @@
 
         <button
           class="btn-cart"
-          [disabled]="product.stock === 0"
+          [class.added]="cartAdded"
+          [disabled]="(product?.stock || 0) === 0"
           (click)="addToCart()"
         >
-          {{ product.stock === 0 ? 'Sold Out' : 'Add to Cart' }}
+          <span class="btn-label">
+            <ng-container *ngIf="(product?.stock || 0) === 0">Sold Out</ng-container>
+            <ng-container *ngIf="(product?.stock || 0) > 0 && !cartAdded">
+              <span class="btn-icon">＋</span> Add to Cart
+            </ng-container>
+            <ng-container *ngIf="cartAdded">
+              <span class="btn-icon">✓</span> Added!
+            </ng-container>
+          </span>
+          <span class="btn-shimmer"></span>
         </button>
 
         <button
@@ -109,7 +132,7 @@
           (click)="toggleWishlist()"
           [attr.aria-label]="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
         >
-          {{ isWishlisted ? '♥' : '♡' }}
+          <span class="heart-icon">{{ isWishlisted ? '♥' : '♡' }}</span>
         </button>
 
       </div>
@@ -120,10 +143,13 @@
           <span class="trust-icon">🚚</span>
           Free delivery on orders ₹999+
         </div>
-       
         <div class="trust-item">
           <span class="trust-icon">✦</span>
-          Authentic & verified
+          Authentic &amp; verified
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">↩</span>
+          Easy 7-day returns
         </div>
       </div>
 
@@ -136,18 +162,24 @@
 <!-- ══ LOADING STATE ════════════════════════════ -->
 <ng-template #loadingState>
   <div class="product-page">
-    <div class="product-grid" style="padding-top: 80px;">
+    <div class="product-grid loading-grid">
       <div class="image-panel">
         <div class="skeleton sk-image"></div>
       </div>
       <div class="details-panel">
+        <div class="skeleton sk-eyebrow"></div>
         <div class="skeleton sk-title"></div>
-        <div class="skeleton sk-line" style="width:90%"></div>
-        <div class="skeleton sk-line" style="width:75%"></div>
-        <div class="skeleton sk-line" style="width:82%"></div>
+        <div class="skeleton sk-line" style="width:88%"></div>
+        <div class="skeleton sk-line" style="width:72%"></div>
+        <div class="skeleton sk-line" style="width:80%"></div>
         <div class="skeleton sk-price"></div>
-        <div class="skeleton sk-line" style="width:60%; height:52px; border-radius:4px;"></div>
+        <div class="skeleton sk-btn"></div>
       </div>
+    </div>
+    <div class="loading-label">
+      <span class="spinner-dot"></span>
+      <span class="spinner-dot"></span>
+      <span class="spinner-dot"></span>
     </div>
   </div>
 </ng-template>

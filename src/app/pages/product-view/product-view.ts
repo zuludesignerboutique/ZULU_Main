@@ -1,131 +1,158 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-view',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './product-view.html',
   styleUrl: './product-view.scss'
 })
 export class ProductView implements OnInit, OnDestroy {
 
-  // ══════════════════════════════════════════════
-  // STATE
-  // ══════════════════════════════════════════════
+  product: any;
+  isLoading: boolean = true;
+  isWishlisted: boolean = false;
+  cartAdded: boolean = false;
+  error: string | null = null;
 
-  product: any = null;
-  isLoading = true;
-  isWishlisted = false;
+  imageBase: string = 'http://localhost:4000/uploads/';
 
-  readonly imageBase = 'http://localhost:4000/uploads/';
+  // ✅ Captured in constructor while navigation is still active
+  private navStateProduct: any = null;
 
   private destroy$ = new Subject<void>();
-
-  // ══════════════════════════════════════════════
-  // CONSTRUCTOR
-  // ══════════════════════════════════════════════
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    // ✅ Must be read here — getCurrentNavigation() returns null after navigation completes
+    this.navStateProduct =
+      this.router.getCurrentNavigation()?.extras?.state?.['product'] ?? null;
+  }
 
-  // ══════════════════════════════════════════════
-  // LIFECYCLE
-  // ══════════════════════════════════════════════
-
-  ngOnInit(): void {
+  ngOnInit() {
     const id = this.route.snapshot.params['id'];
 
-    // ── Read router state via history.state ──────────────────────────────
-    // getCurrentNavigation() is ALWAYS null by the time ngOnInit runs
-    // because the navigation has already completed. history.state is the
-    // correct, reliable way to read extras.state after a routerLink/navigate.
-    const stateProduct = history.state?.product;
-    if (stateProduct) {
-      this.product   = stateProduct;
-      this.isLoading = false; // instant paint — HTTP refresh still runs below
+    // ✅ history.state is only read in browser (SSR safe)
+    const historyStateProduct = isPlatformBrowser(this.platformId)
+      ? (history.state?.product ?? null)
+      : null;
+
+    const stateProduct = this.navStateProduct ?? historyStateProduct;
+
+    if (stateProduct && String(stateProduct.id) === String(id)) {
+      this.product = stateProduct;
+      this.isLoading = false;
+      this.loadWishlistState();
+      // Silently refresh in background to get latest stock/price
+      this.fetchProductSilently(id);
+      return;
     }
 
-    // Always fetch fresh data from the server
+    // No state — fetch from API
     this.fetchProduct(id);
-
-    // Restore wishlist state
-    this.isWishlisted = this.getWishlistState(id);
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  // ══════════════════════════════════════════════
-  // DATA
-  // ══════════════════════════════════════════════
-
-  private fetchProduct(id: string): void {
-    this.http
-      .get(`http://localhost:4000/api/products/${id}`)
+  private fetchProduct(id: string | number) {
+    this.isLoading = true;
+    this.error = null;
+    this.http.get<any[]>('http://localhost:4000/api/products')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.product   = data;
+          const found = data.find(p => p.id == id);
+          if (found) {
+            this.product = found;
+          } else {
+            this.error = `Product with id "${id}" not found.`;
+            console.error('Product not found for id:', id);
+          }
           this.isLoading = false;
+          this.loadWishlistState();
         },
         error: (err) => {
-          console.error('Failed to load product:', err);
+          console.error('API error:', err);
+          this.error = 'Failed to load product. Is the backend running on port 4000?';
           this.isLoading = false;
         }
       });
   }
 
-  // ══════════════════════════════════════════════
-  // ACTIONS
-  // ══════════════════════════════════════════════
-
-  addToCart(): void {
-    if (!this.product || this.product.stock === 0) return;
-    // TODO: dispatch to CartService
-    console.log('Added to cart:', this.product);
+  private fetchProductSilently(id: string | number) {
+    this.http.get<any[]>('http://localhost:4000/api/products')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          const found = data.find(p => p.id == id);
+          if (found) {
+            this.product = found;
+          }
+        },
+        error: () => {}
+      });
   }
 
-  toggleWishlist(): void {
-    if (!this.product) return;
+  private loadWishlistState() {
+    if (!isPlatformBrowser(this.platformId) || !this.product) return;
+    try {
+      const wishlist: number[] = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      this.isWishlisted = wishlist.includes(this.product.id);
+    } catch {
+      this.isWishlisted = false;
+    }
+  }
 
+  addToCart() {
+    if (!this.product || (this.product.stock || 0) === 0) return;
+
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        const cart: any[] = JSON.parse(localStorage.getItem('cart') || '[]');
+        const existing = cart.find(c => c.id === this.product.id);
+        if (existing) {
+          existing.qty = (existing.qty || 1) + 1;
+        } else {
+          cart.push({ ...this.product, qty: 1 });
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+      } catch (e) {
+        console.error('Cart storage error:', e);
+      }
+    }
+
+    this.cartAdded = true;
+    setTimeout(() => (this.cartAdded = false), 2200);
+  }
+
+  toggleWishlist() {
     this.isWishlisted = !this.isWishlisted;
 
-    const id = this.route.snapshot.params['id'];
-    this.setWishlistState(id, this.isWishlisted);
-  }
-
-  // ══════════════════════════════════════════════
-  // WISHLIST PERSISTENCE (localStorage)
-  // ══════════════════════════════════════════════
-
-  private getWishlistState(id: string): boolean {
+    if (!isPlatformBrowser(this.platformId) || !this.product) return;
     try {
-      const saved = JSON.parse(localStorage.getItem('wishlist') ?? '[]') as string[];
-      return saved.includes(id);
-    } catch {
-      return false;
+      const wishlist: number[] = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      if (this.isWishlisted) {
+        if (!wishlist.includes(this.product.id)) wishlist.push(this.product.id);
+      } else {
+        const idx = wishlist.indexOf(this.product.id);
+        if (idx > -1) wishlist.splice(idx, 1);
+      }
+      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    } catch (e) {
+      console.error('Wishlist storage error:', e);
     }
   }
 
-  private setWishlistState(id: string, value: boolean): void {
-    try {
-      const saved = JSON.parse(localStorage.getItem('wishlist') ?? '[]') as string[];
-      const updated = value
-        ? [...new Set([...saved, id])]
-        : saved.filter(x => x !== id);
-      localStorage.setItem('wishlist', JSON.stringify(updated));
-    } catch {
-      // Storage unavailable — fail silently
-    }
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

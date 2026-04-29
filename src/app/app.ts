@@ -22,7 +22,7 @@ export class App {
     private router: Router
   ) {
 
-    this.auth.logout(); // keep your existing logic
+    // this.auth.logout(); // keep your existing logic
 
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))

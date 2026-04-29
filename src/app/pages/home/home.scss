@@ -138,7 +138,9 @@
     flex-wrap: wrap;
     animation: fadeUp .9s var(--ease) .65s both;
   }
-
+.btn-ghost-hero,.btn-primary-hero{
+  margin-right:250px;
+}
   .btn-primary-hero {
     padding: 16px 40px;
     background: var(--gold);
@@ -154,19 +156,21 @@
     transition: all .3s var(--ease);
 
     &:hover {
-      background: #cfa94a;
+      border: 1px solid white;
+      background: none;
       transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(184,145,58,.4);
+      box-shadow: transparent;
     }
   }
 
   .btn-ghost-hero {
     padding: 15px 40px;
     background: transparent;
-    color: rgba(255,255,255,.8);
-    border: 1px solid rgba(255,255,255,.3);
+    color: rgba(255, 255, 255, 0.936);
+    border: 2px solid rgba(255, 255, 255, 0.664);
     font-family: 'Tenor Sans', sans-serif;
     font-size: 11px;
+    
     letter-spacing: .2em;
     text-transform: uppercase;
     cursor: pointer;
@@ -177,6 +181,7 @@
     &:hover {
       border-color: var(--gold);
       color: var(--gold);
+      font-weight: 2000;
     }
   }
 

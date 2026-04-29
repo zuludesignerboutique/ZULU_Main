@@ -13,13 +13,58 @@
   --border:     rgba(255,255,255,0.07);
   --gold:       #c8a96e;
   --gold-dim:   rgba(200,169,110,0.15);
-  --gold-glow:  rgba(200,169,110,0.25);
+  --gold-glow:  rgba(200,169,110,0.30);
   --text:       #f0ece4;
   --muted:      rgba(240,236,228,0.45);
   --danger:     #e05c5c;
+  --success:    #6fcf97;
   --radius:     4px;
   --radius-lg:  14px;
   --ease:       cubic-bezier(0.4, 0, 0.2, 1);
+  --spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// ── PAGE ENTER ANIMATION ─────────────────────────
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50%       { transform: scale(1.4); opacity: 1; }
+}
+
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  65%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+
+@keyframes btnSuccess {
+  0%   { background: var(--gold); }
+  50%  { background: #6fcf97; }
+  100% { background: var(--gold); }
+}
+
+@keyframes shimmerBtn {
+  0%   { left: -100%; }
+  100% { left: 160%; }
 }
 
 // ── PAGE SHELL ───────────────────────────────────
@@ -29,13 +74,14 @@
   font-family: 'Jost', sans-serif;
   color: var(--text);
   padding: 0 0 96px;
+  animation: fadeIn 0.35s var(--ease) both;
 
-  // Top rule
   &::before {
     content: '';
     display: block;
     height: 2px;
     background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: fadeIn 0.6s 0.2s both;
   }
 }
 
@@ -46,20 +92,25 @@
   letter-spacing: .18em;
   text-transform: uppercase;
   color: var(--muted);
+  animation: fadeUp 0.5s 0.1s var(--ease) both;
 
   a {
     color: var(--muted);
     text-decoration: none;
-    transition: color .2s;
+    transition: color .25s;
     &:hover { color: var(--gold); }
   }
 
-  span {
+  .sep {
     margin: 0 10px;
-    opacity: .4;
+    opacity: .3;
   }
 
   .current { color: var(--gold); }
+
+  @media (max-width: 600px) {
+    padding: 16px 24px;
+  }
 }
 
 // ── MAIN GRID ────────────────────────────────────
@@ -77,10 +128,15 @@
   }
 }
 
+.loading-grid {
+  padding-top: 64px;
+}
+
 // ── IMAGE PANEL ──────────────────────────────────
 .image-panel {
   position: relative;
   padding-right: 56px;
+  animation: fadeUp 0.6s 0.15s var(--ease) both;
 
   @media (max-width: 900px) {
     padding-right: 0;
@@ -94,7 +150,7 @@
     aspect-ratio: 3/4;
     background: var(--card);
 
-    // Corner accents
+    // Corner bracket accents
     &::before,
     &::after {
       content: '';
@@ -103,20 +159,25 @@
       height: 28px;
       z-index: 2;
       pointer-events: none;
+      transition: width 0.4s var(--ease), height 0.4s var(--ease);
     }
 
     &::before {
-      top: 16px;
-      left: 16px;
+      top: 16px; left: 16px;
       border-top: 1px solid var(--gold);
       border-left: 1px solid var(--gold);
     }
 
     &::after {
-      bottom: 16px;
-      right: 16px;
+      bottom: 16px; right: 16px;
       border-bottom: 1px solid var(--gold);
       border-right: 1px solid var(--gold);
+    }
+
+    &:hover::before,
+    &:hover::after {
+      width: 40px;
+      height: 40px;
     }
 
     img {
@@ -124,43 +185,86 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.7s var(--ease);
+      transition: transform 0.8s var(--ease);
     }
 
     &:hover img {
-      transform: scale(1.04);
+      transform: scale(1.05);
     }
   }
 
-  // Floating badge
+  .image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,.07);
+    font-size: 64px;
+  }
+
+  // Floating stock badge
   .stock-badge {
     position: absolute;
     top: 24px;
     right: 72px;
-    background: var(--ink);
+    background: rgba(13,13,13,0.85);
+    backdrop-filter: blur(8px);
     border: 1px solid var(--border);
     border-radius: 50px;
-    padding: 6px 16px;
+    padding: 6px 16px 6px 12px;
     font-size: 11px;
     letter-spacing: .12em;
     text-transform: uppercase;
     color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 7px;
 
-    &.in-stock { color: #6fcf97; border-color: rgba(111,207,151,.3); }
-    &.low-stock { color: var(--gold); border-color: var(--gold-dim); }
-    &.out-stock { color: var(--danger); border-color: rgba(224,92,92,.3); }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.8;
+      animation: pulse-dot 2s infinite;
+    }
+
+    &.in-stock  { color: var(--success); border-color: rgba(111,207,151,.25); }
+    &.low-stock { color: var(--gold);    border-color: rgba(200,169,110,.25); }
+    &.out-stock { color: var(--danger);  border-color: rgba(224,92,92,.25); .badge-dot { animation: none; } }
+
+    @media (max-width: 900px) {
+      right: 16px;
+    }
+  }
+
+  // Decorative index counter
+  .panel-index {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    padding-right: 0;
+
+    span {
+      font-size: 10px;
+      letter-spacing: .2em;
+      color: rgba(255,255,255,.15);
+    }
+
+    .index-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255,255,255,.08), transparent);
+    }
   }
 }
 
 // ── DETAILS PANEL ────────────────────────────────
 .details-panel {
   padding-top: 8px;
-  animation: fadeUp .6s var(--ease) both;
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0);    }
-  }
+  animation: fadeUp 0.65s 0.25s var(--ease) both;
 }
 
 // ── EYEBROW ──────────────────────────────────────
@@ -199,10 +303,7 @@
   color: var(--text);
   margin: 0 0 20px;
 
-  em {
-    font-style: italic;
-    color: #d4c5a9;
-  }
+  em { font-style: italic; color: #d4c5a9; }
 }
 
 // ── DESCRIPTION ──────────────────────────────────
@@ -226,7 +327,6 @@
     font-size: 18px;
     font-weight: 300;
     color: var(--muted);
-    margin-bottom: 4px;
   }
 
   .amount {
@@ -310,28 +410,60 @@
     letter-spacing: .2em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all .3s var(--ease);
+    transition: transform .3s var(--ease), box-shadow .3s var(--ease), background .4s;
     position: relative;
     overflow: hidden;
 
-    &::after {
-      content: '';
+    .btn-label {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-icon {
+      font-size: 14px;
+      transition: transform 0.3s var(--spring);
+    }
+
+    // Shimmer sweep on hover
+    .btn-shimmer {
       position: absolute;
-      inset: 0;
-      background: rgba(255,255,255,0);
-      transition: background .2s;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+      pointer-events: none;
     }
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 16px 40px var(--gold-glow);
-      &::after { background: rgba(255,255,255,.08); }
+      box-shadow: 0 16px 44px var(--gold-glow);
+
+      .btn-shimmer {
+        animation: shimmerBtn 0.55s var(--ease) forwards;
+      }
+
+      .btn-icon {
+        transform: scale(1.2);
+      }
     }
 
     &:active { transform: translateY(0); }
 
+    // ✅ "Added!" state
+    &.added {
+      background: var(--success);
+      box-shadow: 0 12px 36px rgba(111,207,151,0.3);
+
+      .btn-label { letter-spacing: .15em; }
+    }
+
     &:disabled {
-      opacity: .4;
+      opacity: .38;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
@@ -344,11 +476,15 @@
     color: var(--muted);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    font-family: 'Jost', sans-serif;
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
-    transition: all .3s var(--ease);
+    transition: border-color .3s, color .3s, background .3s;
+
+    .heart-icon {
+      display: block;
+      transition: transform 0.3s var(--spring);
+    }
 
     &:hover {
       border-color: rgba(224,92,92,.5);
@@ -359,6 +495,11 @@
     &.active {
       color: var(--danger);
       border-color: rgba(224,92,92,.4);
+      background: rgba(224,92,92,.06);
+
+      .heart-icon {
+        animation: heartPop 0.4s var(--spring) both;
+      }
     }
   }
 }
@@ -366,7 +507,7 @@
 // ── TRUST STRIP ──────────────────────────────────
 .trust-strip {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   margin-top: 32px;
   padding-top: 28px;
   border-top: 1px solid var(--border);
@@ -377,60 +518,55 @@
     align-items: center;
     gap: 8px;
     font-size: 11px;
-    letter-spacing: .06em;
+    letter-spacing: .05em;
     color: var(--muted);
+    transition: color 0.2s;
+
+    &:hover { color: var(--text); }
 
     .trust-icon {
-      font-size: 16px;
+      font-size: 14px;
       opacity: .7;
     }
   }
 }
 
-// ── LOADING STATE ────────────────────────────────
-.loading-state {
-  min-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-
-  .spinner-ring {
-    width: 44px;
-    height: 44px;
-    border: 1.5px solid var(--border);
-    border-top-color: var(--gold);
-    border-radius: 50%;
-    animation: spin .9s linear infinite;
-  }
-
-  p {
-    font-size: 11px;
-    letter-spacing: .2em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-// ── SKELETON ─────────────────────────────────────
+// ── SKELETON / LOADING ───────────────────────────
 .skeleton {
-  background: linear-gradient(90deg, var(--card) 25%, var(--ink-soft) 50%, var(--card) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--card) 25%,
+    var(--ink-soft) 50%,
+    var(--card) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
   border-radius: var(--radius);
 
-  &.sk-image  { aspect-ratio: 3/4; border-radius: var(--radius-lg); }
-  &.sk-title  { height: 52px; width: 80%; margin-bottom: 16px; }
-  &.sk-line   { height: 14px; margin-bottom: 10px; }
-  &.sk-price  { height: 44px; width: 50%; margin: 24px 0; }
+  &.sk-image   { aspect-ratio: 3/4; border-radius: var(--radius-lg); }
+  &.sk-eyebrow { height: 22px; width: 120px; margin-bottom: 16px; }
+  &.sk-title   { height: 52px; width: 80%; margin-bottom: 16px; }
+  &.sk-line    { height: 13px; margin-bottom: 10px; }
+  &.sk-price   { height: 44px; width: 48%; margin: 24px 0; }
+  &.sk-btn     { height: 54px; width: 100%; border-radius: var(--radius); margin-top: 12px; }
 }
 
-@keyframes shimmer {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
+// Bouncing dots loader
+.loading-label {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 32px;
+}
+
+.spinner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.5;
+  animation: pulse-dot 1.2s infinite;
+
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.4s; }
 }

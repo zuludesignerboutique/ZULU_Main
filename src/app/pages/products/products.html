@@ -1,29 +1,76 @@
 <section class="products-section">
-  <h2 class="section-title">OUR COLLECTIONS</h2>
 
-  <div class="products-grid">
-    <div class="product-card" *ngFor="let product of products$ | async">
+  <!-- HEADER -->
+  <div class="section-header">
+    <p class="section-eyebrow">Curated for you</p>
+    <h2 class="section-title">Our Collections</h2>
+    <div class="section-rule"></div>
+  </div>
 
-      <div class="image-box">
-       <img [src]="'http://localhost:4000/uploads/' + product.image_url"
-       [alt]="product.name" />
-      </div>
+  <!-- DEBUG -->
+<p style="color:red">Products count: {{ products.length }}</p>
+<p style="color:red">Loading: {{ isLoading }}</p>
+<p style="color:red">Error: {{ error }}</p>
 
-      <div class="product-info">
-        <h4>{{ product.name }}</h4>
-        <p class="category">{{ product.description }}</p>
-
-        <div class="price-row">
-          <span class="price">₹{{ product.price }}</span>
-         <button 
-  class="view-btn"
-  [routerLink]="['/product', product.id]" [state]="{ product: product }"
->
-  View
-</button>
+  <!-- LOADING -->
+  @if (isLoading) {
+    <div class="products-grid">
+      @for (n of [1,2,3,4,5,6]; track n) {
+        <div class="skeleton-card">
+          <div class="skeleton sk-img"></div>
+          <div class="sk-info">
+            <div class="skeleton sk-name"></div>
+            <div class="skeleton sk-desc"></div>
+            <div class="skeleton sk-price"></div>
+          </div>
         </div>
-      </div>
+      }
+    </div>
+  }
 
+  <!-- ERROR -->
+  @if (error && !isLoading) {
+    <div class="empty-state">
+      <span class="empty-icon">⚠</span>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  <!-- EMPTY -->
+  @if (!isLoading && !error && products.length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">◈</span>
+      <p>No products available right now.</p>
+    </div>
+  }
+
+  <!-- PRODUCT GRID -->
+  @if (!isLoading && !error && products.length > 0) {
+    <div class="products-grid">
+  <div
+    class="product-card"
+    *ngFor="let product of products"
+    [routerLink]="['/product', product.id]"
+  >
+    <div class="image-box">
+      <img
+        [src]="'/uploads/' + product.image_url"
+        [alt]="product.name"
+        loading="lazy"
+      />
+    </div>
+    <div class="product-info">
+      <h4>{{ product.name }}</h4>
+      <p class="category">{{ product.description }}</p>
+      <div class="price-row">
+        <span class="price">{{ product.price | number }}</span>
+        <button class="view-btn" (click)="$event.stopPropagation()">
+          <span>View</span>
+        </button>
+      </div>
     </div>
   </div>
+</div>
+  }
+
 </section>

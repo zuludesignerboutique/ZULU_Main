@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ProductService } from '../../services/product';
+import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-product-details',
@@ -21,7 +21,8 @@ export class ProductDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.product = this.productService.getProducts()
-      .find(p => p.id === id);
+    this.productService.getProducts().subscribe(products => {
+      this.product = products.find(p => p.id === id);
+    });
   }
 }

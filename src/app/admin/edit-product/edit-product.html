@@ -9,6 +9,20 @@
 <input [(ngModel)]="product.subcategory" name="subcategory" placeholder="Subcategory">
 <input [(ngModel)]="product.image" name="image" placeholder="Image">
 <div>
+  <label>Stock</label>
+  <input [(ngModel)]="product.stock" name="stock" type="number">
+</div>
+
+<div>
+  <label>Product Code</label>
+  <input [(ngModel)]="product.product_code" name="product_code" type="text">
+</div>
+
+<div>
+  <label>Size</label>
+  <input [(ngModel)]="product.size" name="size" type="text">
+</div>
+<div>
   <label>Change Image</label>
   <input type="file" (change)="onFileSelect($event)">
 </div>

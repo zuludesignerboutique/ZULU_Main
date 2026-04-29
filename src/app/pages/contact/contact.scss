@@ -1,84 +1,283 @@
+/* ════════════════════════════════════════════════
+   CONTACT — Warm Ivory Couture Editorial
+   ════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,300;0,6..96,400;1,6..96,300;1,6..96,400&family=Tenor+Sans&display=swap');
+
+:root {
+  --ivory:      #f8f3ec;
+  --ivory-deep: #ede5d8;
+  --burgundy:   #6b1f2a;
+  --gold:       #b8913a;
+  --ink:        #1a1410;
+  --muted:      rgba(26,20,16,0.45);
+  --ease:       cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host { display: block; background: var(--ivory); }
+
+// ── SECTION ──────────────────────────────────────
 .contact-section {
-  padding: 80px 0;
-  background: #fafafa;
+  padding: 88px 72px 96px;
+
+  @media (max-width: 900px) { padding: 64px 32px 72px; }
+  @media (max-width: 560px) { padding: 48px 20px 56px; }
 }
 
-/* Title */
-.contact-title {
-  font-size: 36px;
-  font-weight: 600;
-  letter-spacing: 2px;
+// ── HEADER ───────────────────────────────────────
+.section-header {
+  text-align: center;
+  margin-bottom: 64px;
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'Tenor Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+
+    &::before, &::after {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 1px;
+      background: var(--gold);
+    }
+  }
+
+  h2 {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(34px, 4.5vw, 52px);
+    font-weight: 300;
+    color: var(--ink);
+    margin: 0 0 14px;
+
+    em { font-style: italic; color: var(--burgundy); }
+  }
+
+  p {
+    font-family: 'Tenor Sans', sans-serif;
+    font-size: 13px;
+    letter-spacing: .06em;
+    color: var(--muted);
+  }
 }
 
-.contact-subtitle {
-  color: #666;
-  margin-top: 10px;
-}
-
-/* Card */
-.contact-card {
+// ── LAYOUT ───────────────────────────────────────
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
   background: #fff;
-  padding: 50px;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--ivory-deep);
+  box-shadow: 0 4px 12px rgba(26,20,16,0.05), 0 24px 56px rgba(26,20,16,0.08);
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* Form */
+// ── FORM PANEL ───────────────────────────────────
+.form-panel {
+  padding: 56px 52px;
+  border-right: 1px solid var(--ivory-deep);
+
+  @media (max-width: 860px) {
+    border-right: none;
+    border-bottom: 1px solid var(--ivory-deep);
+    padding: 40px 32px;
+  }
+
+  .panel-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--ink);
+    margin-bottom: 32px;
+
+    em { font-style: italic; color: var(--burgundy); }
+  }
+}
+
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+
+  input, textarea {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--ivory);
+    border: 1px solid transparent;
+    border-bottom: 1px solid rgba(26,20,16,0.15);
+    font-family: 'Tenor Sans', sans-serif;
+    font-size: 13px;
+    letter-spacing: .04em;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .25s var(--ease), background .25s var(--ease);
+
+    &::placeholder { color: var(--muted); }
+
+    &:focus {
+      background: #fff;
+      border-bottom-color: var(--gold);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.65;
+  }
 }
 
-.contact-form input,
-.contact-form textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.contact-form input:focus,
-.contact-form textarea:focus {
-  outline: none;
-  border-color: #000;
-}
-
-/* Button */
 .btn-submit {
-  background: #000;
-  color: #fff;
+  margin-top: 8px;
+  padding: 16px 40px;
+  align-self: flex-start;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(26,20,16,0.2);
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .3s var(--ease), border-color .3s var(--ease);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--burgundy);
+    transform: translateY(100%);
+    transition: transform .3s var(--ease);
+    z-index: 0;
+  }
+
+  span { position: relative; z-index: 1; }
+
+  &:hover {
+    color: #fff;
+    border-color: var(--burgundy);
+    &::before { transform: translateY(0); }
+  }
+
+  &:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    &:hover::before { transform: translateY(100%); }
+    &:hover { color: var(--ink); border-color: rgba(26,20,16,0.2); }
+  }
+}
+
+.form-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: rgba(107,31,42,0.05);
+  border-left: 2px solid var(--burgundy);
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: var(--burgundy);
+  animation: fadeIn .4s var(--ease);
+}
+
+// ── INFO PANEL ───────────────────────────────────
+.info-panel {
+  display: flex;
+  flex-direction: column;
+
+  .info-top {
+    padding: 56px 52px 40px;
+    flex: 1;
+
+    @media (max-width: 860px) { padding: 40px 32px 28px; }
+  }
+
+  .boutique-name {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .boutique-tagline {
+    font-family: 'Tenor Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+
+  .info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+
+    .info-icon {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      background: var(--ivory-deep);
+      border: 1px solid rgba(184,145,58,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--gold);
+    }
+
+    .info-label {
+      font-family: 'Tenor Sans', sans-serif;
+      font-size: 9px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .info-value {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+  }
+}
+
+// ── MAP ──────────────────────────────────────────
+.map-frame {
+  width: 100%;
+  height: 240px;
   border: none;
-  padding: 12px;
-  border-radius: 30px;
-  font-size: 14px;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
+  display: block;
+  filter: sepia(20%) contrast(95%);
+  border-top: 1px solid var(--ivory-deep);
 }
 
-.btn-submit:hover {
-  background: #333;
+// ── ANIMATION ────────────────────────────────────
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
-
-/* Info */
-.contact-info h5 {
-  font-size: 20px;
-  margin-bottom: 10px;
-}
-
-.contact-info p {
-  color: #666;
-  margin-bottom: 20px;
-}
-
-.contact-info ul {
-  list-style: none;
-  padding: 0;
-}
-
-.contact-info li {
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-

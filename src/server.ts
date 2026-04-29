@@ -72,11 +72,9 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-
 // ADD product
 app.post('/api/products', async (req, res) => {
   try {
-
     const { name, description, price, category, subcategory, image, stock } = req.body;
 
     const sql = `
@@ -105,9 +103,14 @@ app.post('/api/products', async (req, res) => {
     res.status(500).json({ error: 'Database error' });
   }
 });
+
 /* ==============================
    STATIC FILES
 ================================ */
+// Serve uploaded images
+app.use('/uploads', express.static(join(import.meta.dirname, '../uploads')));
+
+// Serve Angular browser files
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',

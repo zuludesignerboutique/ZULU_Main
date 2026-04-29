@@ -1,17 +1,11 @@
+// src/app/core/models/product.model.ts
 export interface Product {
-
   id: number;
   name: string;
+  description: string;
   price: number;
-
-  // Support both backend and frontend
-  image?: string;
-  image_url?: string;
-
-  description?: string;
+  image_url: string;
   category?: string;
-
-  created_at?: string;
-  createdAt?: Date;
-
+  subcategory?: string;
+  stock?: number;
 }

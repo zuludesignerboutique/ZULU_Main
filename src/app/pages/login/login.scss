@@ -26,6 +26,7 @@ $panel-bg-from : #1a1410;
 $panel-bg-to   : #0e0b08;
 $panel-gold    : #c9a84c;
 $panel-muted   : rgba(255, 255, 255, 0.38);
+@use 'sass:color';
 
 // ─────────────────────────────────────────────
 //  PAGE SHELL — full-viewport split layout
@@ -407,7 +408,7 @@ $panel-muted   : rgba(255, 255, 255, 0.38);
   transition: color 0.2s ease;
 
   &:hover {
-    color: darken($gold, 10%);
+    color: adjust-color($gold, $lightness: -10%);
   }
 }
 

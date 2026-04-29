@@ -1,23 +1,71 @@
 <section class="gallery-section">
-  <div class="container">
-    <h2 class="section-title">Our Collection</h2>
 
-    <div class="gallery-grid">
-      <div
-        class="gallery-card"
-        *ngFor="let img of images; trackBy: trackById"
-      >
-        <img
-          [src]="img.imageUrl"
-          [alt]="img.title"
-          loading="lazy"        
-          decoding="async"      
-        />
-
-        <div class="overlay">
-          <h3>{{ img.title }}</h3>
-        </div>
-      </div>
-    </div>
+  <!-- HEADER -->
+  <div class="section-header">
+    <p class="eyebrow">Visual Story</p>
+    <h2>Our <em>Collection</em></h2>
   </div>
+
+  <!-- SKELETONS -->
+  <div class="gallery-skeleton" *ngIf="isLoading">
+    <div class="sk-card" *ngFor="let s of skeletons"></div>
+  </div>
+
+  <!-- MASONRY GRID -->
+  <div class="gallery-grid" *ngIf="!isLoading">
+
+    <div
+      class="gallery-card"
+      *ngFor="let img of images; trackBy: trackById; let i = index"
+      (click)="openLightbox(i)"
+    >
+      <img
+        [src]="img.imageUrl"
+        [alt]="img.title"
+        loading="lazy"
+        decoding="async"
+      >
+
+      <div class="overlay">
+        <span class="overlay-zoom">⊕</span>
+        <span class="overlay-title">{{ img.title }}</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" *ngIf="!isLoading && images.length === 0">
+    <div class="empty-icon">◈</div>
+    <p>No images yet</p>
+  </div>
+
 </section>
+
+<!-- LIGHTBOX -->
+<div
+  class="lightbox-backdrop"
+  *ngIf="lightboxIndex !== null"
+  (click)="closeLightbox()"
+  (keydown.escape)="closeLightbox()"
+>
+
+  <div class="lightbox-inner" (click)="$event.stopPropagation()">
+
+    <button class="lightbox-close" (click)="closeLightbox()">✕</button>
+
+    <button class="lightbox-nav prev" (click)="lightboxStep(-1)">‹</button>
+
+    <img
+      [src]="images[lightboxIndex!].imageUrl"
+      [alt]="images[lightboxIndex!].title"
+    >
+
+    <span class="lightbox-title">{{ images[lightboxIndex!].title }}</span>
+
+    <button class="lightbox-nav next" (click)="lightboxStep(1)">›</button>
+
+  </div>
+
+</div>
