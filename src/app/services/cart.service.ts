@@ -1,23 +1,53 @@
 import { Injectable } from '@angular/core';
 import { Product } from '../core/models/product.model';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private cart: Product[] = [];
 
-  add(product: Product) {
-    this.cart.push(product);
+  constructor(private auth: AuthService) {}
+
+  // ✅ Unique key per user: "cart_user@email.com"
+  private get KEY(): string {
+    return `cart_${this.auth.getUserEmail()}`;
   }
 
-  getAll() {
-    return this.cart;
+  private load(): (Product & { qty: number })[] {
+    try {
+      return JSON.parse(localStorage.getItem(this.KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  private save(cart: (Product & { qty: number })[]) {
+    localStorage.setItem(this.KEY, JSON.stringify(cart));
+  }
+
+  add(product: Product) {
+    const cart = this.load();
+    const existing = cart.find(p => p.id === product.id);
+    if (existing) {
+      existing.qty = (existing.qty || 1) + 1;
+    } else {
+      cart.push({ ...product, qty: 1 });
+    }
+    this.save(cart);
+  }
+
+  getAll(): (Product & { qty: number })[] {
+    return this.load();
   }
 
   remove(id: number) {
-    this.cart = this.cart.filter(p => p.id !== id);
+    this.save(this.load().filter(p => p.id !== id));
   }
 
   clear() {
-    this.cart = [];
+    localStorage.removeItem(this.KEY);
+  }
+
+  getCount(): number {
+    return this.load().reduce((sum, p) => sum + (p.qty || 1), 0);
   }
 }

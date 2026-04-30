@@ -42,11 +42,10 @@
   <!-- PRODUCT GRID -->
   @if (!isLoading && !error && products.length > 0) {
     <div class="products-grid">
-  <div
-    class="product-card"
-    *ngFor="let product of products"
-    [routerLink]="['/product', product.id]"
-  >
+ <div class="product-card"
+  *ngFor="let product of products"
+  (click)="goToProduct(product)"
+>
     <div class="image-box">
       <img
         [src]="'/uploads/' + product.image_url"
@@ -59,7 +58,7 @@
       <p class="category">{{ product.description }}</p>
       <div class="price-row">
         <span class="price">{{ product.price | number }}</span>
-        <button class="view-btn" (click)="$event.stopPropagation()">
+        <button class="view-btn" (click)="$event.stopPropagation(); goToProduct(product)">
           <span>View</span>
         </button>
       </div>

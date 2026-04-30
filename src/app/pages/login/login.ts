@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -16,37 +17,32 @@ export class LoginComponent {
   password = '';
   error = '';
 
-    constructor(
-  private router: Router,
-  private route: ActivatedRoute,
-  private http: HttpClient,
-  private auth: AuthService
-) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private auth: AuthService
+  ) {}
 
-  login(){
-
-  this.http.post<any>('http://localhost:4000/login', {
-    email: this.email,
-    password: this.password
-  }).subscribe(res => {
-
-    if(res.user.role === 'admin'){
-
-      localStorage.setItem('admin', 'true');
-      this.router.navigate(['/admin/dashboard']);
-
-    } else {
-
-      localStorage.setItem('user', 'true');
-      this.router.navigate(['/home']);
-
-    }
-
-  }, err => {
-
-    alert("Invalid login");
-
-  });
-
-}
+  login() {
+    this.http.post<any>('http://localhost:4000/login', {
+      email: this.email,
+      password: this.password
+    }).subscribe({
+      next: (res) => {
+        if (res.user.role === 'admin') {
+          localStorage.setItem('admin', 'true');
+          this.router.navigate(['/admin/dashboard']);
+        } else {
+          // ✅ Pass email so cart/wishlist keys are namespaced per user
+          this.auth.login(this.email);
+          const redirect = this.route.snapshot.queryParams['redirect'] || '/home';
+          this.router.navigateByUrl(redirect);
+        }
+      },
+      error: () => {
+        this.error = 'Invalid email or password. Please try again.';
+      }
+    });
+  }
 }

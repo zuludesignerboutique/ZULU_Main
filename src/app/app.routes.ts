@@ -13,7 +13,7 @@ import { ReturnsExchange } from './pages/returns-exchange/returns-exchange';
 import { LoginComponent } from './pages/login/login';
 import { SignupComponent } from './pages/signup/signup';
 import { CartComponent } from './pages/cart/cart';
-import { WishlistComponent } from './pages/wishlist/wishlist';
+import { Wishlist } from './pages/wishlist/wishlist';
 import { authGuard } from './guards/auth.guard';
 import { CategoryLandingComponent } from './pages/category-landing/category-landing';
 import { CategoriesComponent } from './pages/categories/categories';
@@ -76,7 +76,7 @@ export const routes: Routes = [
 },
 
 { path: 'cart', component: CartComponent, canActivate: [authGuard] },
-{ path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
+{ path: 'wishlist', component: Wishlist, canActivate: [authGuard] },
 
    { path: 'shipping-policy', component: ShippingPolicy },
   { path: 'privacy-policy', component: PrivacyPolicy },

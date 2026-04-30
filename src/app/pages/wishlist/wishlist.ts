@@ -10,7 +10,7 @@ import { Product } from '../../core/models/product.model';
   templateUrl: './wishlist.html',
   styleUrls: ['./wishlist.scss']
 })
-export class WishlistComponent {
+export class Wishlist {
   wishlist: Product[] = [];
 
   constructor(private wishlistService: WishlistService) {

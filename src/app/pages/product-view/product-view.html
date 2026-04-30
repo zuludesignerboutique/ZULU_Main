@@ -15,7 +15,6 @@
     <!-- ══ IMAGE PANEL ══════════════════════════ -->
     <div class="image-panel">
 
-      <!-- STOCK BADGE -->
       <span
         class="stock-badge"
         [ngClass]="{
@@ -46,7 +45,6 @@
         </ng-template>
       </div>
 
-      <!-- Decorative index line -->
       <div class="panel-index">
         <span>01</span>
         <div class="index-line"></div>
@@ -57,21 +55,17 @@
     <!-- ══ DETAILS PANEL ════════════════════════ -->
     <div class="details-panel">
 
-      <!-- EYEBROW -->
       <div class="product-eyebrow">
         <span class="tag" *ngIf="product?.category">{{ product.category }}</span>
         <span class="code" *ngIf="product?.product_code"># {{ product.product_code }}</span>
       </div>
 
-      <!-- NAME -->
       <h1 class="product-name">{{ product?.name }}</h1>
 
-      <!-- DESCRIPTION -->
       <p class="product-description">
         {{ product?.description || 'No description available.' }}
       </p>
 
-      <!-- PRICE -->
       <div class="product-price">
         <span class="currency">₹</span>
         <span class="amount">{{ product?.price | number }}</span>
@@ -80,34 +74,27 @@
 
       <div class="meta-divider"></div>
 
-      <!-- META -->
       <div class="meta-list">
-
         <div class="meta-item">
           <div class="meta-label">Occasion</div>
           <div class="meta-value">{{ product?.category || '—' }}</div>
         </div>
-
         <div class="meta-item">
           <div class="meta-label">Size</div>
           <div class="meta-value">{{ product?.size || 'Not specified' }}</div>
         </div>
-
         <div class="meta-item">
           <div class="meta-label">Product Code</div>
           <div class="meta-value">{{ product?.product_code || 'Not available' }}</div>
         </div>
-
         <div class="meta-item">
           <div class="meta-label">Availability</div>
           <div class="meta-value">{{ product?.stock ?? 0 }} units</div>
         </div>
-
       </div>
 
       <!-- ACTIONS -->
       <div class="product-actions">
-
         <button
           class="btn-cart"
           [class.added]="cartAdded"
@@ -134,7 +121,6 @@
         >
           <span class="heart-icon">{{ isWishlisted ? '♥' : '♡' }}</span>
         </button>
-
       </div>
 
       <!-- TRUST STRIP -->
@@ -154,9 +140,52 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- ══ CART CONFIRMATION POPUP ══════════════════════════════ -->
+<div class="cart-popup" [class.visible]="showCartPopup">
+  <div class="cart-popup-inner">
+
+    <!-- Left: product snapshot -->
+    <div class="popup-product">
+      <div class="popup-img-wrap">
+        <img
+          *ngIf="product?.image_url"
+          [src]="imageBase + product.image_url"
+          [alt]="product?.name"
+        />
+      </div>
+      <div class="popup-meta">
+        <span class="popup-check">✓</span>
+        <p class="popup-added-label">Added to Cart</p>
+        <p class="popup-name">{{ product?.name }}</p>
+        <p class="popup-price">₹{{ product?.price | number }}</p>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="popup-divider"></div>
+
+    <!-- Right: totals + actions -->
+    <div class="popup-summary">
+      <p class="popup-summary-label">Cart Total</p>
+      <p class="popup-total">₹{{ cartTotal | number }}</p>
+      <p class="popup-count">{{ cartCount }} item{{ cartCount !== 1 ? 's' : '' }} in cart</p>
+      <div class="popup-actions">
+        <a routerLink="/cart" class="popup-btn-cart" (click)="showCartPopup = false">
+          Go to Cart
+        </a>
+        <button class="popup-btn-continue" (click)="showCartPopup = false">
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+
+    <!-- Close -->
+    <button class="popup-close" (click)="showCartPopup = false">✕</button>
 
   </div>
-
 </div>
 
 <!-- ══ LOADING STATE ════════════════════════════ -->

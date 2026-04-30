@@ -5,6 +5,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { CartService } from '../../services/cart.service';
+import { WishlistService } from '../../services/wishlist.service';
 
 @Component({
   selector: 'app-product-view',
@@ -21,20 +23,28 @@ export class ProductView implements OnInit, OnDestroy {
   cartAdded: boolean = false;
   error: string | null = null;
 
+  // ── Popup state ──────────────────────────────────
+  showCartPopup: boolean = false;
+  cartTotal: number = 0;
+  cartCount: number = 0;
+
   imageBase: string = 'http://localhost:4000/uploads/';
 
-  // ✅ Captured in constructor while navigation is still active
   private navStateProduct: any = null;
-
   private destroy$ = new Subject<void>();
+  private popupTimer: any;
+
+  private readonly CACHE_PREFIX = 'product_cache_';
+  private readonly CACHE_TTL = 5 * 60 * 1000;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
+    private cartService: CartService,
+    private wishlistService: WishlistService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    // ✅ Must be read here — getCurrentNavigation() returns null after navigation completes
     this.navStateProduct =
       this.router.getCurrentNavigation()?.extras?.state?.['product'] ?? null;
   }
@@ -42,7 +52,6 @@ export class ProductView implements OnInit, OnDestroy {
   ngOnInit() {
     const id = this.route.snapshot.params['id'];
 
-    // ✅ history.state is only read in browser (SSR safe)
     const historyStateProduct = isPlatformBrowser(this.platformId)
       ? (history.state?.product ?? null)
       : null;
@@ -52,15 +61,53 @@ export class ProductView implements OnInit, OnDestroy {
     if (stateProduct && String(stateProduct.id) === String(id)) {
       this.product = stateProduct;
       this.isLoading = false;
+      this.saveProductToCache(stateProduct);
       this.loadWishlistState();
-      // Silently refresh in background to get latest stock/price
       this.fetchProductSilently(id);
       return;
     }
 
-    // No state — fetch from API
+    const cached = this.getProductFromCache(id);
+    if (cached) {
+      this.product = cached;
+      this.isLoading = false;
+      this.loadWishlistState();
+      this.fetchProductSilently(id);
+      return;
+    }
+
     this.fetchProduct(id);
   }
+
+  // ── Cache ────────────────────────────────────────
+
+  private saveProductToCache(product: any) {
+    if (!isPlatformBrowser(this.platformId) || !product?.id) return;
+    try {
+      localStorage.setItem(
+        this.CACHE_PREFIX + product.id,
+        JSON.stringify({ data: product, savedAt: Date.now() })
+      );
+    } catch {}
+  }
+
+  private getProductFromCache(id: string | number): any | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    try {
+      const raw = localStorage.getItem(this.CACHE_PREFIX + id);
+      if (!raw) return null;
+      const entry = JSON.parse(raw);
+      if (Date.now() - entry.savedAt > this.CACHE_TTL) {
+        localStorage.removeItem(this.CACHE_PREFIX + id);
+        return null;
+      }
+      return entry.data;
+    } catch {
+      return null;
+    }
+  }
+
+  // ── API ──────────────────────────────────────────
 
   private fetchProduct(id: string | number) {
     this.isLoading = true;
@@ -72,15 +119,14 @@ export class ProductView implements OnInit, OnDestroy {
           const found = data.find(p => p.id == id);
           if (found) {
             this.product = found;
+            this.saveProductToCache(found);
           } else {
             this.error = `Product with id "${id}" not found.`;
-            console.error('Product not found for id:', id);
           }
           this.isLoading = false;
           this.loadWishlistState();
         },
-        error: (err) => {
-          console.error('API error:', err);
+        error: () => {
           this.error = 'Failed to load product. Is the backend running on port 4000?';
           this.isLoading = false;
         }
@@ -95,64 +141,52 @@ export class ProductView implements OnInit, OnDestroy {
           const found = data.find(p => p.id == id);
           if (found) {
             this.product = found;
+            this.saveProductToCache(found);
           }
         },
         error: () => {}
       });
   }
 
+  // ── Wishlist ─────────────────────────────────────
+
   private loadWishlistState() {
-    if (!isPlatformBrowser(this.platformId) || !this.product) return;
-    try {
-      const wishlist: number[] = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      this.isWishlisted = wishlist.includes(this.product.id);
-    } catch {
-      this.isWishlisted = false;
-    }
+    if (!this.product) return;
+    this.isWishlisted = this.wishlistService.isWishlisted(this.product.id);
   }
+
+  toggleWishlist() {
+    if (!this.product) return;
+    this.isWishlisted = this.wishlistService.toggle(this.product);
+  }
+
+  // ── Cart + Popup ─────────────────────────────────
 
   addToCart() {
     if (!this.product || (this.product.stock || 0) === 0) return;
 
-    if (isPlatformBrowser(this.platformId)) {
-      try {
-        const cart: any[] = JSON.parse(localStorage.getItem('cart') || '[]');
-        const existing = cart.find(c => c.id === this.product.id);
-        if (existing) {
-          existing.qty = (existing.qty || 1) + 1;
-        } else {
-          cart.push({ ...this.product, qty: 1 });
-        }
-        localStorage.setItem('cart', JSON.stringify(cart));
-      } catch (e) {
-        console.error('Cart storage error:', e);
-      }
-    }
-
+    this.cartService.add(this.product);
     this.cartAdded = true;
+
+    // Compute totals for popup
+    const allItems = this.cartService.getAll();
+    this.cartCount = allItems.reduce((sum, p) => sum + (p.qty || 1), 0);
+    this.cartTotal = allItems.reduce((sum, p) => sum + (p.price * (p.qty || 1)), 0);
+
+    // Show popup
+    this.showCartPopup = true;
+
+    // Reset button label after 2.2s
     setTimeout(() => (this.cartAdded = false), 2200);
-  }
 
-  toggleWishlist() {
-    this.isWishlisted = !this.isWishlisted;
-
-    if (!isPlatformBrowser(this.platformId) || !this.product) return;
-    try {
-      const wishlist: number[] = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      if (this.isWishlisted) {
-        if (!wishlist.includes(this.product.id)) wishlist.push(this.product.id);
-      } else {
-        const idx = wishlist.indexOf(this.product.id);
-        if (idx > -1) wishlist.splice(idx, 1);
-      }
-      localStorage.setItem('wishlist', JSON.stringify(wishlist));
-    } catch (e) {
-      console.error('Wishlist storage error:', e);
-    }
+    // Auto-close popup after 4s
+    clearTimeout(this.popupTimer);
+    this.popupTimer = setTimeout(() => (this.showCartPopup = false), 4000);
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    clearTimeout(this.popupTimer);
   }
 }
