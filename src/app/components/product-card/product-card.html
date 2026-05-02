@@ -1,21 +1,19 @@
-<div class="product-card" [routerLink]="['/products', product.id]">
+<div class="product-card" (click)="goToProduct(product)">
   <div class="image-wrapper">
     <img
       class="product-img"
-      [src]="product.image_url"
-      alt="{{ product.name }}"
-      loading="lazy"              
-      decoding="async"           
+      [src]="getImageUrl(product.image_url)"
+      [alt]="product.name"
+      loading="lazy"
+      decoding="async"
     />
   </div>
-
   <div class="product-info">
     <h5>{{ product.name }}</h5>
     <p>{{ product.price | currency:'INR' }}</p>
   </div>
-
   <div class="actions">
-    <button (click)="addToCart(product)">Add to Cart</button>
-<button (click)="addToWishlist(product)">Wishlist</button>
+    <button (click)="addToCart(product); $event.stopPropagation()">Add to Cart</button>
+    <button (click)="addToWishlist(product); $event.stopPropagation()">Wishlist</button>
   </div>
 </div>

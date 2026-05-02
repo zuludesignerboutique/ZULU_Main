@@ -33,7 +33,7 @@
           <th>Order ID</th>
           <th>Customer</th>
           <th>Contact</th>
-          <th>Items</th>
+          <th>Products Purchased</th>
           <th>Total</th>
           <th>Date</th>
           <th>Status</th>
@@ -42,28 +42,50 @@
       </thead>
       <tbody>
         <tr *ngFor="let order of filteredOrders" class="ao-row">
+
+          <!-- Order ID -->
           <td><span class="order-id">#{{ order.id }}</span></td>
+
+          <!-- Customer name + email (which account) -->
           <td>
             <div class="customer-cell">
               <span class="customer-name">{{ order.user_name }}</span>
               <span class="customer-email">{{ order.email }}</span>
             </div>
           </td>
+
+          <!-- Phone -->
           <td><span class="phone">{{ order.phone }}</span></td>
+
+          <!-- Products with qty + price per item -->
           <td>
             <div class="items-cell">
-              <ng-container *ngFor="let item of parseItems(order.items)">
-                <span class="item-pill">{{ item.product_name }} ×{{ item.quantity }}</span>
-              </ng-container>
+              <div class="item-row" *ngFor="let item of parseItems(order.items)">
+                <span class="item-pill">
+                  <span class="item-name-text">{{ item.product_name }}</span>
+                  <span class="item-meta">×{{ item.quantity }} · ₹{{ item.price | number }}</span>
+                </span>
+              </div>
             </div>
           </td>
+
+          <!-- Total -->
           <td><span class="amount">₹{{ order.total_amount | number }}</span></td>
-          <td><span class="date">{{ order.created_at | date:'dd MMM yy' }}</span></td>
+
+          <!-- Date -->
+          <td>
+            <span class="date">{{ order.created_at | date:'dd MMM yy' }}</span>
+            <span class="date-time">{{ order.created_at | date:'h:mm a' }}</span>
+          </td>
+
+          <!-- Status badge -->
           <td>
             <span class="status-pill" [ngClass]="order.status">
               {{ order.status | titlecase }}
             </span>
           </td>
+
+          <!-- Change status -->
           <td>
             <select
               class="status-select"
@@ -77,7 +99,9 @@
               <option value="cancelled">Cancelled</option>
             </select>
           </td>
+
         </tr>
+
         <tr *ngIf="filteredOrders.length === 0">
           <td colspan="8" class="empty-row">No orders found for this filter.</td>
         </tr>

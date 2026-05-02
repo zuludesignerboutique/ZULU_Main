@@ -1,50 +1,141 @@
-<h2>Add Product</h2>
+<div class="add-product-page">
 
-<form (ngSubmit)="addProduct()">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Admin Panel</div>
+      <h2 class="page-title">Add New Product</h2>
+    </div>
+    <a routerLink="/admin/products" class="btn-back">← Back to Products</a>
+  </div>
 
-<div>
-<label>Product Name</label>
-<input type="text" [(ngModel)]="product.name" name="name" required>
+  <div class="ap-layout">
+
+    <!-- ══ FORM ══ -->
+    <div class="ap-form-card">
+
+      <form (ngSubmit)="addProduct()" enctype="multipart/form-data">
+
+        <!-- Section 1: Basic Info -->
+        <div class="form-section">
+          <div class="fs-label">01 · Basic Info</div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label>Product Name *</label>
+              <input type="text" [(ngModel)]="product.name" name="name" placeholder="e.g. Silk Saree" required />
+            </div>
+            <div class="field-group">
+              <label>Price (₹) *</label>
+              <input type="number" [(ngModel)]="product.price" name="price" placeholder="e.g. 2500" required />
+            </div>
+          </div>
+
+          <div class="field-group full">
+            <label>Description</label>
+            <textarea [(ngModel)]="product.description" name="description" rows="3" placeholder="Describe the product..."></textarea>
+          </div>
+        </div>
+
+        <!-- Section 2: Category -->
+        <div class="form-section">
+          <div class="fs-label">02 · Category</div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label>Category *</label>
+              <select [(ngModel)]="product.category" name="category" (change)="onCategoryChange()" required>
+                <option value="">Select Category</option>
+                <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.label }}</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Subcategory *</label>
+              <select [(ngModel)]="product.subcategory" name="subcategory" required [disabled]="!product.category">
+                <option value="">Select Subcategory</option>
+                <option *ngFor="let sub of currentSubcategories" [value]="sub">{{ sub }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Details -->
+        <div class="form-section">
+          <div class="fs-label">03 · Product Details</div>
+
+          <div class="field-row three-col">
+            <div class="field-group">
+              <label>Stock</label>
+              <input type="number" [(ngModel)]="product.stock" name="stock" placeholder="0" min="0" />
+            </div>
+            <div class="field-group">
+              <label>Product Code</label>
+              <input type="text" [(ngModel)]="product.product_code" name="product_code" placeholder="e.g. ZLU-001" />
+            </div>
+            <div class="field-group">
+              <label>Size</label>
+              <input type="text" [(ngModel)]="product.size" name="size" placeholder="e.g. S, M, L, XL" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Image -->
+        <div class="form-section">
+          <div class="fs-label">04 · Product Image</div>
+
+          <div class="image-upload-area" (click)="fileInput.click()" [class.has-preview]="imagePreview">
+            <input #fileInput type="file" accept="image/*" (change)="onFileChange($event)" hidden />
+
+            <div class="upload-placeholder" *ngIf="!imagePreview">
+              <span class="upload-icon">📷</span>
+              <p>Click to upload product image</p>
+              <small>JPG, PNG, WEBP up to 5MB</small>
+            </div>
+
+            <img *ngIf="imagePreview" [src]="imagePreview" class="image-preview" alt="Preview" />
+            <button type="button" class="remove-img" *ngIf="imagePreview" (click)="removeImage($event)">✕</button>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="form-actions">
+          <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">Add Product</span>
+            <span *ngIf="isSubmitting" class="submitting-dots">
+              <span></span><span></span><span></span>
+            </span>
+          </button>
+          <a routerLink="/admin/products" class="btn-cancel">Cancel</a>
+        </div>
+
+        <!-- Success / Error messages -->
+        <div class="success-msg" *ngIf="successMsg">✓ {{ successMsg }}</div>
+        <div class="error-msg" *ngIf="errorMsg">✕ {{ errorMsg }}</div>
+
+      </form>
+    </div>
+
+    <!-- ══ SIDEBAR: Category Guide ══ -->
+    <div class="ap-sidebar">
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">Category Guide</h4>
+        <div class="cat-guide" *ngFor="let cat of categories">
+          <div class="cat-guide-name">{{ cat.label }}</div>
+          <div class="cat-guide-subs">
+            <span *ngFor="let sub of subcategoryMap[cat.value]">{{ sub }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-card tips">
+        <h4 class="sidebar-title">💡 Tips</h4>
+        <ul>
+          <li>Use clear product names</li>
+          <li>Price in Indian Rupees (₹)</li>
+          <li>Use subcategory exactly as listed for filtering to work</li>
+          <li>Images look best at 3:4 ratio</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
 </div>
-
-<div>
-<label>Description</label>
-<input type="text" [(ngModel)]="product.description" name="description">
-</div>
-
-<div>
-<label>Price</label>
-<input type="number" [(ngModel)]="product.price" name="price" required>
-</div>
-
-<div>
-<label>Category</label>
-<input type="text" [(ngModel)]="product.category" name="category">
-</div>
-
-<div>
-<label>Subcategory</label>
-<input type="text" [(ngModel)]="product.subcategory" name="subcategory">
-</div>
-
-<div>
-<label>Image Name</label>
-<input type="file" (change)="onFileSelect($event)">
-</div>
-
-<div>
-<label>Stock</label>
-<input type="number" [(ngModel)]="product.stock" name="stock">
-</div>
-<div>
-<label>Product Code</label>
-<input type="text" [(ngModel)]="product.product_code" name="product_code">
-</div>
-
-<div>
-<label>Size</label>
-<input type="text" [(ngModel)]="product.size" name="size">
-</div>
-<button type="submit">Add Product</button>
-
-</form>

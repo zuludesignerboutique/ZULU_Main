@@ -1,28 +1,48 @@
-<section class="container mt-5">
+<div class="subcategories-page">
 
-  <h2 class="text-center mb-5 text-capitalize">
-    {{ categoryType }} Collection
-  </h2>
-
-  <div class="row">
-
-    <div class="col-md-4 mb-4" *ngFor="let sub of subcategories">
-
-      <div class="subcategory-card text-center">
-
-        <img
-          [src]="sub.image"
-          class="img-fluid"
-        >
-
-        <h5 class="mt-3">
-          {{ sub.name }}
-        </h5>
-
-      </div>
-
-    </div>
-
+  <!-- HEADER -->
+  <div class="sub-header">
+    <a routerLink="/categories" class="back-link">← Categories</a>
+    <h1 class="sub-title">{{ categoryLabel }}</h1>
+    <p class="sub-count" *ngIf="!isLoading">{{ filteredProducts.length }} pieces</p>
   </div>
 
-</section>
+  <!-- SUBCATEGORY TABS -->
+  <div class="sub-tabs">
+    <button
+      class="sub-tab"
+      *ngFor="let sub of subcategories"
+      [class.active]="selectedSubcategory === sub.key"
+      (click)="selectSubcategory(sub.key)"
+    >
+      {{ sub.name }}
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="sub-loading" *ngIf="isLoading">
+    <div class="sk-grid">
+      <div class="skeleton-card" *ngFor="let n of [1,2,3,4,5,6]">
+        <div class="sk-img"></div>
+        <div class="sk-name"></div>
+        <div class="sk-price"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="sub-empty" *ngIf="!isLoading && filteredProducts.length === 0">
+    <span class="empty-icon">◈</span>
+    <p>No products found in this category yet.</p>
+    <small>Add products from the admin panel with the matching subcategory.</small>
+  </div>
+
+  <!-- ✅ PRODUCTS GRID — using product-card so Add to Cart / Wishlist work -->
+  <div class="sub-grid" *ngIf="!isLoading && filteredProducts.length > 0">
+    <app-product-card
+      *ngFor="let product of filteredProducts"
+      [product]="product">
+    </app-product-card>
+  </div>
+
+</div>

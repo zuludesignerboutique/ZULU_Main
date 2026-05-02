@@ -14,15 +14,22 @@
     <span class="spinner-dot"></span>
   </div>
 
+  <!-- ERROR / NOT LOGGED IN -->
+  <div class="history-empty" *ngIf="!isLoading && errorMsg">
+    <div class="empty-icon">⚠</div>
+    <p>{{ errorMsg }}</p>
+    <a routerLink="/login" class="btn-shop">Login</a>
+  </div>
+
   <!-- EMPTY -->
-  <div class="history-empty" *ngIf="!isLoading && orders.length === 0">
+  <div class="history-empty" *ngIf="!isLoading && !errorMsg && orders.length === 0">
     <div class="empty-icon">◈</div>
     <p>You haven't placed any orders yet.</p>
     <a routerLink="/products" class="btn-shop">Start Shopping</a>
   </div>
 
   <!-- ORDERS LIST -->
-  <div class="orders-list" *ngIf="!isLoading && orders.length > 0">
+  <div class="orders-list" *ngIf="!isLoading && !errorMsg && orders.length > 0">
 
     <div class="order-card" *ngFor="let order of orders">
 
@@ -41,13 +48,17 @@
       <!-- Status timeline -->
       <div class="status-timeline" *ngIf="order.status !== 'cancelled'">
         <ng-container *ngFor="let step of statusSteps; let last = last">
-          <div class="tl-step" [class.done]="isStepDone(order.status, step.key)" [class.active]="order.status === step.key">
+          <div class="tl-step"
+               [class.done]="isStepDone(order.status, step.key)"
+               [class.active]="order.status === step.key">
             <div class="tl-dot">
-              <span class="tl-check" *ngIf="isStepDone(order.status, step.key) && order.status !== step.key">✓</span>
+              <span class="tl-check"
+                    *ngIf="isStepDone(order.status, step.key) && order.status !== step.key">✓</span>
             </div>
             <span class="tl-label">{{ step.label }}</span>
           </div>
-          <div class="tl-line" *ngIf="!last" [class.done]="isStepDone(order.status, step.key)"></div>
+          <div class="tl-line" *ngIf="!last"
+               [class.done]="isStepDone(order.status, step.key)"></div>
         </ng-container>
       </div>
 
@@ -59,10 +70,14 @@
       <div class="order-items">
         <div class="order-item" *ngFor="let item of parseItems(order.items)">
           <div class="item-img-wrap">
-            <img [src]="imageBase + item.image_url" [alt]="item.product_name" />
+            <img
+              [src]="item.image_url ? imageBase + item.image_url : 'assets/images/placeholder.png'"
+              [alt]="item.product_name"
+              onerror="this.src='assets/images/placeholder.png'"
+            />
           </div>
           <div class="item-info">
-            <p class="item-name">{{ item.product_name }}</p>
+            <p class="item-name">{{ item.product_name || 'Product' }}</p>
             <p class="item-qty">Qty · {{ item.quantity }}</p>
           </div>
           <p class="item-price">₹{{ (item.price * item.quantity) | number }}</p>

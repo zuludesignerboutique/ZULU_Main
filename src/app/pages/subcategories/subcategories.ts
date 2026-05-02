@@ -1,80 +1,113 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { ProductCardComponent } from '../../components/product-card/product-card';
+import { Product } from '../../core/models/product.model';
 
 @Component({
   selector: 'app-subcategories',
   standalone: true,
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule, ProductCardComponent],
   templateUrl: './subcategories.html',
   styleUrl: './subcategories.scss'
 })
-export class SubcategoriesComponent {
+export class SubcategoriesComponent implements OnInit {
 
   categoryType = '';
-  subcategories: any[] = [];
+  selectedSubcategory = '';   // which subcategory tab is active
+  subcategories: { name: string; key: string }[] = [];
 
-  constructor(private route: ActivatedRoute) {
+  allProducts: Product[] = [];     // all products from DB for this category
+  filteredProducts: Product[] = []; // products for selected subcategory
+  isLoading = true;
 
+  // Map your route type → DB category name & subcategory list
+  private categoryMap: Record<string, { label: string; subs: { name: string; key: string }[] }> = {
+    bridal: {
+      label: 'Bridal Collection',
+      subs: [
+        { name: 'All',           key: '' },
+        { name: 'Bridal Blouse', key: 'Bridal Blouse' },
+        { name: 'Bridal Saree',  key: 'Bridal Saree' },
+        { name: 'Lehenga',       key: 'Lehenga' },
+        { name: 'Gown',          key: 'Gown' },
+        { name: 'Half Saree',    key: 'Half Saree' },
+      ]
+    },
+    groom: {
+      label: 'Groom Collection',
+      subs: [
+        { name: 'All',              key: '' },
+        { name: 'Designer Shirt',   key: 'Designer Shirt' },
+        { name: 'Traditional Dhoti',key: 'Traditional Dhoti' },
+      ]
+    },
+    party: {
+      label: 'Party Collection',
+      subs: [
+        { name: 'All',           key: '' },
+        { name: 'Party Gown',    key: 'Party Gown' },
+        { name: 'Designer Kurti',key: 'Designer Kurti' },
+        { name: 'Western Dress', key: 'Western Dress' },
+      ]
+    },
+    casual: {
+      label: 'Casual Collection',
+      subs: [
+        { name: 'All',          key: '' },
+        { name: 'T-Shirts',     key: 'T-Shirts' },
+        { name: 'Casual Shirts',key: 'Casual Shirts' },
+        { name: 'Everyday Wear',key: 'Everyday Wear' },
+      ]
+    }
+  };
+
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
     this.categoryType = this.route.snapshot.params['type'];
-
-    if (this.categoryType === 'bridal') {
-      this.subcategories = [
-        { name: 'Bridal Blouse', image: 'assets/images/bridal-blouse.jpg' },
-        { name: 'Bridal Saree', image: 'assets/images/bridal-saree.jpg' },
-        { name: 'Lehenga', image: 'assets/images/lehenga.jpg' },
-        { name: 'Gown', image: 'assets/images/gown.jpg' },
-        { name: 'Half Saree', image: 'assets/images/half-saree.jpg' }
-      ];
+    const config = this.categoryMap[this.categoryType];
+    if (config) {
+      this.subcategories = config.subs;
+      this.selectedSubcategory = ''; // "All" by default
     }
 
-    if (this.categoryType === 'groom') {
-      this.subcategories = [
-        { name: 'Designer Shirt', image: 'assets/images/designer-shirt.jpg' },
-        { name: 'Traditional Dhoti', image: 'assets/images/dhoti.jpg' }
-      ];
-    }
-
-    if (this.categoryType === 'party') {
-      this.subcategories = [
-        { name: 'Party Gown', image: 'assets/images/party-gown.jpg' },
-        { name: 'Designer Kurti', image: 'assets/images/kurti.jpg' },
-        { name: 'Western Dress', image: 'assets/images/western.jpg' }
-      ];
-    }
-
-    if (this.categoryType === 'casual') {
-      this.subcategories = [
-        { name: 'T-Shirts', image: 'assets/images/tshirt.jpg' },
-        { name: 'Casual Shirts', image: 'assets/images/casual-shirt.jpg' },
-        { name: 'Everyday Wear', image: 'assets/images/everyday.jpg' }
-      ];
-    }
-
+    // ✅ Fetch all products from DB, filter by category
+    this.http.get<Product[]>('http://localhost:4000/api/products').subscribe({
+      next: (data) => {
+        // Match products where category matches the route type (case-insensitive)
+        this.allProducts = data.filter(p =>
+          p.category?.toLowerCase() === this.categoryType.toLowerCase() ||
+          p.subcategory?.toLowerCase().includes(this.categoryType.toLowerCase())
+        );
+        this.filterProducts();
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
+    });
   }
 
+  get categoryLabel(): string {
+    return this.categoryMap[this.categoryType]?.label || this.categoryType + ' Collection';
+  }
+
+  selectSubcategory(key: string) {
+    this.selectedSubcategory = key;
+    this.filterProducts();
+  }
+
+  filterProducts() {
+    if (!this.selectedSubcategory) {
+      this.filteredProducts = this.allProducts;
+    } else {
+      this.filteredProducts = this.allProducts.filter(p =>
+        p.subcategory?.toLowerCase() === this.selectedSubcategory.toLowerCase()
+      );
+    }
+  }
 }
-
-
-// import { Component } from '@angular/core';
-// import { ActivatedRoute } from '@angular/router';
-// import { RouterModule } from '@angular/router';
-// import { CommonModule } from '@angular/common';
-
-// @Component({
-//   selector: 'app-subcategories',
-//   imports: [CommonModule,RouterModule],
-//   standalone: true,
-//   templateUrl: './subcategories.html',
-//   styleUrl: './subcategories.scss',
-// })
-// export class SubcategoriesComponent {
-//   type = '';
-
-// constructor(private route: ActivatedRoute) {}
-
-// ngOnInit(){
-// this.type = this.route.snapshot.params['type'];
-// }
-
-// }

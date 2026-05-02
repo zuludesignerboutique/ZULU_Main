@@ -1,86 +1,183 @@
-.admin-container{
-  display:flex;
-  height:100vh;
-  font-family: 'Segoe UI', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
+
+// ── TOKENS ────────────────────────────────────────
+$sidebar-bg:    #0d0d0d;
+$sidebar-width: 240px;
+$gold:          #c8a96e;
+$gold-dim:      rgba(200,169,110,0.12);
+$active-bg:     rgba(200,169,110,0.15);
+$topbar-bg:     #ffffff;
+$content-bg:    #f5f3f0;
+$text-light:    rgba(255,255,255,0.65);
+$border:        rgba(255,255,255,0.07);
+
+// ── RESET ─────────────────────────────────────────
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+// ── LAYOUT ───────────────────────────────────────
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  font-family: 'Jost', 'Segoe UI', sans-serif;
+  overflow: hidden;
 }
 
-.sidebar{
-  width:240px;
-  background:#0f172a;
-  color:white;
-  padding:20px;
+// ── SIDEBAR ──────────────────────────────────────
+.admin-sidebar {
+  width: $sidebar-width;
+  min-width: $sidebar-width;
+  background: $sidebar-bg;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  border-right: 1px solid $border;
+  flex-shrink: 0;
+
+  // Scrollbar
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 }
 
-.sidebar h2{
-  margin-bottom:30px;
+// Brand
+.sidebar-brand {
+  padding: 24px 24px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffffff;
+  border-bottom: 1px solid $border;
+
+  // Gold underline accent
+  span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: $gold;
+    margin-top: 8px;
+    border-radius: 2px;
+  }
 }
 
-.sidebar a{
-  display:block;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:8px;
-  color:white;
-  text-decoration:none;
+// Nav
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  gap: 4px;
+  flex: 1;
 }
 
-.sidebar a:hover{
-  background:#1e293b;
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: $text-light;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: background 0.2s, color 0.2s;
+
+  .sidebar-icon {
+    font-size: 15px;
+    width: 20px;
+    text-align: center;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(255,255,255,0.06);
+    color: #ffffff;
+    .sidebar-icon { opacity: 1; }
+  }
+
+  &.active {
+    background: $active-bg;
+    color: $gold;
+    font-weight: 600;
+    border: 1px solid rgba(200,169,110,0.2);
+
+    .sidebar-icon { opacity: 1; }
+  }
 }
 
-.content{
-  flex:1;
-  padding:30px;
-  background:#f1f5f9;
-}
-/* ===== NEW IMPROVEMENTS ===== */
-
-.logo {
-  margin-bottom: 30px;
-}
-
-/* Active link highlight */
-.sidebar a.active {
-  background: #2563eb;
-  padding: 8px;
-  border-radius: 5px;
-}
-
-/* Main layout */
-.main {
+// ── MAIN AREA ────────────────────────────────────
+.admin-content {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 }
 
-/* Header */
-.header {
+// ── TOPBAR ───────────────────────────────────────
+.admin-topbar {
   height: 60px;
-  background: #ffffff;
+  min-height: 60px;
+  background: $topbar-bg;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  border-bottom: 1px solid #ddd;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+
+  .topbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9a9080;
+  }
 }
 
-/* Logout button */
 .logout-btn {
-  background: #ef4444;
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 3px 10px rgba(192,57,43,0.3);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(192,57,43,0.4);
+  }
 }
 
-.logout-btn:hover {
-  background: #dc2626;
-}
-
-.content {
+// ── BODY / ROUTER OUTLET AREA ─────────────────────
+.admin-body {
   flex: 1;
-  padding: 30px;
-  background: #f1f5f9;
-  overflow-x: auto;   /* 🔥 IMPORTANT */
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: $content-bg;
+  padding: 32px;
+
+  // Scrollbar
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+
+  @media (max-width: 768px) { padding: 20px 16px; }
+}
+
+// ── RESPONSIVE ───────────────────────────────────
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 200px;
+    min-width: 200px;
+  }
 }

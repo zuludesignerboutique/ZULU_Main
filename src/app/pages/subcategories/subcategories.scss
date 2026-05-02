@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap');
+
+$gold:    #c8a96e;
+$ink:     #0d0d0d;
+$surface: #faf8f5;
+$muted:   #9a9080;
+$border:  rgba(0,0,0,0.08);
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.subcategories-page {
+  min-height: 100vh;
+  background: $surface;
+  font-family: 'Jost', sans-serif;
+  padding-bottom: 80px;
+}
+
+// ── HEADER ───────────────────────────────────────
+.sub-header {
+  background: $ink;
+  padding: 48px 64px 40px;
+  text-align: center;
+  position: relative;
+
+  @media (max-width: 768px) { padding: 40px 24px 32px; }
+}
+
+.back-link {
+  position: absolute;
+  left: 64px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover { color: $gold; }
+
+  @media (max-width: 768px) {
+    position: static;
+    transform: none;
+    display: block;
+    margin-bottom: 16px;
+  }
+}
+
+.sub-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 400;
+  color: #f0ece4;
+  margin: 0 0 8px;
+}
+
+.sub-count {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: $gold;
+  margin: 0;
+}
+
+// ── TABS ─────────────────────────────────────────
+.sub-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 32px 64px;
+  border-bottom: 1px solid $border;
+  background: #fff;
+
+  @media (max-width: 768px) { padding: 20px 16px; }
+}
+
+.sub-tab {
+  padding: 9px 22px;
+  background: transparent;
+  border: 1.5px solid $border;
+  border-radius: 40px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $muted;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover { border-color: $gold; color: darken(#c8a96e, 8%); }
+
+  &.active {
+    background: $ink;
+    border-color: $ink;
+    color: #fff;
+  }
+}
+
+// ── GRID ─────────────────────────────────────────
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+  padding: 48px 64px;
+  animation: fadeUp 0.5s ease both;
+
+  @media (max-width: 1100px) { grid-template-columns: repeat(3, 1fr); padding: 32px 32px; }
+  @media (max-width: 768px)  { grid-template-columns: repeat(2, 1fr); padding: 24px 16px; }
+  @media (max-width: 480px)  { grid-template-columns: 1fr; }
+}
+
+// ── LOADING SKELETONS ────────────────────────────
+.sub-loading { padding: 48px 64px; }
+
+.sk-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+
+  @media (max-width: 1100px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 768px)  { grid-template-columns: repeat(2, 1fr); }
+}
+
+.skeleton-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+
+  .sk-img {
+    height: 280px;
+    background: linear-gradient(90deg, #f0ece4 25%, #e8e2d8 50%, #f0ece4 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .sk-name {
+    height: 14px;
+    margin: 16px 16px 8px;
+    background: linear-gradient(90deg, #f0ece4 25%, #e8e2d8 50%, #f0ece4 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    width: 70%;
+  }
+
+  .sk-price {
+    height: 12px;
+    margin: 0 16px 16px;
+    background: linear-gradient(90deg, #f0ece4 25%, #e8e2d8 50%, #f0ece4 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    width: 40%;
+  }
+}
+
+// ── EMPTY STATE ──────────────────────────────────
+.sub-empty {
+  text-align: center;
+  padding: 100px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  .empty-icon { font-size: 48px; color: rgba(0,0,0,0.08); }
+  p { font-size: 16px; color: $muted; margin: 0; }
+  small { font-size: 12px; color: lighten(#9a9080, 10%); }
+}

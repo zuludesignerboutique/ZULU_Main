@@ -1,29 +1,55 @@
-<div class="admin-container">
+<!-- ADMIN LAYOUT WRAPPER -->
+<div class="admin-layout">
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h2 class="logo">ZULU Admin</h2>
-
-    <a routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a>
-    <a routerLink="/admin/products" routerLinkActive="active">Products</a>
-    <a routerLink="/admin/add-product" routerLinkActive="active">Add Product</a>
-  </div>
-
-  <!-- Main Content Area -->
-  <div class="main">
-
-    <!-- Header -->
-    <div class="header">
-      <h3>Admin Panel</h3>
-     
-      <button (click)="logout()"class="logout-btn">Logout</button>
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      ZULU Admin
+      <span></span>
     </div>
 
-    <!-- Page Content -->
-    <div class="content">
+    <nav class="sidebar-nav">
+
+      <a routerLink="/admin/dashboard"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }"
+         class="sidebar-link">
+        <span class="sidebar-icon">▦</span> Dashboard
+      </a>
+
+      <a routerLink="/admin/products"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">◫</span> Products
+      </a>
+
+      <a routerLink="/admin/add-product"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">＋</span> Add Product
+      </a>
+
+      <a routerLink="/admin/orders"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">◑</span> Orders
+      </a>
+
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-content">
+
+    <div class="admin-topbar">
+      <span class="topbar-title">Admin Panel</span>
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+
+    <div class="admin-body">
       <router-outlet></router-outlet>
     </div>
 
-  </div>
+  </main>
 
 </div>

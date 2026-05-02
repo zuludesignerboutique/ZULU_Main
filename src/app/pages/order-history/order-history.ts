@@ -15,9 +15,9 @@ export class OrderHistoryComponent implements OnInit {
 
   orders: any[] = [];
   isLoading = true;
+  errorMsg = '';
   imageBase = 'http://localhost:4000/uploads/';
 
-  // Status progression order
   statusSteps = [
     { key: 'pending',   label: 'Placed'    },
     { key: 'confirmed', label: 'Confirmed' },
@@ -31,8 +31,11 @@ export class OrderHistoryComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // auth.service.ts stores email under 'userEmail' key via getUserEmail()
     const email = this.auth.getUserEmail();
+
     if (!email || email === 'guest') {
+      this.errorMsg = 'Please log in to view your orders.';
       this.isLoading = false;
       return;
     }
@@ -43,13 +46,14 @@ export class OrderHistoryComponent implements OnInit {
           this.orders = data;
           this.isLoading = false;
         },
-        error: () => {
+        error: (err) => {
+          console.error('[OrderHistory] API error:', err);
+          this.errorMsg = 'Could not load orders. Please try again later.';
           this.isLoading = false;
         }
       });
   }
 
-  // Parse items — MySQL returns JSON_ARRAYAGG as string sometimes
   parseItems(items: any): any[] {
     if (!items) return [];
     if (typeof items === 'string') {
@@ -58,7 +62,6 @@ export class OrderHistoryComponent implements OnInit {
     return Array.isArray(items) ? items : [];
   }
 
-  // Check if a status step is completed relative to current status
   isStepDone(currentStatus: string, stepKey: string): boolean {
     const order = ['pending', 'confirmed', 'shipped', 'delivered'];
     const currentIdx = order.indexOf(currentStatus);

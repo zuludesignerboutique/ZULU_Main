@@ -1,38 +1,28 @@
 <!-- ══ HERO ══════════════════════════════════════ -->
 <section class="hero">
-
   <div class="hero-bg"></div>
   <div class="hero-overlay"></div>
-
   <div class="hero-content">
-
     <div class="hero-eyebrow">
       <span>New Collection — 2025</span>
     </div>
-
     <h1>
       Crafted for
       <em>Every Occasion</em>
     </h1>
-
     <p class="hero-sub">
       Timeless silhouettes. Exquisite fabrics.<br>
       Designs that make you unforgettable.
     </p>
-
     <div class="hero-cta">
       <a routerLink="/categories" class="btn-primary-hero">Shop Collection</a>
-      <a routerLink="/about" class="btn-ghost-hero">Our Story</a>
+      <a routerLink="/about-zora" class="btn-ghost-hero">Our Story</a>
     </div>
-
   </div>
-
-  <!-- Scroll hint -->
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
   </div>
-
 </section>
 
 <!-- ══ MARQUEE STRIP ════════════════════════════ -->
@@ -44,7 +34,6 @@
     <span class="marquee-item">Luxury Fabrics</span>
     <span class="marquee-item">Handcrafted Details</span>
     <span class="marquee-item">Free Shipping</span>
-    <!-- Duplicate for seamless loop -->
     <span class="marquee-item">Bridal Couture</span>
     <span class="marquee-item">Ethnic Sarees</span>
     <span class="marquee-item">Party Wear</span>
@@ -56,7 +45,6 @@
 
 <!-- ══ COLLECTION ════════════════════════════════ -->
 <section class="collection">
-
   <div class="collection-header">
     <div class="header-left">
       <p class="eyebrow">Featured Pieces</p>
@@ -71,7 +59,17 @@
     </div>
   </div>
 
-  <div class="product-grid">
+  <!-- Loading skeleton -->
+  <div class="product-grid" *ngIf="isLoading">
+    <div class="skeleton-card" *ngFor="let n of [1,2,3,4]">
+      <div class="sk-img"></div>
+      <div class="sk-name"></div>
+      <div class="sk-price"></div>
+    </div>
+  </div>
+
+  <!-- ✅ Products from DB -->
+  <div class="product-grid" *ngIf="!isLoading">
     <app-product-card
       *ngFor="let product of products"
       [product]="product">
@@ -83,28 +81,23 @@
       <span>Explore Full Collection</span>
     </a>
   </div>
-
 </section>
 
 <!-- ══ BRAND STRIP ════════════════════════════════ -->
 <div class="brand-strip">
-
   <div class="brand-item">
     <span class="brand-icon">✦</span>
     <div class="brand-title">Artisan Made</div>
     <p class="brand-desc">Every stitch placed with intention by skilled craftspeople with decades of heritage.</p>
   </div>
-
   <div class="brand-item">
     <span class="brand-icon">◈</span>
     <div class="brand-title">Luxe Fabrics</div>
     <p class="brand-desc">Sourced from the finest mills — silk, georgette, and hand-woven textiles.</p>
   </div>
-
   <div class="brand-item">
     <span class="brand-icon">❋</span>
     <div class="brand-title">Made to Last</div>
     <p class="brand-desc">Timeless designs that transcend seasons and stay with you for a lifetime.</p>
   </div>
-
 </div>
