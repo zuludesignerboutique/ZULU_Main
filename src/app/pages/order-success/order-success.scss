@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Jost:wght@300;400;500;600&display=swap');
+
+$gold: #c8a96e;
+$ink:  #0d0d0d;
+$text: #1a1814;
+$muted: #9a9080;
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Circle draw
+@keyframes strokeDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes tickDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+// ── PAGE ─────────────────────────────────────────
+.success-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #faf8f5 0%, #f0ece4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  font-family: 'Jost', sans-serif;
+}
+
+.success-card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 56px 48px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.05);
+  animation: fadeUp 0.6s ease both;
+
+  @media (max-width: 600px) { padding: 40px 28px; }
+}
+
+// ── CHECKMARK ─────────────────────────────────────
+.check-ring {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 28px;
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.check-svg {
+  width: 80px;
+  height: 80px;
+}
+
+.check-circle {
+  stroke: $gold;
+  stroke-width: 2;
+  stroke-dasharray: 157;
+  stroke-dashoffset: 157;
+  animation: strokeDraw 0.7s 0.2s ease forwards;
+}
+
+.check-tick {
+  stroke: $gold;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: tickDraw 0.4s 0.7s ease forwards;
+}
+
+// ── TEXT ──────────────────────────────────────────
+.success-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: $gold;
+  margin-bottom: 8px;
+  animation: fadeUp 0.5s 0.3s ease both;
+}
+
+.success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-weight: 400;
+  color: $text;
+  margin: 0 0 12px;
+  animation: fadeUp 0.5s 0.35s ease both;
+}
+
+.success-sub {
+  font-size: 14px;
+  line-height: 1.7;
+  color: $muted;
+  margin: 0 0 28px;
+  animation: fadeUp 0.5s 0.4s ease both;
+}
+
+// ── ORDER ID ──────────────────────────────────────
+.order-id-box {
+  background: linear-gradient(135deg, rgba(200,169,110,0.08), rgba(183,110,121,0.06));
+  border: 1px solid rgba(200,169,110,0.25);
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadeUp 0.5s 0.45s ease both;
+}
+
+.order-id-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+.order-id-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: $text;
+  letter-spacing: 0.04em;
+}
+
+// ── SUMMARY ──────────────────────────────────────
+.success-summary {
+  background: #faf8f5;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  animation: fadeUp 0.5s 0.5s ease both;
+}
+
+.ss-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+
+  span:first-child {
+    color: $muted;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding-top: 1px;
+  }
+
+  span:last-child {
+    color: $text;
+    text-align: right;
+  }
+
+  .ss-amount {
+    font-weight: 700;
+    font-size: 15px;
+    color: darken(#c8a96e, 10%);
+  }
+}
+
+// ── TRUST ────────────────────────────────────────
+.success-trust {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+  animation: fadeUp 0.5s 0.55s ease both;
+}
+
+.st-item {
+  font-size: 12px;
+  color: $muted;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+// ── ACTIONS ──────────────────────────────────────
+.success-actions {
+  display: flex;
+  gap: 12px;
+  animation: fadeUp 0.5s 0.6s ease both;
+
+  @media (max-width: 480px) { flex-direction: column; }
+}
+
+.btn-shop {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #b76e79, #c8a96e);
+  color: #111;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 6px 18px rgba(183,110,121,0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(183,110,121,0.4);
+  }
+}
+
+.btn-home {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  background: #f5f3f0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover { background: #edeae5; color: #111; }
+}

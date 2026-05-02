@@ -36,10 +36,7 @@
               "src/styles.scss"
             ],
 
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "outputMode": "static"
           },
           "configurations": {
             "production": {

@@ -1,0 +1,256 @@
+<div class="checkout-page">
+
+  <!-- HEADER -->
+  <div class="checkout-header">
+    <div class="header-inner">
+      <a routerLink="/cart" class="back-link">
+        <span class="back-arrow">←</span> Back to Cart
+      </a>
+      <div class="header-brand">
+        <span class="header-eyebrow">Secure Checkout</span>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-step active">
+        <span class="step-dot"></span>
+        <span class="step-label">Cart</span>
+      </div>
+      <div class="progress-line active"></div>
+      <div class="progress-step active current">
+        <span class="step-dot"></span>
+        <span class="step-label">Checkout</span>
+      </div>
+      <div class="progress-line"></div>
+      <div class="progress-step">
+        <span class="step-dot"></span>
+        <span class="step-label">Confirmation</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="checkout-layout" [formGroup]="checkoutForm">
+
+    <!-- ══ LEFT — FORMS ══ -->
+    <div class="checkout-forms">
+
+      <!-- CUSTOMER DETAILS -->
+      <div class="form-section">
+        <div class="section-eyebrow">01</div>
+        <h2 class="section-title">Customer Details</h2>
+
+        <div class="fields-grid">
+
+          <div class="field-group full">
+            <label class="field-label">Full Name</label>
+            <div class="field-wrap" [class.error]="isInvalid('name')" [class.valid]="isValid('name')">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <input
+                type="text"
+                class="field-input"
+                placeholder="Your full name"
+                formControlName="name"
+              />
+              <span class="field-status"></span>
+            </div>
+            <p class="field-error" *ngIf="isInvalid('name')">Name is required</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Phone Number</label>
+            <div class="field-wrap" [class.error]="isInvalid('phone')" [class.valid]="isValid('phone')">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/>
+              </svg>
+              <input
+                type="tel"
+                class="field-input"
+                placeholder="10-digit mobile number"
+                formControlName="phone"
+                maxlength="10"
+              />
+              <span class="field-status"></span>
+            </div>
+            <p class="field-error" *ngIf="isInvalid('phone')">Enter a valid 10-digit number</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Email Address</label>
+            <div class="field-wrap" [class.error]="isInvalid('email')" [class.valid]="isValid('email')">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <input
+                type="email"
+                class="field-input"
+                placeholder="you@example.com"
+                formControlName="email"
+              />
+              <span class="field-status"></span>
+            </div>
+            <p class="field-error" *ngIf="isInvalid('email')">Enter a valid email address</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DELIVERY ADDRESS -->
+      <div class="form-section">
+        <div class="section-eyebrow">02</div>
+        <h2 class="section-title">Delivery Address</h2>
+
+        <div class="fields-grid">
+
+          <div class="field-group full">
+            <label class="field-label">Street Address</label>
+            <div class="field-wrap" [class.error]="isInvalid('address')" [class.valid]="isValid('address')">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              <input
+                type="text"
+                class="field-input"
+                placeholder="House no., street, area"
+                formControlName="address"
+              />
+              <span class="field-status"></span>
+            </div>
+            <p class="field-error" *ngIf="isInvalid('address')">Address is required</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">City</label>
+            <div class="field-wrap" [class.error]="isInvalid('city')" [class.valid]="isValid('city')">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <input
+                type="text"
+                class="field-input"
+                placeholder="City"
+                formControlName="city"
+              />
+              <span class="field-status"></span>
+            </div>
+            <p class="field-error" *ngIf="isInvalid('city')">City is required</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">State</label>
+            <div class="field-wrap" [class.error]="isInvalid('state')" [class.valid]="isValid('state')">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+              </svg>
+              <input
+                type="text"
+                class="field-input"
+                placeholder="State"
+                formControlName="state"
+              />
+              <span class="field-status"></span>
+            </div>
+            <p class="field-error" *ngIf="isInvalid('state')">State is required</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Pincode</label>
+            <div class="field-wrap" [class.error]="isInvalid('pincode')" [class.valid]="isValid('pincode')">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+              </svg>
+              <input
+                type="text"
+                class="field-input"
+                placeholder="6-digit pincode"
+                formControlName="pincode"
+                maxlength="6"
+              />
+              <span class="field-status"></span>
+            </div>
+            <p class="field-error" *ngIf="isInvalid('pincode')">Enter a valid 6-digit pincode</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ RIGHT — ORDER SUMMARY ══ -->
+    <div class="order-summary">
+
+      <div class="summary-header">
+        <h3 class="summary-title">Order Summary</h3>
+        <span class="summary-count">{{ cartItems.length }} item{{ cartItems.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <!-- ITEMS -->
+      <div class="summary-items">
+        <div class="summary-item" *ngFor="let item of cartItems">
+          <div class="summary-img">
+            <img [src]="imageBase + item.image_url" [alt]="item.name" />
+            <span class="item-qty">{{ item.qty || 1 }}</span>
+          </div>
+          <div class="summary-item-info">
+            <p class="summary-item-name">{{ item.name }}</p>
+            <p class="summary-item-desc">{{ item.description }}</p>
+          </div>
+          <p class="summary-item-price">₹{{ (item.price * (item.qty || 1)) | number }}</p>
+        </div>
+      </div>
+
+      <div class="summary-divider"></div>
+
+      <!-- TOTALS -->
+      <div class="summary-totals">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span>₹{{ subtotal | number }}</span>
+        </div>
+        <div class="total-row">
+          <span>Delivery</span>
+          <span class="free-tag" *ngIf="subtotal >= 999">FREE</span>
+          <span *ngIf="subtotal < 999">₹99</span>
+        </div>
+        <div class="total-row grand">
+          <span>Total</span>
+          <span>₹{{ grandTotal | number }}</span>
+        </div>
+      </div>
+
+      <!-- TRUST -->
+      <div class="summary-trust">
+        <span>🔒 Secure & encrypted checkout</span>
+      </div>
+
+      <!-- PLACE ORDER BUTTON -->
+      <button
+        class="btn-place-order"
+        (click)="placeOrder()"
+        [disabled]="isPlacing"
+      >
+        <span *ngIf="!isPlacing">
+          Place Order · ₹{{ grandTotal | number }}
+        </span>
+        <span *ngIf="isPlacing" class="placing-dots">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+
+      <p class="order-note">
+        By placing the order you agree to our
+        <a routerLink="/terms-conditions">Terms</a> &
+        <a routerLink="/privacy-policy">Privacy Policy</a>
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

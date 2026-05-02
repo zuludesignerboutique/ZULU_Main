@@ -1,22 +1,29 @@
 import { Component, OnInit } from '@angular/core';
 import { CartService } from '../../services/cart.service';
-import { Product } from '../../core/models/product.model';
 import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.html',
   styleUrls: ['./cart.scss'],
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   standalone: true
 })
 export class CartComponent implements OnInit {
-  cartItems: Product[] = [];
+  cartItems: any[] = [];
 
-  constructor(private cartService: CartService) {}
+  constructor(
+    private cartService: CartService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.cartItems = this.cartService.getAll();
+  }
+
+  get total(): number {
+    return this.cartItems.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
   }
 
   removeFromCart(id: number) {
@@ -27,5 +34,9 @@ export class CartComponent implements OnInit {
   clearCart() {
     this.cartService.clear();
     this.cartItems = [];
+  }
+
+  goToCheckout() {
+    this.router.navigate(['/checkout']);
   }
 }

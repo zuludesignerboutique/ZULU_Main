@@ -3,25 +3,35 @@
 
   <div *ngIf="cartItems.length === 0" class="empty-cart">
     <p>Your cart is empty ✨</p>
+    <a routerLink="/products" class="btn-shop-now">Shop Now</a>
   </div>
 
   <div class="cart-card" *ngFor="let item of cartItems">
     <div class="cart-img">
       <img [src]="'http://localhost:4000/uploads/' + item.image_url" [alt]="item.name" />
     </div>
-
     <div class="cart-info">
       <h4>{{ item.name }}</h4>
       <p class="cart-desc">{{ item.description }}</p>
       <p class="cart-price">{{ item.price | currency:'INR' }}</p>
-
-      <button class="btn-remove" (click)="removeFromCart(item.id)">
-        Remove
-      </button>
+      <button class="btn-remove" (click)="removeFromCart(item.id)">Remove</button>
     </div>
   </div>
 
   <div class="cart-footer" *ngIf="cartItems.length > 0">
-    <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
+
+    <!-- Total -->
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total Amount</span>
+      <span class="cart-total-value">₹{{ total | number }}</span>
+    </div>
+
+    <div class="cart-footer-actions">
+      <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
+      <button class="btn-checkout" (click)="goToCheckout()">
+        Proceed to Checkout →
+      </button>
+    </div>
+
   </div>
 </div>

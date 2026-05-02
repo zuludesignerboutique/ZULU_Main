@@ -1,0 +1,87 @@
+<div class="history-page">
+
+  <!-- HEADER -->
+  <div class="history-header">
+    <div class="header-eyebrow">My Account</div>
+    <h1 class="history-title">Order History</h1>
+    <p class="history-sub">Track all your past and current orders</p>
+  </div>
+
+  <!-- LOADING -->
+  <div class="history-loading" *ngIf="isLoading">
+    <span class="spinner-dot"></span>
+    <span class="spinner-dot"></span>
+    <span class="spinner-dot"></span>
+  </div>
+
+  <!-- EMPTY -->
+  <div class="history-empty" *ngIf="!isLoading && orders.length === 0">
+    <div class="empty-icon">◈</div>
+    <p>You haven't placed any orders yet.</p>
+    <a routerLink="/products" class="btn-shop">Start Shopping</a>
+  </div>
+
+  <!-- ORDERS LIST -->
+  <div class="orders-list" *ngIf="!isLoading && orders.length > 0">
+
+    <div class="order-card" *ngFor="let order of orders">
+
+      <!-- Header row -->
+      <div class="order-card-header">
+        <div class="order-meta">
+          <span class="order-id">Order #{{ order.id }}</span>
+          <span class="order-date">{{ order.created_at | date:'dd MMM yyyy, h:mm a' }}</span>
+        </div>
+        <span class="status-badge" [ngClass]="order.status">
+          <span class="status-dot"></span>
+          {{ order.status | titlecase }}
+        </span>
+      </div>
+
+      <!-- Status timeline -->
+      <div class="status-timeline" *ngIf="order.status !== 'cancelled'">
+        <ng-container *ngFor="let step of statusSteps; let last = last">
+          <div class="tl-step" [class.done]="isStepDone(order.status, step.key)" [class.active]="order.status === step.key">
+            <div class="tl-dot">
+              <span class="tl-check" *ngIf="isStepDone(order.status, step.key) && order.status !== step.key">✓</span>
+            </div>
+            <span class="tl-label">{{ step.label }}</span>
+          </div>
+          <div class="tl-line" *ngIf="!last" [class.done]="isStepDone(order.status, step.key)"></div>
+        </ng-container>
+      </div>
+
+      <div class="cancelled-banner" *ngIf="order.status === 'cancelled'">
+        ✕ This order was cancelled
+      </div>
+
+      <!-- Items -->
+      <div class="order-items">
+        <div class="order-item" *ngFor="let item of parseItems(order.items)">
+          <div class="item-img-wrap">
+            <img [src]="imageBase + item.image_url" [alt]="item.product_name" />
+          </div>
+          <div class="item-info">
+            <p class="item-name">{{ item.product_name }}</p>
+            <p class="item-qty">Qty · {{ item.quantity }}</p>
+          </div>
+          <p class="item-price">₹{{ (item.price * item.quantity) | number }}</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="order-card-footer">
+        <div class="footer-address">
+          <span class="footer-label">Delivered to</span>
+          <span class="footer-value">{{ order.address }}</span>
+        </div>
+        <div class="footer-total">
+          <span class="footer-label">Order Total</span>
+          <span class="footer-amount">₹{{ order.total_amount | number }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

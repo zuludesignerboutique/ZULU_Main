@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './categories.html',
   styleUrl: './categories.scss',
 })
-export class CategoriesComponent {
+export class Categories {
 
   categories = [
     {

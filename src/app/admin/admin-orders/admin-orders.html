@@ -1,0 +1,88 @@
+<div class="admin-orders">
+
+  <div class="ao-header">
+    <div>
+      <h2 class="ao-title">Order Management</h2>
+      <p class="ao-sub">{{ orders.length }} total orders</p>
+    </div>
+    <div class="ao-filters">
+      <button
+        class="filter-btn"
+        *ngFor="let f of filters"
+        [class.active]="activeFilter === f"
+        (click)="setFilter(f)"
+      >
+        {{ f | titlecase }}
+        <span class="filter-count">{{ getCount(f) }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="ao-loading" *ngIf="isLoading">
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="ao-table-wrap" *ngIf="!isLoading">
+    <table class="ao-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Contact</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of filteredOrders" class="ao-row">
+          <td><span class="order-id">#{{ order.id }}</span></td>
+          <td>
+            <div class="customer-cell">
+              <span class="customer-name">{{ order.user_name }}</span>
+              <span class="customer-email">{{ order.email }}</span>
+            </div>
+          </td>
+          <td><span class="phone">{{ order.phone }}</span></td>
+          <td>
+            <div class="items-cell">
+              <ng-container *ngFor="let item of parseItems(order.items)">
+                <span class="item-pill">{{ item.product_name }} ×{{ item.quantity }}</span>
+              </ng-container>
+            </div>
+          </td>
+          <td><span class="amount">₹{{ order.total_amount | number }}</span></td>
+          <td><span class="date">{{ order.created_at | date:'dd MMM yy' }}</span></td>
+          <td>
+            <span class="status-pill" [ngClass]="order.status">
+              {{ order.status | titlecase }}
+            </span>
+          </td>
+          <td>
+            <select
+              class="status-select"
+              [value]="order.status"
+              (change)="updateStatus(order, $event)"
+            >
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </td>
+        </tr>
+        <tr *ngIf="filteredOrders.length === 0">
+          <td colspan="8" class="empty-row">No orders found for this filter.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

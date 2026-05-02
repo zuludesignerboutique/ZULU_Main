@@ -1,0 +1,53 @@
+<div class="success-page">
+
+  <div class="success-card">
+
+    <!-- Animated checkmark -->
+    <div class="check-ring">
+      <svg class="check-svg" viewBox="0 0 52 52">
+        <circle class="check-circle" cx="26" cy="26" r="25" fill="none"/>
+        <path class="check-tick" fill="none" d="M14 27l8 8 16-16"/>
+      </svg>
+    </div>
+
+    <div class="success-eyebrow">Order Confirmed</div>
+    <h1 class="success-title">Thank You!</h1>
+    <p class="success-sub">Your order has been placed successfully.<br>We'll contact you shortly to confirm.</p>
+
+    <!-- Order ID -->
+    <div class="order-id-box" *ngIf="orderId">
+      <span class="order-id-label">Order ID</span>
+      <span class="order-id-value">#{{ orderId }}</span>
+    </div>
+
+    <!-- Summary snippet -->
+    <div class="success-summary" *ngIf="orderData">
+      <div class="ss-row">
+        <span>Name</span>
+        <span>{{ orderData.user_name }}</span>
+      </div>
+      <div class="ss-row">
+        <span>Delivery to</span>
+        <span>{{ orderData.address }}</span>
+      </div>
+      <div class="ss-row">
+        <span>Amount Paid</span>
+        <span class="ss-amount">₹{{ orderData.total_amount | number }}</span>
+      </div>
+    </div>
+
+    <!-- Trust strip -->
+    <div class="success-trust">
+      <div class="st-item"><span>🚚</span> Delivery in 3–5 business days</div>
+      <div class="st-item"><span>📦</span> Tracking details via email</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="success-actions">
+      <a routerLink="/products" class="btn-shop">Continue Shopping</a>
+      <a routerLink="/home" class="btn-home">Go to Home</a>
+    </div>
+
+  </div>
+
+</div>
