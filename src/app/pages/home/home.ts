@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ProductCardComponent } from '../../components/product-card/product-card';
@@ -12,18 +12,28 @@ import { Product } from '../../core/models/product.model';
   templateUrl: './home.html',
   styleUrls: ['./home.scss']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements AfterViewInit {
 
   products: Product[] = [];
-  isLoading = true;
+  isLoading = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
-  ngOnInit() {
-    // ✅ Fetch from DB — show only first 4 as featured on home page
+  // ✅ AfterViewInit guarantees we are 100% in the browser
+  // ngOnInit can still fire during SSR hydration
+  ngAfterViewInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.loadProducts();
+  }
+
+  private loadProducts() {
+    this.isLoading = true;
     this.http.get<Product[]>('http://localhost:4000/api/products').subscribe({
       next: (data) => {
-        this.products = data.slice(0, 4); // show 4 featured products
+        this.products = data.slice(0, 4);
         this.isLoading = false;
       },
       error: () => {

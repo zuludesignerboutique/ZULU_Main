@@ -59,22 +59,45 @@
     </div>
   </div>
 
-  <!-- Loading skeleton -->
-  <div class="product-grid" *ngIf="isLoading">
-    <div class="skeleton-card" *ngFor="let n of [1,2,3,4]">
-      <div class="sk-img"></div>
-      <div class="sk-name"></div>
-      <div class="sk-price"></div>
-    </div>
-  </div>
+  <!-- ✅ @defer guarantees this block ONLY runs in the browser, never SSR -->
+  @defer (on immediate) {
+    @if (isLoading) {
+      <div class="product-grid">
+        @for (n of [1,2,3,4]; track n) {
+          <div class="skeleton-card">
+            <div class="sk-img"></div>
+            <div class="sk-name"></div>
+            <div class="sk-price"></div>
+          </div>
+        }
+      </div>
+    }
 
-  <!-- ✅ Products from DB -->
-  <div class="product-grid" *ngIf="!isLoading">
-    <app-product-card
-      *ngFor="let product of products"
-      [product]="product">
-    </app-product-card>
-  </div>
+    @if (!isLoading && products.length > 0) {
+      <div class="product-grid">
+        @for (product of products; track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </div>
+    }
+
+    @if (!isLoading && products.length === 0) {
+      <div class="collection-empty">
+        <p>No products available right now.</p>
+      </div>
+    }
+
+  } @placeholder {
+    <div class="product-grid">
+      @for (n of [1,2,3,4]; track n) {
+        <div class="skeleton-card">
+          <div class="sk-img"></div>
+          <div class="sk-name"></div>
+          <div class="sk-price"></div>
+        </div>
+      }
+    </div>
+  }
 
   <div class="explore-wrap">
     <a routerLink="/categories" class="btn-explore">

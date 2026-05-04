@@ -39,7 +39,8 @@ deleteProduct(id: number){
       });
   }
 
-  
+
+
   trackById(index: number, item: any) {
     return item.id;
   }
