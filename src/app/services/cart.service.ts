@@ -34,7 +34,14 @@ export class CartService {
     }
     this.save(cart);
   }
-
+updateQty(id: number, qty: number) {
+  const items = this.load();           // 👈 use load() not getAll()
+  const item = items.find(i => i.id === id);
+  if (item) {
+    item.qty = qty;
+    this.save(items);                  // 👈 use this.save() not localStorage.setItem('cart',...)
+  }
+}
   getAll(): (Product & { qty: number })[] {
     return this.load();
   }

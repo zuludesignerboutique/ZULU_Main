@@ -59,35 +59,8 @@
     </div>
   </div>
 
-  <!-- ✅ @defer guarantees this block ONLY runs in the browser, never SSR -->
-  @defer (on immediate) {
-    @if (isLoading) {
-      <div class="product-grid">
-        @for (n of [1,2,3,4]; track n) {
-          <div class="skeleton-card">
-            <div class="sk-img"></div>
-            <div class="sk-name"></div>
-            <div class="sk-price"></div>
-          </div>
-        }
-      </div>
-    }
-
-    @if (!isLoading && products.length > 0) {
-      <div class="product-grid">
-        @for (product of products; track product.id) {
-          <app-product-card [product]="product" />
-        }
-      </div>
-    }
-
-    @if (!isLoading && products.length === 0) {
-      <div class="collection-empty">
-        <p>No products available right now.</p>
-      </div>
-    }
-
-  } @placeholder {
+  <!-- Loading skeletons -->
+  @if (isLoading) {
     <div class="product-grid">
       @for (n of [1,2,3,4]; track n) {
         <div class="skeleton-card">
@@ -96,6 +69,22 @@
           <div class="sk-price"></div>
         </div>
       }
+    </div>
+  }
+
+  <!-- Products -->
+  @if (!isLoading && products.length > 0) {
+    <div class="product-grid">
+      @for (product of products; track product.id) {
+        <app-product-card [product]="product" />
+      }
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!isLoading && products.length === 0) {
+    <div class="collection-empty">
+      <p>No products available right now.</p>
     </div>
   }
 

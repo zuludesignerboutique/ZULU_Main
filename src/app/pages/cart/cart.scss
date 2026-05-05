@@ -203,3 +203,37 @@
     box-shadow: 0 12px 28px rgba(212,175,55,0.45);
   }
 }
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+
+  .qty-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #c8a97e;
+    background: transparent;
+    color: #c8a97e;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #c8a97e;
+      color: #fff;
+    }
+  }
+
+  .qty-value {
+    font-size: 1rem;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+    color: #1a1a1a;
+  }
+}

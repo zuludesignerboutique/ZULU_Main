@@ -26,6 +26,15 @@ export class CartComponent implements OnInit {
     return this.cartItems.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
   }
 
+  updateQty(id: number, change: number) {
+    const item = this.cartItems.find(i => i.id === id);
+    if (!item) return;
+    const newQty = (item.qty || 1) + change;
+    if (newQty < 1) return;           // prevent going below 1
+    this.cartService.updateQty(id, newQty);
+    this.cartItems = this.cartService.getAll();
+  }
+
   removeFromCart(id: number) {
     this.cartService.remove(id);
     this.cartItems = this.cartService.getAll();

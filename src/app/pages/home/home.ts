@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -12,19 +12,18 @@ import { Product } from '../../core/models/product.model';
   templateUrl: './home.html',
   styleUrls: ['./home.scss']
 })
-export class HomeComponent implements AfterViewInit {
+export class HomeComponent implements OnInit {
 
   products: Product[] = [];
   isLoading = false;
 
   constructor(
     private http: HttpClient,
+    private cdr: ChangeDetectorRef,          // 👈 ADD THIS
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  // ✅ AfterViewInit guarantees we are 100% in the browser
-  // ngOnInit can still fire during SSR hydration
-  ngAfterViewInit() {
+  ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
     this.loadProducts();
   }
@@ -35,9 +34,11 @@ export class HomeComponent implements AfterViewInit {
       next: (data) => {
         this.products = data.slice(0, 4);
         this.isLoading = false;
+        this.cdr.detectChanges();            // 👈 ADD THIS
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();            // 👈 ADD THIS
       }
     });
   }

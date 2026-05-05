@@ -13,25 +13,29 @@
     <div class="cart-info">
       <h4>{{ item.name }}</h4>
       <p class="cart-desc">{{ item.description }}</p>
-      <p class="cart-price">{{ item.price | currency:'INR' }}</p>
+      <p class="cart-price">{{ item.price * (item.qty || 1) | currency:'INR' }}</p>
+
+      <!-- ✅ Quantity control -->
+      <div class="qty-control">
+        <button class="qty-btn" (click)="updateQty(item.id, -1)">−</button>
+        <span class="qty-value">{{ item.qty || 1 }}</span>
+        <button class="qty-btn" (click)="updateQty(item.id, +1)">+</button>
+      </div>
+
       <button class="btn-remove" (click)="removeFromCart(item.id)">Remove</button>
     </div>
   </div>
 
   <div class="cart-footer" *ngIf="cartItems.length > 0">
-
-    <!-- Total -->
     <div class="cart-total-row">
       <span class="cart-total-label">Total Amount</span>
       <span class="cart-total-value">₹{{ total | number }}</span>
     </div>
-
     <div class="cart-footer-actions">
       <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
       <button class="btn-checkout" (click)="goToCheckout()">
         Proceed to Checkout →
       </button>
     </div>
-
   </div>
 </div>
