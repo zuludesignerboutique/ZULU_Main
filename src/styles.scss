@@ -1,1 +1,28 @@
 /* You can add global styles to this file, and also import other style files */
+app-products,
+app-gallery,
+app-reviews,
+app-contact,
+app-order-history,
+app-checkout,
+app-cart,
+app-product-view,
+app-profile,
+app-login {
+  display: block;
+  padding-top: 85px;
+}
+app-home,
+app-wishlist {
+  padding-top: 120px;
+  display: block;
+}
+
+app-about-zora,
+app-returns-exchange,
+app-shipping-policy,
+app-privacy-policy,
+app-terms-service {
+  padding-top: 120px;
+  display: block;
+}

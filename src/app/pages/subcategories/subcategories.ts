@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterModule, Router } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ProductCardComponent } from '../../components/product-card/product-card';
@@ -15,14 +15,13 @@ import { Product } from '../../core/models/product.model';
 export class SubcategoriesComponent implements OnInit {
 
   categoryType = '';
-  selectedSubcategory = '';   // which subcategory tab is active
+  selectedSubcategory = '';
   subcategories: { name: string; key: string }[] = [];
 
-  allProducts: Product[] = [];     // all products from DB for this category
-  filteredProducts: Product[] = []; // products for selected subcategory
+  allProducts: Product[] = [];
+  filteredProducts: Product[] = [];
   isLoading = true;
 
-  // Map your route type → DB category name & subcategory list
   private categoryMap: Record<string, { label: string; subs: { name: string; key: string }[] }> = {
     bridal: {
       label: 'Bridal Collection',
@@ -38,27 +37,27 @@ export class SubcategoriesComponent implements OnInit {
     groom: {
       label: 'Groom Collection',
       subs: [
-        { name: 'All',              key: '' },
-        { name: 'Designer Shirt',   key: 'Designer Shirt' },
-        { name: 'Traditional Dhoti',key: 'Traditional Dhoti' },
+        { name: 'All',               key: '' },
+        { name: 'Designer Shirt',    key: 'Designer Shirt' },
+        { name: 'Traditional Dhoti', key: 'Traditional Dhoti' },
       ]
     },
     party: {
       label: 'Party Collection',
       subs: [
-        { name: 'All',           key: '' },
-        { name: 'Party Gown',    key: 'Party Gown' },
-        { name: 'Designer Kurti',key: 'Designer Kurti' },
-        { name: 'Western Dress', key: 'Western Dress' },
+        { name: 'All',            key: '' },
+        { name: 'Party Gown',     key: 'Party Gown' },
+        { name: 'Designer Kurti', key: 'Designer Kurti' },
+        { name: 'Western Dress',  key: 'Western Dress' },
       ]
     },
     casual: {
       label: 'Casual Collection',
       subs: [
-        { name: 'All',          key: '' },
-        { name: 'T-Shirts',     key: 'T-Shirts' },
-        { name: 'Casual Shirts',key: 'Casual Shirts' },
-        { name: 'Everyday Wear',key: 'Everyday Wear' },
+        { name: 'All',           key: '' },
+        { name: 'T-Shirts',      key: 'T-Shirts' },
+        { name: 'Casual Shirts', key: 'Casual Shirts' },
+        { name: 'Everyday Wear', key: 'Everyday Wear' },
       ]
     }
   };
@@ -66,7 +65,7 @@ export class SubcategoriesComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
-    private router: Router
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -74,21 +73,41 @@ export class SubcategoriesComponent implements OnInit {
     const config = this.categoryMap[this.categoryType];
     if (config) {
       this.subcategories = config.subs;
-      this.selectedSubcategory = ''; // "All" by default
+      this.selectedSubcategory = '';
     }
 
-    // ✅ Fetch all products from DB, filter by category
     this.http.get<Product[]>('http://localhost:4000/api/products').subscribe({
       next: (data) => {
-        // Match products where category matches the route type (case-insensitive)
-        this.allProducts = data.filter(p =>
-          p.category?.toLowerCase() === this.categoryType.toLowerCase() ||
-          p.subcategory?.toLowerCase().includes(this.categoryType.toLowerCase())
-        );
+        // Debug: see exactly what category/subcategory values the DB returns
+        console.log('[Subcategories] route type:', this.categoryType);
+        console.log('[Subcategories] all products from DB:', data.map(p => ({
+          id: p.id, name: p.name, category: p.category, subcategory: p.subcategory
+        })));
+
+        const type = this.categoryType.toLowerCase();
+
+        this.allProducts = data.filter(p => {
+          const cat = (p.category || '').toLowerCase().trim();
+          const sub = (p.subcategory || '').toLowerCase().trim();
+
+          // Match if DB category equals route type
+          // OR if DB category/subcategory contains route type anywhere
+          return cat === type
+            || cat.includes(type)
+            || sub.includes(type);
+        });
+
+        console.log('[Subcategories] matched products:', this.allProducts);
+
         this.filterProducts();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
-      error: () => { this.isLoading = false; }
+      error: (err) => {
+        console.error('[Subcategories] API error:', err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -99,15 +118,18 @@ export class SubcategoriesComponent implements OnInit {
   selectSubcategory(key: string) {
     this.selectedSubcategory = key;
     this.filterProducts();
+    this.cdr.detectChanges();
   }
 
   filterProducts() {
     if (!this.selectedSubcategory) {
       this.filteredProducts = this.allProducts;
     } else {
+      const sel = this.selectedSubcategory.toLowerCase();
       this.filteredProducts = this.allProducts.filter(p =>
-        p.subcategory?.toLowerCase() === this.selectedSubcategory.toLowerCase()
+        (p.subcategory || '').toLowerCase().trim() === sel
       );
     }
+    console.log('[Subcategories] filteredProducts:', this.filteredProducts.length, 'for sub:', this.selectedSubcategory || 'ALL');
   }
 }

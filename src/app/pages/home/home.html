@@ -1,55 +1,104 @@
-<!-- ══ HERO ══════════════════════════════════════ -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <div class="hero-eyebrow">
-      <span>New Collection — 2025</span>
+<!-- ══ HERO CAROUSEL ═════════════════════════════ -->
+<section class="hero-carousel">
+
+  <div class="carousel-container">
+
+    @for (slide of slides; track slide.image; let i = $index) {
+      <div
+        class="carousel-slide"
+        [class.active]="currentSlide === i"
+        [style.backgroundImage]="'url(' + slide.image + ')'">
+
+        <div class="overlay"></div>
+
+        <div class="carousel-content">
+
+          <span class="top-text">
+            {{ slide.subtitle }}
+          </span>
+
+          <h1>
+            {{ slide.title }}
+          </h1>
+
+          <p>
+            {{ slide.description }}
+          </p>
+
+          <div class="carousel-buttons">
+
+            <a
+              routerLink="/categories"
+              class="btn-shop">
+              Shop Now
+            </a>
+
+            <a
+              routerLink="/about-zora"
+              class="btn-story">
+              Learn More
+            </a>
+
+          </div>
+
+        </div>
+      </div>
+    }
+
+    <!-- Dots -->
+    <div class="carousel-dots">
+
+      @for (slide of slides; track slide.image; let i = $index) {
+
+        <span
+          class="dot"
+          [class.active-dot]="currentSlide === i"
+          (click)="goToSlide(i)">
+        </span>
+
+      }
+
     </div>
-    <h1>
-      Crafted for
-      <em>Every Occasion</em>
-    </h1>
-    <p class="hero-sub">
-      Timeless silhouettes. Exquisite fabrics.<br>
-      Designs that make you unforgettable.
-    </p>
-    <div class="hero-cta">
-      <a routerLink="/categories" class="btn-primary-hero">Shop Collection</a>
-      <a routerLink="/about-zora" class="btn-ghost-hero">Our Story</a>
-    </div>
+
   </div>
-  <div class="scroll-hint">
-    <span>Scroll</span>
-    <div class="scroll-line"></div>
-  </div>
+
 </section>
 
 <!-- ══ MARQUEE STRIP ════════════════════════════ -->
 <div class="marquee-strip" aria-hidden="true">
+
   <div class="marquee-inner">
+
     <span class="marquee-item">Bridal Couture</span>
     <span class="marquee-item">Ethnic Sarees</span>
     <span class="marquee-item">Party Wear</span>
     <span class="marquee-item">Luxury Fabrics</span>
     <span class="marquee-item">Handcrafted Details</span>
     <span class="marquee-item">Free Shipping</span>
+
     <span class="marquee-item">Bridal Couture</span>
     <span class="marquee-item">Ethnic Sarees</span>
     <span class="marquee-item">Party Wear</span>
     <span class="marquee-item">Luxury Fabrics</span>
     <span class="marquee-item">Handcrafted Details</span>
     <span class="marquee-item">Free Shipping</span>
+
   </div>
+
 </div>
 
 <!-- ══ COLLECTION ════════════════════════════════ -->
 <section class="collection">
+
   <div class="collection-header">
+
     <div class="header-left">
       <p class="eyebrow">Featured Pieces</p>
-      <h2>Our New <em>Collection</em></h2>
+      <h2>
+        Our New <em>Collection</em>
+      </h2>
     </div>
+
     <div class="header-right">
       <p>
         Each piece is a testament to craftsmanship —
@@ -57,59 +106,116 @@
         moments of your life.
       </p>
     </div>
+
   </div>
 
   <!-- Loading skeletons -->
   @if (isLoading) {
+
     <div class="product-grid">
+
       @for (n of [1,2,3,4]; track n) {
+
         <div class="skeleton-card">
+
           <div class="sk-img"></div>
           <div class="sk-name"></div>
           <div class="sk-price"></div>
+
         </div>
+
       }
+
     </div>
+
   }
 
   <!-- Products -->
   @if (!isLoading && products.length > 0) {
+
     <div class="product-grid">
+
       @for (product of products; track product.id) {
-        <app-product-card [product]="product" />
+
+        <app-product-card
+          [product]="product">
+        </app-product-card>
+
       }
+
     </div>
+
   }
 
   <!-- Empty state -->
   @if (!isLoading && products.length === 0) {
+
     <div class="collection-empty">
       <p>No products available right now.</p>
     </div>
+
   }
 
   <div class="explore-wrap">
-    <a routerLink="/categories" class="btn-explore">
+
+    <a
+      routerLink="/categories"
+      class="btn-explore">
+
       <span>Explore Full Collection</span>
+
     </a>
+
   </div>
+
 </section>
 
 <!-- ══ BRAND STRIP ════════════════════════════════ -->
 <div class="brand-strip">
+
   <div class="brand-item">
+
     <span class="brand-icon">✦</span>
-    <div class="brand-title">Artisan Made</div>
-    <p class="brand-desc">Every stitch placed with intention by skilled craftspeople with decades of heritage.</p>
+
+    <div class="brand-title">
+      Artisan Made
+    </div>
+
+    <p class="brand-desc">
+      Every stitch placed with intention by skilled craftspeople
+      with decades of heritage.
+    </p>
+
   </div>
+
   <div class="brand-item">
+
     <span class="brand-icon">◈</span>
-    <div class="brand-title">Luxe Fabrics</div>
-    <p class="brand-desc">Sourced from the finest mills — silk, georgette, and hand-woven textiles.</p>
+
+    <div class="brand-title">
+      Luxe Fabrics
+    </div>
+
+    <p class="brand-desc">
+      Sourced from the finest mills —
+      silk, georgette, and hand-woven textiles.
+    </p>
+
   </div>
+
   <div class="brand-item">
+
     <span class="brand-icon">❋</span>
-    <div class="brand-title">Made to Last</div>
-    <p class="brand-desc">Timeless designs that transcend seasons and stay with you for a lifetime.</p>
+
+    <div class="brand-title">
+      Made to Last
+    </div>
+
+    <p class="brand-desc">
+      Timeless designs that transcend seasons
+      and stay with you for a lifetime.
+    </p>
+
   </div>
+
 </div>

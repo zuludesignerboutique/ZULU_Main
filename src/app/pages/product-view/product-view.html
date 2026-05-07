@@ -87,6 +87,10 @@
           <div class="meta-label">Product Code</div>
           <div class="meta-value">{{ product?.product_code || 'Not available' }}</div>
         </div>
+        
+        <!-- Only show stock if it's specified (not null or undefined) -->
+
+
         <div class="meta-item">
           <div class="meta-label">Availability</div>
           <div class="meta-value">{{ product?.stock ?? 0 }} units</div>
@@ -127,7 +131,7 @@
       <div class="trust-strip">
         <div class="trust-item">
           <span class="trust-icon">🚚</span>
-          Free delivery on orders ₹999+
+          Free delivery on orders ₹3999+
         </div>
         <div class="trust-item">
           <span class="trust-icon">✦</span>
@@ -135,7 +139,7 @@
         </div>
         <div class="trust-item">
           <span class="trust-icon">↩</span>
-          Easy 7-day returns
+          Delivery within 15 days
         </div>
       </div>
 

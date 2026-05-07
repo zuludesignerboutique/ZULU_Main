@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
@@ -14,7 +14,7 @@ import { AuthService } from '../../services/auth.service';
 export class OrderHistoryComponent implements OnInit {
 
   orders: any[] = [];
-  isLoading = true;
+  isLoading = true;  // TRUE from start — shows spinner immediately, no flicker
   errorMsg = '';
   imageBase = 'http://localhost:4000/uploads/';
 
@@ -27,31 +27,44 @@ export class OrderHistoryComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private auth: AuthService
+    private auth: AuthService,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
-    // auth.service.ts stores email under 'userEmail' key via getUserEmail()
-    const email = this.auth.getUserEmail();
-
-    if (!email || email === 'guest') {
-      this.errorMsg = 'Please log in to view your orders.';
+    // SSR guard — localhost:4000 is unreachable server-side
+    if (!isPlatformBrowser(this.platformId)) {
       this.isLoading = false;
       return;
     }
 
-    this.http.get<any[]>(`http://localhost:4000/api/orders/user/${encodeURIComponent(email)}`)
-      .subscribe({
-        next: (data) => {
-          this.orders = data;
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error('[OrderHistory] API error:', err);
-          this.errorMsg = 'Could not load orders. Please try again later.';
-          this.isLoading = false;
-        }
-      });
+    const email = this.auth.getUserEmail();
+    console.log('[OrderHistory] email:', email);
+
+    if (!email || email === 'guest') {
+      this.errorMsg = 'Please log in to view your orders.';
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.http.get<any[]>(
+      `http://localhost:4000/api/orders/user/${encodeURIComponent(email)}`
+    ).subscribe({
+      next: (data) => {
+        console.log('[OrderHistory] data:', data);
+        this.orders = Array.isArray(data) ? data : [];
+        this.isLoading = false;
+        this.cdr.detectChanges(); // force Angular to re-render after HTTP response
+      },
+      error: (err) => {
+        console.error('[OrderHistory] error:', err.status, err.error);
+        this.errorMsg = 'Could not load orders. Please try again.';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   parseItems(items: any): any[] {
@@ -64,8 +77,6 @@ export class OrderHistoryComponent implements OnInit {
 
   isStepDone(currentStatus: string, stepKey: string): boolean {
     const order = ['pending', 'confirmed', 'shipped', 'delivered'];
-    const currentIdx = order.indexOf(currentStatus);
-    const stepIdx    = order.indexOf(stepKey);
-    return stepIdx <= currentIdx;
+    return order.indexOf(stepKey) <= order.indexOf(currentStatus);
   }
 }

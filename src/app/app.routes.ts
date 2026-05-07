@@ -17,7 +17,7 @@ import { authGuard } from './guards/auth.guard';
 import { CategoryLandingComponent } from './pages/category-landing/category-landing';
 import { Categories } from './pages/categories/categories';
 import { SubcategoriesComponent } from './pages/subcategories/subcategories';
-import { CheckoutComponent } from './pages/checkout/checkout';
+import { Checkout } from './pages/checkout/checkout';
 import { OrderSuccessComponent } from './pages/order-success/order-success';
 import { OrderHistoryComponent } from './pages/order-history/order-history';  
 import { adminGuard } from './admin/admin-guard';
@@ -40,7 +40,7 @@ export const routes: Routes = [
   // ── Protected user routes ──────────────────────
   { path: 'cart',          component: CartComponent,         canActivate: [authGuard] },
   { path: 'wishlist',      component: Wishlist,              canActivate: [authGuard] },
-  { path: 'checkout',      component: CheckoutComponent,     canActivate: [authGuard] },
+  { path: 'checkout',      component: Checkout,              canActivate: [authGuard] },
   { path: 'order-history', component: OrderHistoryComponent, canActivate: [authGuard] }, 
   { path: 'order-success', component: OrderSuccessComponent },
 

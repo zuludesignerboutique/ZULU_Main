@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 
@@ -18,7 +18,10 @@ export class AdminOrders implements OnInit {
 
   private api = 'http://localhost:4000';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.loadOrders();
@@ -30,8 +33,12 @@ export class AdminOrders implements OnInit {
       next: (data) => {
         this.orders = data;
         this.isLoading = false;
+        this.cdr.detectChanges(); // force render immediately on data arrival
       },
-      error: () => { this.isLoading = false; }
+      error: () => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -42,6 +49,7 @@ export class AdminOrders implements OnInit {
 
   setFilter(f: string) {
     this.activeFilter = f;
+    this.cdr.detectChanges();
   }
 
   getCount(filter: string): number {
@@ -61,11 +69,11 @@ export class AdminOrders implements OnInit {
     const status = (event.target as HTMLSelectElement).value;
     this.http.patch(`${this.api}/api/orders/${order.id}/status`, { status }).subscribe({
       next: () => {
-        order.status = status; // update locally
+        order.status = status;
+        this.cdr.detectChanges();
       },
       error: () => {
         alert('Failed to update order status');
-        // revert the dropdown
         (event.target as HTMLSelectElement).value = order.status;
       }
     });

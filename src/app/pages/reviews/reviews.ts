@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReviewService } from '../../services/review.service';
 import { Review } from '../../core/models/review.model';
@@ -14,40 +14,24 @@ import { HttpClient } from '@angular/common/http';
 })
 export class Reviews implements OnInit, OnDestroy {
 
-  // ══════════════════════════════════════════════
-  // STATE
-  // ══════════════════════════════════════════════
-
   reviews: Review[] = [];
 
-  newReview: Review = {
-    id: 0,
-    name: '',
-    rating: 5,
-    comment: ''
-  };
+  newReview: Review = { id: 0, name: '', rating: 5, comment: '' };
 
   selectedFile: File | null = null;
-
-  /** Active slide index */
   currentIndex = 0;
-
   private slideInterval: ReturnType<typeof setInterval> | null = null;
-
-  // ══════════════════════════════════════════════
-  // CONSTRUCTOR
-  // ══════════════════════════════════════════════
 
   constructor(
     private reviewService: ReviewService,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  // ══════════════════════════════════════════════
-  // LIFECYCLE
-  // ══════════════════════════════════════════════
-
   ngOnInit(): void {
+    // Only fetch in browser — SSR can't reach localhost:4000
+    if (!isPlatformBrowser(this.platformId)) return;
     this.loadReviews();
   }
 
@@ -55,30 +39,26 @@ export class Reviews implements OnInit, OnDestroy {
     this.stopAutoSlide();
   }
 
-  // ══════════════════════════════════════════════
-  // DATA
-  // ══════════════════════════════════════════════
-
   loadReviews(): void {
     this.reviewService.getReviews().subscribe({
       next: (data) => {
         this.reviews = data;
-        // Start slider only once reviews are loaded
+        this.currentIndex = 0;
         this.startAutoSlide();
+        this.cdr.detectChanges(); // force render — fixes "appear on interaction" bug
       },
-      error: (err) => console.error('Failed to load reviews:', err)
+      error: (err) => {
+        console.error('Failed to load reviews:', err);
+        this.cdr.detectChanges();
+      }
     });
   }
 
-  // ══════════════════════════════════════════════
-  // SLIDER
-  // ══════════════════════════════════════════════
-
   startAutoSlide(): void {
-    this.stopAutoSlide(); // prevent duplicate intervals
-
+    this.stopAutoSlide();
     this.slideInterval = setInterval(() => {
       this.nextSlide();
+      this.cdr.detectChanges();
     }, 4000);
   }
 
@@ -96,20 +76,14 @@ export class Reviews implements OnInit, OnDestroy {
 
   prevSlide(): void {
     if (this.reviews.length === 0) return;
-    this.currentIndex =
-      (this.currentIndex - 1 + this.reviews.length) % this.reviews.length;
+    this.currentIndex = (this.currentIndex - 1 + this.reviews.length) % this.reviews.length;
   }
 
-  /** Jump directly to a slide (used by dot indicators) */
   goToSlide(index: number): void {
     this.currentIndex = index;
-    // Reset timer so dot-click doesn't immediately advance
     this.startAutoSlide();
+    this.cdr.detectChanges();
   }
-
-  // ══════════════════════════════════════════════
-  // FORM
-  // ══════════════════════════════════════════════
 
   onFileSelect(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -123,10 +97,7 @@ export class Reviews implements OnInit, OnDestroy {
     formData.append('name',    this.newReview.name);
     formData.append('rating',  this.newReview.rating.toString());
     formData.append('comment', this.newReview.comment);
-
-    if (this.selectedFile) {
-      formData.append('image', this.selectedFile);
-    }
+    if (this.selectedFile) formData.append('image', this.selectedFile);
 
     this.reviewService.addReview(formData).subscribe({
       next: () => {
@@ -138,7 +109,7 @@ export class Reviews implements OnInit, OnDestroy {
   }
 
   private resetForm(): void {
-    this.newReview  = { id: 0, name: '', rating: 5, comment: '' };
+    this.newReview    = { id: 0, name: '', rating: 5, comment: '' };
     this.selectedFile = null;
   }
 }
