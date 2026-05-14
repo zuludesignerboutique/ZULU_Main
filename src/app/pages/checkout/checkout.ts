@@ -130,7 +130,7 @@ export class Checkout implements OnInit, AfterViewInit {
     const { email, phone, name, address, city, state, pincode } = this.checkoutForm.value;
     const fullAddress = `${address}, ${city}, ${state} - ${pincode}`;
 
-    // STEP 1: Save order to DB
+    // STEP 1: Save order to DB — ✅ include size per item
     this.http.post<{ orderId: number }>(`${this.api}/api/orders`, {
       user_name:    name,
       email,
@@ -140,7 +140,8 @@ export class Checkout implements OnInit, AfterViewInit {
       items: this.cartItems.map(item => ({
         product_id: item.id,
         quantity:   item.qty || 1,
-        price:      item.price
+        price:      item.price,
+        size:       item.size || null   // ✅ size sent to backend
       }))
     }).subscribe({
       next: (res) => {

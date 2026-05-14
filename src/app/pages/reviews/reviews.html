@@ -53,6 +53,14 @@
 
             <p class="review-text">{{ review.comment }}</p>
 
+            <!-- ✅ REVIEW IMAGE — only shown if review has one -->
+            <img
+              *ngIf="review.image"
+              [src]="'http://localhost:4000/uploads/' + review.image"
+              alt="Review photo"
+              class="review-img"
+            />
+
             <div class="review-footer">
 
               <!-- AVATAR -->
@@ -123,7 +131,9 @@
         name="comment"
       ></textarea>
 
+      <!-- ✅ #fileInput ref so we can clear it after submit -->
       <input
+        #fileInput
         type="file"
         (change)="onFileSelect($event)"
         accept="image/*"

@@ -1,32 +1,239 @@
-<h2>Edit Product</h2>
+<div class="edit-product-page">
 
-<form (ngSubmit)="updateProduct()">
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Admin Panel</div>
+      <h2 class="page-title">Edit Product</h2>
+    </div>
+    <a routerLink="/admin/products" class="btn-back">← Back to Products</a>
+  </div>
 
-<input [(ngModel)]="product.name" name="name" placeholder="Name">
-<input [(ngModel)]="product.description" name="description" placeholder="Description">
-<input [(ngModel)]="product.price" name="price" type="number" placeholder="Price">
-<input [(ngModel)]="product.category" name="category" placeholder="Category">
-<input [(ngModel)]="product.subcategory" name="subcategory" placeholder="Subcategory">
-<input [(ngModel)]="product.image" name="image" placeholder="Image">
-<div>
-  <label>Stock</label>
-  <input [(ngModel)]="product.stock" name="stock" type="number">
+  <div class="ap-layout">
+
+    <!-- ══ FORM ══ -->
+    <div class="ap-form-card">
+
+      <form (ngSubmit)="updateProduct()" #editForm="ngForm">
+
+        <!-- Section 01: Basic Info -->
+        <div class="form-section">
+          <div class="fs-label">01 · Basic Info</div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label>Product Name *</label>
+              <input type="text" [(ngModel)]="product.name" name="name"
+                placeholder="e.g. Silk Saree" required />
+            </div>
+            <div class="field-group">
+              <label>Price (₹) *</label>
+              <input type="number" [(ngModel)]="product.price" name="price"
+                placeholder="e.g. 2500" required />
+            </div>
+          </div>
+
+          <div class="field-group full">
+            <label>Description</label>
+            <textarea [(ngModel)]="product.description" name="description"
+              rows="3" placeholder="Describe the product..."></textarea>
+          </div>
+        </div>
+
+        <!-- Section 02: Category -->
+        <div class="form-section">
+          <div class="fs-label">02 · Category</div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label>Category *</label>
+              <select [(ngModel)]="product.category" name="category" required>
+                <option value="">Select Category</option>
+                <option>Bridal Collection</option>
+                <option>Groom Collection</option>
+                <option>Party Wear</option>
+                <option>Casual Wear</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Subcategory *</label>
+              <select [(ngModel)]="product.subcategory" name="subcategory" required>
+                <option value="">Select Subcategory</option>
+                <option>Bridal Blouse</option>
+                <option>Bridal Saree</option>
+                <option>Lehenga</option>
+                <option>Gown</option>
+                <option>Half Saree</option>
+                <option>Designer Shirt</option>
+                <option>Traditional Dhoti</option>
+                <option>Party Gown</option>
+                <option>Designer Kurti</option>
+                <option>Western Dress</option>
+                <option>T-Shirts</option>
+                <option>Casual Shirts</option>
+                <option>Everyday Wear</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 03: Product Details -->
+        <div class="form-section">
+          <div class="fs-label">03 · Product Details</div>
+
+          <div class="field-row three-col">
+            <div class="field-group">
+              <label>Stock</label>
+              <input type="number" [(ngModel)]="product.stock" name="stock"
+                placeholder="0" min="0" />
+            </div>
+            <div class="field-group">
+              <label>Product Code</label>
+              <input type="text" [(ngModel)]="product.product_code" name="product_code"
+                placeholder="e.g. ZLU-001" />
+            </div>
+            <div class="field-group">
+              <label>Size <span class="hint">(legacy)</span></label>
+              <input type="text" [(ngModel)]="product.size" name="size"
+                placeholder="e.g. Free Size" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label>Colour</label>
+              <input type="text" [(ngModel)]="product.colour" name="colour"
+                placeholder="e.g. Blue" />
+            </div>
+            <div class="field-group">
+              <label>Fit</label>
+              <input type="text" [(ngModel)]="product.fit" name="fit"
+                placeholder="e.g. Easy, relaxed fit" />
+            </div>
+          </div>
+
+          <div class="field-group full">
+            <label>Available Sizes <span class="hint">— comma separated e.g. XS, S, M, L, XL</span></label>
+            <input type="text" [(ngModel)]="product.sizesRaw" name="sizesRaw"
+              placeholder="XS, S, M, L, XL, XXL" />
+            <p class="field-note">These appear as selectable size buttons on the product page.</p>
+          </div>
+
+          <div class="field-group full">
+            <label>Care Instructions</label>
+            <input type="text" [(ngModel)]="product.care" name="care"
+              placeholder="e.g. Hand wash in cold water" />
+          </div>
+
+          <div class="field-group full">
+            <label>Product Details <span class="hint">— one per line, becomes bullet points</span></label>
+            <textarea [(ngModel)]="product.detailsRaw" name="detailsRaw" rows="5"
+              placeholder="Printed cotton fabric&#10;Slit bout neckline&#10;Lightweight & breathable"></textarea>
+            <p class="field-note">Each line becomes a bullet point on the product page.</p>
+          </div>
+        </div>
+
+        <!-- Section 04: Product Image -->
+        <div class="form-section">
+          <div class="fs-label">04 · Product Image</div>
+
+          <!-- Current image -->
+          <div class="current-image-row" *ngIf="product.image_url && !selectedFile">
+            <img class="current-image-thumb"
+              [src]="imageBase + product.image_url" [alt]="product.name" />
+            <span class="current-image-label">Current Image</span>
+          </div>
+
+          <!-- Upload area -->
+          <div class="image-upload-area"
+            (click)="fileInput.click()"
+            [class.has-preview]="imagePreview">
+            <input #fileInput type="file" accept="image/*"
+              (change)="onFileSelect($event)" hidden />
+
+            <div class="upload-placeholder" *ngIf="!imagePreview">
+              <span class="upload-icon">📷</span>
+              <p>Click to upload new image</p>
+              <small>JPG, PNG, WEBP up to 5MB — leave empty to keep current</small>
+            </div>
+
+            <img *ngIf="imagePreview" [src]="imagePreview"
+              class="image-preview" alt="New Preview" />
+            <button type="button" class="remove-img"
+              *ngIf="imagePreview" (click)="removeImage($event)">✕</button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="submit" class="btn-save"
+            [disabled]="isSaving" [class.saving]="isSaving">
+            <span *ngIf="!isSaving">Save Changes</span>
+            <span *ngIf="isSaving" class="saving-dots">
+              <span></span><span></span><span></span>
+            </span>
+          </button>
+          <a routerLink="/admin/products" class="btn-cancel">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ══ SIDEBAR ══ -->
+    <div class="ap-sidebar">
+
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">Category Guide</h4>
+
+        <div class="cat-guide">
+          <div class="cat-guide-name">Bridal Collection</div>
+          <div class="cat-guide-subs">
+            <span>Bridal Blouse</span>
+            <span>Bridal Saree</span>
+            <span>Lehenga</span>
+            <span>Gown</span>
+            <span>Half Saree</span>
+          </div>
+        </div>
+
+        <div class="cat-guide">
+          <div class="cat-guide-name">Groom Collection</div>
+          <div class="cat-guide-subs">
+            <span>Designer Shirt</span>
+            <span>Traditional Dhoti</span>
+          </div>
+        </div>
+
+        <div class="cat-guide">
+          <div class="cat-guide-name">Party Wear</div>
+          <div class="cat-guide-subs">
+            <span>Party Gown</span>
+            <span>Designer Kurti</span>
+            <span>Western Dress</span>
+          </div>
+        </div>
+
+        <div class="cat-guide">
+          <div class="cat-guide-name">Casual Wear</div>
+          <div class="cat-guide-subs">
+            <span>T-Shirts</span>
+            <span>Casual Shirts</span>
+            <span>Everyday Wear</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-card tips">
+        <h4 class="sidebar-title">💡 Tips</h4>
+        <ul>
+          <li>Use clear product names</li>
+          <li>Price in Indian Rupees (₹)</li>
+          <li>Use subcategory exactly as listed for filtering to work</li>
+          <li>Images look best at 3:4 ratio</li>
+          <li>Add size options separated by commas</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
 </div>
-
-<div>
-  <label>Product Code</label>
-  <input [(ngModel)]="product.product_code" name="product_code" type="text">
-</div>
-
-<div>
-  <label>Size</label>
-  <input [(ngModel)]="product.size" name="size" type="text">
-</div>
-<div>
-  <label>Change Image</label>
-  <input type="file" (change)="onFileSelect($event)">
-</div>
-
-<button type="submit">Update</button>
-
-</form>

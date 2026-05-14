@@ -26,17 +26,19 @@ export class CartComponent implements OnInit {
     return this.cartItems.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
   }
 
-  updateQty(id: number, change: number) {
-    const item = this.cartItems.find(i => i.id === id);
+  // ✅ size is forwarded so the correct cart row is updated
+  updateQty(id: number, change: number, size?: string) {
+    const item = this.cartItems.find(i => i.id === id && i.size === size);
     if (!item) return;
     const newQty = (item.qty || 1) + change;
-    if (newQty < 1) return;           // prevent going below 1
-    this.cartService.updateQty(id, newQty);
+    if (newQty < 1) return;
+    this.cartService.updateQty(id, newQty, size);
     this.cartItems = this.cartService.getAll();
   }
 
-  removeFromCart(id: number) {
-    this.cartService.remove(id);
+  // ✅ size is forwarded so the correct cart row is removed
+  removeFromCart(id: number, size?: string) {
+    this.cartService.remove(id, size);
     this.cartItems = this.cartService.getAll();
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReviewService } from '../../services/review.service';
@@ -21,6 +21,9 @@ export class Reviews implements OnInit, OnDestroy {
   selectedFile: File | null = null;
   currentIndex = 0;
   private slideInterval: ReturnType<typeof setInterval> | null = null;
+
+  // ✅ Reference to the file input so we can clear it after submit
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   constructor(
     private reviewService: ReviewService,
@@ -45,7 +48,7 @@ export class Reviews implements OnInit, OnDestroy {
         this.reviews = data;
         this.currentIndex = 0;
         this.startAutoSlide();
-        this.cdr.detectChanges(); // force render — fixes "appear on interaction" bug
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Failed to load reviews:', err);
@@ -111,5 +114,9 @@ export class Reviews implements OnInit, OnDestroy {
   private resetForm(): void {
     this.newReview    = { id: 0, name: '', rating: 5, comment: '' };
     this.selectedFile = null;
+    // ✅ Clear the file input so it doesn't show the old filename
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
   }
 }

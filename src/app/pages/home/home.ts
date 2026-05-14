@@ -29,19 +29,55 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   slides = [
     {
-      image: 'assets/images/slide1.jpg',
+      image: 'assets/images/newslide1.jpg',
       subtitle: 'NEW COLLECTION 2026',
       title: 'Luxury Fashion Redefined',
       description: 'Elegant styles crafted for modern women.'
     },
     {
-      image: 'assets/images/slide2.jpg',
+      image: 'assets/images/newslide5.jpg',
       subtitle: 'TRENDING NOW',
       title: 'Style That Speaks',
       description: 'Discover timeless beauty and designer collections.'
     },
     {
-      image: 'assets/images/slide3.jpg',
+      image: 'assets/images/newslide2.jpg',
+      subtitle: 'PREMIUM COLLECTION',
+      title: 'Made For Every Occasion',
+      description: 'Fashion that blends elegance and confidence.'
+    },
+    {
+      image: 'assets/images/newslide6.jpg',
+      subtitle: 'NEW COLLECTION 2026',
+      title: 'Luxury Fashion Redefined',
+      description: 'Elegant styles crafted for modern women.'
+    },
+    {
+      image: 'assets/images/newslide8.jpg',
+      subtitle: 'TRENDING NOW',
+      title: 'Style That Speaks',
+      description: 'Discover timeless beauty and designer collections.'
+    },
+    {
+      image: 'assets/images/newslide9.jpg',
+      subtitle: 'PREMIUM COLLECTION',
+      title: 'Made For Every Occasion',
+      description: 'Fashion that blends elegance and confidence.'
+    },
+    {
+      image: 'assets/images/newslide10.jpg',
+      subtitle: 'NEW COLLECTION 2026',
+      title: 'Luxury Fashion Redefined',
+      description: 'Elegant styles crafted for modern women.'
+    },
+    {
+      image: 'assets/images/newslide11.jpg',
+      subtitle: 'TRENDING NOW',
+      title: 'Style That Speaks',
+      description: 'Discover timeless beauty and designer collections.'
+    },
+    {
+      image: 'assets/images/newslide9.jpg',
       subtitle: 'PREMIUM COLLECTION',
       title: 'Made For Every Occasion',
       description: 'Fashion that blends elegance and confidence.'

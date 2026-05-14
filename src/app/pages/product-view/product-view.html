@@ -6,6 +6,10 @@
     <span class="sep">/</span>
     <a routerLink="/products">Collection</a>
     <span class="sep">/</span>
+    <span *ngIf="product?.category">
+      <a [routerLink]="['/categories']">{{ product.category }}</a>
+      <span class="sep">/</span>
+    </span>
     <span class="current">{{ product?.name || 'Product' }}</span>
   </nav>
 
@@ -14,24 +18,6 @@
 
     <!-- ══ IMAGE PANEL ══════════════════════════ -->
     <div class="image-panel">
-
-      <span
-        class="stock-badge"
-        [ngClass]="{
-          'in-stock':  (product?.stock || 0) > 5,
-          'low-stock': (product?.stock || 0) > 0 && (product?.stock || 0) <= 5,
-          'out-stock': (product?.stock || 0) === 0
-        }"
-      >
-        <span class="badge-dot"></span>
-        {{
-          (product?.stock || 0) > 5
-            ? 'In Stock'
-            : (product?.stock || 0) > 0
-            ? 'Only ' + product.stock + ' left'
-            : 'Sold Out'
-        }}
-      </span>
 
       <div class="image-frame">
         <img
@@ -55,16 +41,52 @@
     <!-- ══ DETAILS PANEL ════════════════════════ -->
     <div class="details-panel">
 
+      <!-- Eyebrow: category + code + SHARE -->
       <div class="product-eyebrow">
         <span class="tag" *ngIf="product?.category">{{ product.category }}</span>
+        <span class="tag tag-sub" *ngIf="product?.subcategory">{{ product.subcategory }}</span>
         <span class="code" *ngIf="product?.product_code"># {{ product.product_code }}</span>
+
+        <!-- ── SHARE BUTTON ── -->
+        <button class="share-btn" (click)="toggleShareMenu()" [class.open]="shareMenuOpen"
+          aria-label="Share product">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Share
+        </button>
+
+        <!-- Share dropdown -->
+        <div class="share-menu" *ngIf="shareMenuOpen">
+          <button class="share-option" (click)="shareVia('copy')">
+            <span>🔗</span> Copy Link
+          </button>
+          <button class="share-option" (click)="shareVia('whatsapp')">
+            <span>💬</span> WhatsApp
+          </button>
+          <button class="share-option" (click)="shareVia('facebook')">
+            <span>📘</span> Facebook
+          </button>
+          <button class="share-option" (click)="shareVia('twitter')">
+            <span>🐦</span> Twitter / X
+          </button>
+          <p class="share-copied" *ngIf="linkCopied">✓ Link copied!</p>
+        </div>
       </div>
 
       <h1 class="product-name">{{ product?.name }}</h1>
 
-      <p class="product-description">
-        {{ product?.description || 'No description available.' }}
-      </p>
+      <!-- Colour chip -->
+      <div class="colour-row" *ngIf="product?.colour || product?.color">
+        <span class="colour-label">Colour:</span>
+        <span class="colour-chip"
+          [style.background]="getColourHex(product?.colour || product?.color)">
+        </span>
+        <span class="colour-name">{{ product?.colour || product?.color }}</span>
+      </div>
 
       <div class="product-price">
         <span class="currency">₹</span>
@@ -72,59 +94,75 @@
         <span class="tax-note">incl. taxes</span>
       </div>
 
-      <div class="meta-divider"></div>
-
-      <div class="meta-list">
-        <div class="meta-item">
-          <div class="meta-label">Occasion</div>
-          <div class="meta-value">{{ product?.category || '—' }}</div>
+      <!-- SIZE SELECTOR — always visible -->
+      <div class="size-section">
+        <div class="size-header">
+          <span class="size-label">Size</span>
+          <button class="size-chart-link" (click)="toggleSizeChart()">View Size Chart</button>
         </div>
-        <div class="meta-item">
-          <div class="meta-label">Size</div>
-          <div class="meta-value">{{ product?.size || 'Not specified' }}</div>
+        <div class="size-options">
+          <button
+            class="size-btn"
+            *ngFor="let size of getAvailableSizes()"
+            [class.selected]="selectedSize === size"
+            (click)="selectSize(size)"
+          style="color: black;">
+            {{ size }}
+          </button>
         </div>
-        <div class="meta-item">
-          <div class="meta-label">Product Code</div>
-          <div class="meta-value">{{ product?.product_code || 'Not available' }}</div>
-        </div>
-        
-        <!-- Only show stock if it's specified (not null or undefined) -->
+        <p class="size-error" *ngIf="sizeError">Please select a size</p>
+      </div>
 
-
-        <div class="meta-item">
-          <div class="meta-label">Availability</div>
-          <div class="meta-value">{{ product?.stock ?? 0 }} units</div>
+      <!-- QUANTITY -->
+      <div class="quantity-section">
+        <span class="quantity-label">Quantity</span>
+        <div class="quantity-stepper">
+          <button class="qty-btn" (click)="decreaseQty()" [disabled]="quantity <= 1">−</button>
+          <span class="qty-value">{{ quantity }}</span>
+          <button class="qty-btn" (click)="increaseQty()">+</button>
         </div>
       </div>
 
       <!-- ACTIONS -->
       <div class="product-actions">
-        <button
-          class="btn-cart"
-          [class.added]="cartAdded"
-          [disabled]="(product?.stock || 0) === 0"
-          (click)="addToCart()"
-        >
-          <span class="btn-label">
-            <ng-container *ngIf="(product?.stock || 0) === 0">Sold Out</ng-container>
-            <ng-container *ngIf="(product?.stock || 0) > 0 && !cartAdded">
-              <span class="btn-icon">＋</span> Add to Cart
-            </ng-container>
-            <ng-container *ngIf="cartAdded">
-              <span class="btn-icon">✓</span> Added!
-            </ng-container>
-          </span>
-          <span class="btn-shimmer"></span>
-        </button>
 
-        <button
-          class="btn-wishlist"
-          [class.active]="isWishlisted"
-          (click)="toggleWishlist()"
-          [attr.aria-label]="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
-        >
-          <span class="heart-icon">{{ isWishlisted ? '♥' : '♡' }}</span>
-        </button>
+        <!-- WhatsApp Enquiry -->
+        <a class="btn-whatsapp" [href]="getWhatsappLink()" target="_blank" rel="noopener">
+          <span class="btn-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.522 5.847L.057 23.882l6.197-1.625A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.001-1.366l-.359-.213-3.68.965.981-3.586-.234-.368A9.818 9.818 0 1112 21.818z"/>
+            </svg>
+          </span>
+          Enquire on WhatsApp
+        </a>
+
+        <div class="action-row">
+          <button
+            class="btn-cart"
+            [class.added]="cartAdded"
+            (click)="addToCart()"
+          >
+            <span class="btn-label">
+              <ng-container *ngIf="!cartAdded">
+                <span class="btn-icon">＋</span> Add to Cart
+              </ng-container>
+              <ng-container *ngIf="cartAdded">
+                <span class="btn-icon">✓</span> Added!
+              </ng-container>
+            </span>
+            <span class="btn-shimmer"></span>
+          </button>
+
+          <button
+            class="btn-wishlist"
+            [class.active]="isWishlisted"
+            (click)="toggleWishlist()"
+            [attr.aria-label]="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
+          >
+            <span class="heart-icon">{{ isWishlisted ? '♥' : '♡' }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- TRUST STRIP -->
@@ -135,7 +173,7 @@
         </div>
         <div class="trust-item">
           <span class="trust-icon">✦</span>
-          Authentic &amp; verified
+          Authentic & amp; verified
         </div>
         <div class="trust-item">
           <span class="trust-icon">↩</span>
@@ -143,22 +181,101 @@
         </div>
       </div>
 
+      <!-- ══ PRODUCT DETAILS ACCORDION ══ -->
+      <div class="product-details-section">
+
+        <!-- About -->
+        <div class="detail-block" *ngIf="product?.description">
+          <button class="detail-toggle" (click)="toggleDetail('about')" [class.open]="openDetail === 'about'">
+            <span>About</span>
+            <span class="toggle-icon">{{ openDetail === 'about' ? '−' : '+' }}</span>
+          </button>
+          <div class="detail-content" [class.expanded]="openDetail === 'about'">
+            <p class="detail-text">{{ product.description }}</p>
+          </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="detail-block" *ngIf="product?.details?.length">
+          <button class="detail-toggle" (click)="toggleDetail('details')" [class.open]="openDetail === 'details'">
+            <span>Details</span>
+            <span class="toggle-icon">{{ openDetail === 'details' ? '−' : '+' }}</span>
+          </button>
+          <div class="detail-content" [class.expanded]="openDetail === 'details'">
+            <ul class="detail-list">
+              <li *ngFor="let item of product.details">{{ item }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Specifications -->
+        <div class="detail-block">
+          <button class="detail-toggle" (click)="toggleDetail('specs')" [class.open]="openDetail === 'specs'">
+            <span>Specifications</span>
+            <span class="toggle-icon">{{ openDetail === 'specs' ? '−' : '+' }}</span>
+          </button>
+          <div class="detail-content" [class.expanded]="openDetail === 'specs'">
+            <div class="spec-grid">
+              <div class="spec-row" *ngIf="product?.colour || product?.color">
+                <span class="spec-label">Colour</span>
+                <span class="spec-value">{{ product?.colour || product?.color }}</span>
+              </div>
+              <div class="spec-row" *ngIf="product?.fit">
+                <span class="spec-label">Fit</span>
+                <span class="spec-value">{{ product.fit }}</span>
+              </div>
+              <div class="spec-row" *ngIf="product?.category">
+                <span class="spec-label">Occasion</span>
+                <span class="spec-value">{{ product.category }}</span>
+              </div>
+              <div class="spec-row" *ngIf="product?.subcategory">
+                <span class="spec-label">Type</span>
+                <span class="spec-value">{{ product.subcategory }}</span>
+              </div>
+              <div class="spec-row" *ngIf="product?.care || product?.wash_care">
+                <span class="spec-label">Care</span>
+                <span class="spec-value">{{ product?.care || product?.wash_care }}</span>
+              </div>
+              <div class="spec-row" *ngIf="product?.product_code">
+                <span class="spec-label">Product Code</span>
+                <span class="spec-value">{{ product.product_code }}</span>
+              </div>
+              <div class="spec-row" *ngIf="product?.size">
+                <span class="spec-label">Size</span>
+                <span class="spec-value">{{ product.size }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping & Returns -->
+        <div class="detail-block">
+          <button class="detail-toggle" (click)="toggleDetail('shipping')" [class.open]="openDetail === 'shipping'">
+            <span>Shipping </span>
+            <span class="toggle-icon">{{ openDetail === 'shipping' ? '−' : '+' }}</span>
+          </button>
+          <div class="detail-content" [class.expanded]="openDetail === 'shipping'">
+            <ul class="detail-list">
+              <li>Free delivery on orders above ₹3999</li>
+              <li>Standard delivery within 5–15 business days</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- ══ CART CONFIRMATION POPUP ══════════════════════════════ -->
+<!-- ══ CART CONFIRMATION POPUP ══ -->
 <div class="cart-popup" [class.visible]="showCartPopup">
   <div class="cart-popup-inner">
 
-    <!-- Left: product snapshot -->
     <div class="popup-product">
       <div class="popup-img-wrap">
-        <img
-          *ngIf="product?.image_url"
-          [src]="imageBase + product.image_url"
-          [alt]="product?.name"
-        />
+        <img *ngIf="product?.image_url"
+          [src]="imageBase + product.image_url" [alt]="product?.name" />
       </div>
       <div class="popup-meta">
         <span class="popup-check">✓</span>
@@ -168,10 +285,8 @@
       </div>
     </div>
 
-    <!-- Divider -->
     <div class="popup-divider"></div>
 
-    <!-- Right: totals + actions -->
     <div class="popup-summary">
       <p class="popup-summary-label">Cart Total</p>
       <p class="popup-total">₹{{ cartTotal | number }}</p>
@@ -186,13 +301,11 @@
       </div>
     </div>
 
-    <!-- Close -->
     <button class="popup-close" (click)="showCartPopup = false">✕</button>
-
   </div>
 </div>
 
-<!-- ══ LOADING STATE ════════════════════════════ -->
+<!-- ══ LOADING STATE ══ -->
 <ng-template #loadingState>
   <div class="product-page">
     <div class="product-grid loading-grid">

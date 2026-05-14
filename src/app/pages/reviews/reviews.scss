@@ -215,6 +215,17 @@ $radius-xl: 28px;
   font-style: italic;
 }
 
+// ── REVIEW IMAGE ─────────────────────────────────
+.review-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  display: block;
+  opacity: .92;
+}
+
 // ── FOOTER ───────────────────────────────────────
 .review-footer {
   display: flex;

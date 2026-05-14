@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -28,11 +28,24 @@ export class ProductView implements OnInit, OnDestroy {
   cartTotal: number = 0;
   cartCount: number = 0;
 
+  // ── Size & Quantity ──────────────────────────────
+  selectedSize: string | null = null;
+  sizeError: boolean = false;
+  quantity: number = 1;
+
+  // ── Detail accordion ─────────────────────────────
+  openDetail: string | null = null;
+
+  // ── Share ─────────────────────────────────────────
+  shareMenuOpen: boolean = false;
+  linkCopied: boolean = false;
+
   imageBase: string = 'http://localhost:4000/uploads/';
 
   private navStateProduct: any = null;
   private destroy$ = new Subject<void>();
   private popupTimer: any;
+  private shareCloseTimer: any;
 
   private readonly CACHE_PREFIX = 'product_cache_';
   private readonly CACHE_TTL = 5 * 60 * 1000;
@@ -77,6 +90,15 @@ export class ProductView implements OnInit, OnDestroy {
     }
 
     this.fetchProduct(id);
+  }
+
+  // ── Close share menu on outside click ────────────
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.share-btn') && !target.closest('.share-menu')) {
+      this.shareMenuOpen = false;
+    }
   }
 
   // ── Cache ────────────────────────────────────────
@@ -127,7 +149,7 @@ export class ProductView implements OnInit, OnDestroy {
           this.loadWishlistState();
         },
         error: () => {
-          this.error = 'Failed to load product. Is the backend running on port 4000?';
+          this.error = 'Failed to load product.';
           this.isLoading = false;
         }
       });
@@ -163,30 +185,150 @@ export class ProductView implements OnInit, OnDestroy {
   // ── Cart + Popup ─────────────────────────────────
 
   addToCart() {
-    if (!this.product || (this.product.stock || 0) === 0) return;
+    if (!this.product) return;
 
-    this.cartService.add(this.product);
+    // ✅ Require a size selection if sizes are available
+    const availableSizes = this.getAvailableSizes();
+    if (availableSizes.length > 0 && !this.selectedSize) {
+      this.sizeError = true;
+      return;
+    }
+
+    // Add the product with the selected quantity and size
+    const cart = this.cartService.getAll();
+    const existing = cart.find(p => p.id === this.product.id && p.size === this.selectedSize);
+
+    if (existing) {
+      // Same product + same size already in cart — bump qty
+      this.cartService.updateQty(this.product.id, (existing.qty || 1) + this.quantity, this.selectedSize ?? undefined);
+    } else {
+      // New item (or same product in a different size) — add with size
+      this.cartService.add(this.product, this.selectedSize ?? undefined, this.quantity);
+    }
+
     this.cartAdded = true;
 
-    // Compute totals for popup
     const allItems = this.cartService.getAll();
     this.cartCount = allItems.reduce((sum, p) => sum + (p.qty || 1), 0);
     this.cartTotal = allItems.reduce((sum, p) => sum + (p.price * (p.qty || 1)), 0);
 
-    // Show popup
     this.showCartPopup = true;
 
-    // Reset button label after 2.2s
     setTimeout(() => (this.cartAdded = false), 2200);
 
-    // Auto-close popup after 4s
     clearTimeout(this.popupTimer);
     this.popupTimer = setTimeout(() => (this.showCartPopup = false), 4000);
+  }
+
+  // ── Size ─────────────────────────────────────────
+
+  getAvailableSizes(): string[] {
+    if (this.product?.sizes?.length) return this.product.sizes;
+    if (this.product?.size) return [this.product.size];
+    return ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  }
+
+  selectSize(size: string) {
+    this.selectedSize = size;
+    this.sizeError = false;
+  }
+
+  isSizeAvailable(size: string): boolean {
+    return true;
+  }
+
+  toggleSizeChart() {
+    // Implement size chart modal if needed
+  }
+
+  // ── Quantity ─────────────────────────────────────
+
+  increaseQty() {
+    this.quantity++;
+  }
+
+  decreaseQty() {
+    if (this.quantity > 1) this.quantity--;
+  }
+
+  // ── Share ─────────────────────────────────────────
+
+  toggleShareMenu() {
+    this.shareMenuOpen = !this.shareMenuOpen;
+    if (!this.shareMenuOpen) this.linkCopied = false;
+  }
+
+  shareVia(platform: string) {
+    const url = isPlatformBrowser(this.platformId) ? window.location.href : '';
+    const name = this.product?.name || 'this product';
+    const text = `Check out ${name} — ${url}`;
+
+    switch (platform) {
+      case 'copy':
+        if (isPlatformBrowser(this.platformId)) {
+          navigator.clipboard.writeText(url).then(() => {
+            this.linkCopied = true;
+            clearTimeout(this.shareCloseTimer);
+            this.shareCloseTimer = setTimeout(() => {
+              this.linkCopied = false;
+              this.shareMenuOpen = false;
+            }, 1800);
+          });
+        }
+        break;
+
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        this.shareMenuOpen = false;
+        break;
+
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        this.shareMenuOpen = false;
+        break;
+
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+        this.shareMenuOpen = false;
+        break;
+    }
+  }
+
+  // ── WhatsApp Enquiry ─────────────────────────────
+
+  getWhatsappLink(): string {
+    const name = this.product?.name || 'this product';
+    const price = this.product?.price ? `₹${this.product.price}` : '';
+    const code = this.product?.product_code ? ` (${this.product.product_code})` : '';
+    const size = this.selectedSize ? ` | Size: ${this.selectedSize}` : '';
+    const msg = `Hi! I'm interested in ${name}${code} ${price}${size}. Please share more details.`;
+    return `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  }
+
+  // ── Colour helper ─────────────────────────────────
+  getColourHex(colour: string): string {
+    if (!colour) return '#ccc';
+    const map: Record<string, string> = {
+      red: '#e05c5c', blue: '#5c7ee0', green: '#5cae6f', yellow: '#e0c45c',
+      pink: '#e07caa', purple: '#9b5ce0', orange: '#e0895c', white: '#f5f3f0',
+      black: '#1a1814', grey: '#9a9080', gray: '#9a9080', navy: '#2c3e6b',
+      maroon: '#7b2c2c', beige: '#d4c5a9', gold: '#c8a96e', silver: '#aaa',
+      brown: '#7b5c3c', teal: '#3c8c8c', cream: '#f5ede0', ivory: '#f5f0e0',
+      rose: '#d4a0b0', peach: '#e0b48c', lavender: '#b0a0d4', coral: '#e07868',
+    };
+    return map[colour.toLowerCase().trim()] || '#c8a96e';
+  }
+
+  // ── Detail accordion ─────────────────────────────
+
+  toggleDetail(key: string) {
+    this.openDetail = this.openDetail === key ? null : key;
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
     clearTimeout(this.popupTimer);
+    clearTimeout(this.shareCloseTimer);
   }
 }

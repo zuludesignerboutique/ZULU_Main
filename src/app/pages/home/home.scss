@@ -4,7 +4,8 @@
 
 .hero-carousel {
   width: 100%;
-  height: 100vh;
+  height: 100vh;     /* fallback for older browsers */
+  height: 100dvh;    /* fix: dynamic viewport — adjusts with browser UI bars */
   position: relative;
   overflow: hidden;
 }
@@ -21,7 +22,9 @@
   opacity: 0;
   transition: opacity 1s ease-in-out;
   background-size: cover;
-  background-position: center;
+  background-position: center top;  /* fix: anchor to top so subject isn't cut off */
+  background-attachment: local;     /* fix: prevents floating/jump on resize */
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   padding-left: 8%;
@@ -352,7 +355,8 @@
 @media (max-width: 768px) {
 
   .hero-carousel {
-    height: 85vh;
+    height: 85vh;    /* fallback */
+    height: 85dvh;   /* fix: dynamic viewport on mobile */
   }
 
   .carousel-slide {

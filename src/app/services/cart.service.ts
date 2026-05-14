@@ -12,7 +12,7 @@ export class CartService {
     return `cart_${this.auth.getUserEmail()}`;
   }
 
-  private load(): (Product & { qty: number })[] {
+  private load(): (Product & { qty: number; size?: string })[] {
     try {
       return JSON.parse(localStorage.getItem(this.KEY) || '[]');
     } catch {
@@ -20,34 +20,45 @@ export class CartService {
     }
   }
 
-  private save(cart: (Product & { qty: number })[]) {
+  private save(cart: (Product & { qty: number; size?: string })[]) {
     localStorage.setItem(this.KEY, JSON.stringify(cart));
   }
 
-  add(product: Product) {
+  // ✅ size and initialQty are now optional params
+  add(product: Product, size?: string, initialQty: number = 1) {
     const cart = this.load();
-    const existing = cart.find(p => p.id === product.id);
+    // Match on both id AND size so the same product in different sizes = separate rows
+    const existing = cart.find(p => p.id === product.id && p.size === size);
     if (existing) {
-      existing.qty = (existing.qty || 1) + 1;
+      existing.qty = (existing.qty || 1) + initialQty;
     } else {
-      cart.push({ ...product, qty: 1 });
+      cart.push({ ...product, qty: initialQty, size });
     }
     this.save(cart);
   }
-updateQty(id: number, qty: number) {
-  const items = this.load();           // 👈 use load() not getAll()
-  const item = items.find(i => i.id === id);
-  if (item) {
-    item.qty = qty;
-    this.save(items);                  // 👈 use this.save() not localStorage.setItem('cart',...)
+
+  // ✅ size param lets us update the right row when same product has multiple sizes
+  updateQty(id: number, qty: number, size?: string) {
+    const items = this.load();
+    const item = size !== undefined
+      ? items.find(i => i.id === id && i.size === size)
+      : items.find(i => i.id === id);
+    if (item) {
+      item.qty = qty;
+      this.save(items);
+    }
   }
-}
-  getAll(): (Product & { qty: number })[] {
+
+  getAll(): (Product & { qty: number; size?: string })[] {
     return this.load();
   }
 
-  remove(id: number) {
-    this.save(this.load().filter(p => p.id !== id));
+  remove(id: number, size?: string) {
+    const items = this.load();
+    const filtered = size !== undefined
+      ? items.filter(p => !(p.id === id && p.size === size))
+      : items.filter(p => p.id !== id);
+    this.save(filtered);
   }
 
   clear() {
