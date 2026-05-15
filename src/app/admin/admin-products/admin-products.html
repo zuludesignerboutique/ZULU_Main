@@ -1,43 +1,55 @@
-<h2>Manage Products</h2>
+<h2 class="page-title">Manage Products</h2>
 
-<button class="add-btn" routerLink="/admin/add-product">
-Add Product
-</button>
+<div class="page-header">
+  <div class="header-meta">
+    <span class="breadcrumb">ADMIN PANEL</span>
+    <h2 class="page-title">Products</h2>
+  </div>
+  <button class="add-btn" routerLink="/admin/add-product">
+    <span class="add-icon">+</span> Add Product
+  </button>
+</div>
 
-<table class="product-table">
+<div class="table-card">
 
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Price</th>
-<th>Action</th>
-<th>Image</th>
-</tr>
-<tbody *ngIf="products.length > 0">
+  <div class="table-toolbar">
+    <span class="product-count">{{ products.length }} Products</span>
+  </div>
 
-<tr *ngFor="let product of products">
+  <table class="product-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody *ngIf="products.length > 0">
+      <tr *ngFor="let product of products; trackBy: trackById">
+        <td class="col-id">#{{ product.id }}</td>
+        <td class="col-img">
+          <div class="img-wrapper">
+            <img
+              [src]="'http://localhost:4000/uploads/' + product.image_url"
+              [alt]="product.name"
+            >
+          </div>
+        </td>
+        <td class="col-name">{{ product.name }}</td>
+        <td class="col-price">₹{{ product.price }}</td>
+        <td class="col-actions">
+          <button class="btn-edit" [routerLink]="['/admin/edit-product', product.id]">Edit</button>
+          <button class="btn-delete" (click)="deleteProduct(product.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+    <tbody *ngIf="products.length === 0">
+      <tr>
+        <td colspan="5" class="empty-state">No products found.</td>
+      </tr>
+    </tbody>
+  </table>
 
-  <td>{{product.id}}</td>
-  <td>{{product.name}}</td>
-  <td>₹{{product.price}}</td>
-
-  <td>
-    <button class="delete" (click)="deleteProduct(product.id)">Delete</button>
-    <button class="edit" [routerLink]="['/admin/edit-product', product.id]">
-      Edit
-    </button>
-  </td>
-
-  <td>
-    <img 
-      [src]="'http://localhost:4000/uploads/' + product.image_url" 
-      width="50"
-    >
-  </td>
-<tr *ngFor="let product of products; trackBy: trackById">
-</tr>
-
-</tbody>
-
-</table>
+</div>
