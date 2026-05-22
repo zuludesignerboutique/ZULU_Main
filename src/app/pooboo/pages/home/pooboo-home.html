@@ -1,0 +1,282 @@
+<app-pooboo-header></app-pooboo-header>
+
+<!-- ══ HERO BANNER ══════════════════════════════════════ -->
+<section class="pb-hero">
+
+  @for (banner of banners; track banner.headline; let i = $index) {
+    <div
+      class="pb-hero-slide"
+      [class.active]="currentBanner === i"
+      [style.background]="banner.bg">
+
+      <div class="pb-hero-content">
+        <span class="pb-hero-tag">{{ banner.tag }}</span>
+        <h1 class="pb-hero-headline">{{ banner.headline }}</h1>
+        <p class="pb-hero-sub">{{ banner.sub }}</p>
+        <a [routerLink]="banner.link" class="pb-hero-cta">
+          {{ banner.cta }}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Floating decorative blobs -->
+      <div class="pb-blob pb-blob-1">🎈</div>
+      <div class="pb-blob pb-blob-2">⭐</div>
+      <div class="pb-blob pb-blob-3">🌟</div>
+
+    </div>
+  }
+
+  <!-- Dots -->
+  <div class="pb-hero-dots">
+    @for (banner of banners; track banner.headline; let i = $index) {
+      <button
+        class="pb-dot"
+        [class.active]="currentBanner === i"
+        (click)="goToBanner(i)"
+        [attr.aria-label]="'Slide ' + (i + 1)">
+      </button>
+    }
+  </div>
+
+</section>
+
+<!-- ══ MARQUEE ════════════════════════════════════════════ -->
+<div class="pb-marquee">
+  <div class="pb-marquee-inner">
+    <span>👗 Frocks & Dresses</span>
+    <span>🎎 Ethnic Wear</span>
+    <span>🎉 Party Wear</span>
+    <span>✂️ Custom Stitching</span>
+    <span>🍼 Newborn Sets</span>
+    <span>⚡ New Arrivals</span>
+    <span>🚚 Free Shipping ₹999+</span>
+
+    <span>👗 Frocks & Dresses</span>
+    <span>🎎 Ethnic Wear</span>
+    <span>🎉 Party Wear</span>
+    <span>✂️ Custom Stitching</span>
+    <span>🍼 Newborn Sets</span>
+    <span>⚡ New Arrivals</span>
+    <span>🚚 Free Shipping ₹999+</span>
+  </div>
+</div>
+
+<!-- ══ SHOP BY AGE ══════════════════════════════════════ -->
+<section class="pb-age-section">
+  <div class="pb-container">
+    <div class="pb-section-header">
+      <p class="pb-eyebrow">Browse by Age</p>
+      <h2>Shop <em>Their</em> Size</h2>
+      <p class="pb-section-desc">From newborns to tweens — styled for every stage.</p>
+    </div>
+
+    <div class="pb-age-grid">
+
+      <!-- All button -->
+      <button
+        class="pb-age-card"
+        [class.active]="selectedAgeGroup === 'all'"
+        (click)="selectAge('all')"
+        style="--card-bg: #F0F4FF">
+        <span class="pb-age-emoji">✨</span>
+        <span class="pb-age-label">All Ages</span>
+      </button>
+
+      @for (age of ageGroups; track age.value) {
+        <button
+          class="pb-age-card"
+          [class.active]="selectedAgeGroup === age.value"
+          (click)="selectAge(age.value)"
+          [style.--card-bg]="age.color">
+          <span class="pb-age-emoji">{{ age.emoji }}</span>
+          <span class="pb-age-label">{{ age.label }}</span>
+        </button>
+      }
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ FEATURED PRODUCTS ══════════════════════════════════ -->
+<section class="pb-products-section">
+  <div class="pb-container">
+
+    <div class="pb-section-header">
+      <p class="pb-eyebrow">Featured Picks</p>
+      <h2>Trending <em>Now</em></h2>
+    </div>
+
+    <!-- Loading skeletons -->
+    @if (isLoading) {
+      <div class="pb-product-grid">
+        @for (n of [1,2,3,4,5,6,7,8]; track n) {
+          <div class="pb-skeleton-card">
+            <div class="pb-sk-img"></div>
+            <div class="pb-sk-line pb-sk-name"></div>
+            <div class="pb-sk-line pb-sk-price"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Products -->
+    @if (!isLoading && featuredProducts.length > 0) {
+      <div class="pb-product-grid">
+        @for (product of featuredProducts; track product.id) {
+          <a [routerLink]="['/pooboo/products', product.id]" class="pb-product-card">
+
+            <div class="pb-product-img-wrap">
+              <img
+                [src]="getImageUrl(product.image_url)"
+                [alt]="product.name"
+                class="pb-product-img"
+                loading="lazy"/>
+
+              @if (product.is_customizable) {
+                <span class="pb-badge-custom">✂️ Custom</span>
+              }
+
+              <div class="pb-product-overlay">
+                <span class="pb-quick-view">View Details</span>
+              </div>
+            </div>
+
+            <div class="pb-product-info">
+              <p class="pb-product-age">{{ product.age_group }}</p>
+              <h3 class="pb-product-name">{{ product.name }}</h3>
+              <p class="pb-product-price">₹{{ product.price | number:'1.0-0' }}</p>
+            </div>
+
+          </a>
+        }
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!isLoading && featuredProducts.length === 0) {
+      <div class="pb-empty">
+        <p>🧺 No products found for this age group yet.</p>
+        <button class="pb-reset-btn" (click)="selectAge('all')">Show All Products</button>
+      </div>
+    }
+
+    <div class="pb-explore-wrap">
+      <a routerLink="/pooboo/products" class="pb-explore-btn">
+        <span>Explore Full Collection</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ CATEGORIES ════════════════════════════════════════ -->
+<section class="pb-cat-section">
+  <div class="pb-container">
+    <div class="pb-section-header">
+      <p class="pb-eyebrow">Categories</p>
+      <h2>Shop by <em>Style</em></h2>
+    </div>
+
+    <div class="pb-cat-grid">
+      @for (cat of categories; track cat.query) {
+        <a
+          [routerLink]="['/pooboo/products']"
+          [queryParams]="{ category: cat.query }"
+          class="pb-cat-card">
+          <span class="pb-cat-icon">{{ cat.icon }}</span>
+          <span class="pb-cat-label">{{ cat.label }}</span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ══ CUSTOM STITCH BANNER ══════════════════════════════ -->
+<section class="pb-enquiry-banner">
+  <div class="pb-container">
+    <div class="pb-enquiry-inner">
+
+      <div class="pb-enquiry-text">
+        <p class="pb-eyebrow" style="color: rgba(255,255,255,0.7)">Exclusive Service</p>
+        <h2>Custom Stitched Dress<br>for Your Little One ✂️</h2>
+        <p>Share your child's measurements, occasion, and style preferences. We'll craft the perfect outfit — made just for them.</p>
+        <div class="pb-enquiry-steps">
+          <div class="pb-step">
+            <span class="pb-step-num">1</span>
+            <span>Fill the form</span>
+          </div>
+          <div class="pb-step-arrow">→</div>
+          <div class="pb-step">
+            <span class="pb-step-num">2</span>
+            <span>We contact you</span>
+          </div>
+          <div class="pb-step-arrow">→</div>
+          <div class="pb-step">
+            <span class="pb-step-num">3</span>
+            <span>Dress delivered!</span>
+          </div>
+        </div>
+        <a routerLink="/pooboo/enquiry" class="pb-enquiry-btn">Book Custom Dress</a>
+      </div>
+
+      <div class="pb-enquiry-visual">
+        <div class="pb-enquiry-card">
+          <div class="pb-enquiry-icon">✂️</div>
+          <h4>Custom Stitch</h4>
+          <p>Birthday, wedding, festival — any occasion covered</p>
+          <ul>
+            <li>✓ Exact measurements taken</li>
+            <li>✓ Fabric & colour of choice</li>
+            <li>✓ 7–10 day delivery</li>
+            <li>✓ WhatsApp updates</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ TRUST STRIP ══════════════════════════════════════ -->
+<section class="pb-trust-strip">
+  <div class="pb-container">
+    <div class="pb-trust-grid">
+      <div class="pb-trust-item">
+        <span class="pb-trust-icon">🚚</span>
+        <div>
+          <strong>Free Shipping</strong>
+          <p>On orders above ₹999</p>
+        </div>
+      </div>
+      <div class="pb-trust-item">
+        <span class="pb-trust-icon">✂️</span>
+        <div>
+          <strong>Custom Stitching</strong>
+          <p>Made to your child's measurements</p>
+        </div>
+      </div>
+      <div class="pb-trust-item">
+        <span class="pb-trust-icon">🌟</span>
+        <div>
+          <strong>Premium Quality</strong>
+          <p>Soft, safe fabrics for kids</p>
+        </div>
+      </div>
+      <div class="pb-trust-item">
+        <span class="pb-trust-icon">💬</span>
+        <div>
+          <strong>24/7 Support</strong>
+          <p>We're here to help anytime</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<app-pooboo-footer></app-pooboo-footer>

@@ -1,0 +1,135 @@
+<!-- TOP TICKER -->
+<div class="pb-topbar">
+  <div class="pb-topbar-inner">
+    <span>🎀 Free shipping on orders above ₹999</span>
+    <span class="pb-sep">✦</span>
+    <span>Custom stitching available — <a routerLink="/pooboo/enquiry">Book Now</a></span>
+    <span class="pb-sep">✦</span>
+    <span>New arrivals every week!</span>
+  </div>
+</div>
+
+<!-- MAIN HEADER -->
+<header class="pb-header">
+  <div class="pb-header-inner">
+
+    <!-- LOGO -->
+    <a routerLink="/pooboo" class="pb-logo" aria-label="POOBOO home">
+      <div class="pb-logo-mark">
+        <span class="pb-logo-p">P</span>
+      </div>
+      <div class="pb-logo-text">
+        <span class="pb-logo-name">POOBOO</span>
+        <span class="pb-logo-sub">Kids Boutique</span>
+      </div>
+    </a>
+
+    <!-- DESKTOP NAV -->
+    <nav class="pb-nav">
+      <a routerLink="/pooboo"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{exact:true}"
+         class="pb-nav-link">Home</a>
+
+      <a routerLink="/pooboo/products"
+         routerLinkActive="active"
+         class="pb-nav-link">Products</a>
+
+      <a routerLink="/pooboo/fabrics"
+         routerLinkActive="active"
+         class="pb-nav-link">Fabrics</a>
+
+      <a routerLink="/pooboo/accessories"
+         routerLinkActive="active"
+         class="pb-nav-link">Accessories</a>
+
+      <a routerLink="/pooboo/enquiry"
+         routerLinkActive="active"
+         class="pb-nav-link pb-nav-highlight">✂️ Enquiry</a>
+
+      <a routerLink="/pooboo/reviews"
+         routerLinkActive="active"
+         class="pb-nav-link">Reviews</a>
+
+      <a routerLink="/" class="pb-nav-link pb-nav-stores">All Stores ↗</a>
+    </nav>
+
+    <!-- ACTIONS -->
+    <div class="pb-actions">
+
+      <!-- Custom stitch CTA -->
+      <a routerLink="/pooboo/enquiry" class="pb-cta-btn">
+        Book Custom Dress
+      </a>
+
+      <!-- User menu -->
+      <div class="user-menu-wrap" [class.open]="menuOpen">
+        <button class="pb-icon-btn" (click)="toggleMenu()" type="button" aria-label="Account">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </button>
+
+        <div class="pb-dropdown" (click)="menuOpen = false">
+          <a *ngIf="!isLoggedIn()" routerLink="/login" class="pb-drop-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            Login
+          </a>
+          <button *ngIf="isLoggedIn()" (click)="logout()" class="pb-drop-item pb-drop-logout" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile hamburger -->
+      <button class="hamburger-btn" (click)="toggleMobileNav()" type="button" aria-label="Menu">
+        <span [class.open]="mobileNavOpen"></span>
+        <span [class.open]="mobileNavOpen"></span>
+        <span [class.open]="mobileNavOpen"></span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav-wrap" [class.open]="mobileNavOpen">
+    <nav class="pb-mobile-nav" (click)="mobileNavOpen = false">
+      <a routerLink="/pooboo"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{exact:true}"
+         class="pb-mobile-link">Home</a>
+
+      <a routerLink="/pooboo/products"
+         routerLinkActive="active"
+         class="pb-mobile-link">Products</a>
+
+      <a routerLink="/pooboo/fabrics"
+         routerLinkActive="active"
+         class="pb-mobile-link">Fabrics</a>
+
+      <a routerLink="/pooboo/accessories"
+         routerLinkActive="active"
+         class="pb-mobile-link">Accessories</a>
+
+      <a routerLink="/pooboo/enquiry"
+         routerLinkActive="active"
+         class="pb-mobile-link pb-mobile-highlight">✂️ Enquiry</a>
+
+      <a routerLink="/pooboo/reviews"
+         routerLinkActive="active"
+         class="pb-mobile-link">Reviews</a>
+
+      <a routerLink="/" class="pb-mobile-link pb-mobile-stores">← All Stores</a>
+    </nav>
+  </div>
+</header>

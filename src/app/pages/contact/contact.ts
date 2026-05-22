@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-contact',
@@ -19,6 +20,9 @@ export class Contact {
 
   isSending = false;
   submitted = false;
+  errorMsg = '';
+
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   // ══════════════════════════════════════════════
   // SUBMIT
@@ -29,12 +33,20 @@ export class Contact {
 
     this.isSending = true;
     this.submitted = false;
+    this.errorMsg = '';
 
-    // TODO: replace with real HTTP call e.g. this.http.post('/api/contact', this.form)
-    setTimeout(() => {
-      this.isSending = false;
-      this.submitted = true;
-      this.form = { name: '', email: '', message: '' };
-    }, 1200);
+    this.http.post<{ message: string }>('http://localhost:4000/api/contact', this.form).subscribe({
+      next: () => {
+        this.isSending = false;
+        this.submitted = true;
+        this.form = { name: '', email: '', message: '' };
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isSending = false;
+        this.errorMsg = 'Something went wrong. Please try again.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

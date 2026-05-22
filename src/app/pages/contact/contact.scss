@@ -81,6 +81,16 @@
   }
 }
 
+.form-error {
+  margin-top: 1rem;
+  padding: 12px 16px;
+  background: #fff0f0;
+  border-left: 3px solid #e05c5c;
+  color: #c0392b;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
 // ── FORM PANEL ───────────────────────────────────
 .form-panel {
   padding: 56px 52px;

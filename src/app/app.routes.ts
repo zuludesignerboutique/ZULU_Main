@@ -19,39 +19,42 @@ import { Categories } from './pages/categories/categories';
 import { SubcategoriesComponent } from './pages/subcategories/subcategories';
 import { Checkout } from './pages/checkout/checkout';
 import { OrderSuccessComponent } from './pages/order-success/order-success';
-import { OrderHistoryComponent } from './pages/order-history/order-history';  
+import { OrderHistoryComponent } from './pages/order-history/order-history';
 import { adminGuard } from './admin/admin-guard';
+
 
 export const routes: Routes = [
 
+  // ── Store selector ─────────────────────────────
   { path: '', component: CategoryLandingComponent },
+
+  // ── Auth ───────────────────────────────────────
   { path: 'login',  component: LoginComponent },
   { path: 'signup', component: SignupComponent },
 
+  // ── ZULU routes ────────────────────────────────
   { path: 'home',     component: HomeComponent },
   { path: 'products', component: Products },
   { path: 'gallery',  component: Gallery },
   { path: 'reviews',  component: Reviews, runGuardsAndResolvers: 'always' },
-  { path: 'contact',  component: Contact },
+  { path: 'contact',  component: Contact, canActivate: [authGuard] },
 
   { path: 'categories',       component: Categories },
   { path: 'categories/:type', component: SubcategoriesComponent },
 
-  // ── Protected user routes ──────────────────────
   { path: 'cart',          component: CartComponent,         canActivate: [authGuard] },
   { path: 'wishlist',      component: Wishlist,              canActivate: [authGuard] },
   { path: 'checkout',      component: Checkout,              canActivate: [authGuard] },
-  { path: 'order-history', component: OrderHistoryComponent, canActivate: [authGuard] }, 
+  { path: 'order-history', component: OrderHistoryComponent, canActivate: [authGuard] },
   { path: 'order-success', component: OrderSuccessComponent },
 
-  // ── Product view (lazy loaded) ─────────────────
   {
     path: 'product/:id',
     loadComponent: () =>
       import('./pages/product-view/product-view').then(m => m.ProductView)
   },
 
-  // ── Admin (lazy loaded + guarded) ─────────────
+  // ── Admin (lazy + guarded) ─────────────────────
   {
     path: 'admin',
     loadComponent: () =>
@@ -79,19 +82,113 @@ export const routes: Routes = [
           import('./admin/edit-product/edit-product').then(m => m.EditProduct)
       },
       {
-        path: 'orders',                                                          
+        path: 'orders',
         loadComponent: () =>
           import('./admin/admin-orders/admin-orders').then(m => m.AdminOrders)
+      },
+      // ── POOBOO admin ───────────────────────────
+      {
+        path: 'pooboo/products',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-admin-products/pooboo-admin-products')
+            .then(m => m.PoobooAdminProducts)
+      },
+      {
+        path: 'pooboo/add-product',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-add-product/pooboo-add-product')
+            .then(m => m.PoobooAddProduct)
+      },
+      {
+        path: 'pooboo/edit-product/:id',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-edit-product/pooboo-edit-product')
+            .then(m => m.PoobooEditProduct)
+      },
+      {
+        path: 'pooboo/enquiries',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-admin-enquiries/pooboo-admin-enquiries')
+            .then(m => m.PoobooAdminEnquiries)
       }
     ]
   },
 
-  // ── Static pages ───────────────────────────────
+  // ── ZULU static pages ──────────────────────────
   { path: 'shipping-policy',  component: ShippingPolicy },
   { path: 'privacy-policy',   component: PrivacyPolicy },
   { path: 'terms-conditions', component: TermsConditions },
   { path: 'about-zora',       component: AboutZora },
   { path: 'returns-exchange', component: ReturnsExchange },
+
+  // ── POOBOO storefront (lazy) ───────────────────
+  {
+    path: 'pooboo',
+    loadComponent: () =>
+      import('./pooboo/pages/home/pooboo-home').then(m => m.PoobooHome)
+  },
+  {
+    path: 'pooboo/products',
+    loadComponent: () =>
+      import('./pooboo/pages/products/pooboo-products').then(m => m.PoobooProducts)
+  },
+  {
+    path: 'pooboo/products/:id',
+    loadComponent: () =>
+      import('./pooboo/pages/product-detail/pooboo-product-detail').then(m => m.PoobooProductDetail)
+  },
+  {
+    path: 'pooboo/fabrics',
+    loadComponent: () =>
+      import('./pooboo/pages/fabrics/fabrics').then(m => m.Fabrics)
+  },
+  {
+    path: 'pooboo/accessories',
+    loadComponent: () =>
+      import('./pooboo/pages/accessories/accessories').then(m => m.Accessories)
+  },
+  {
+    path: 'pooboo/accessories/baby-ornaments',
+    loadComponent: () =>
+      import('./pooboo/pages/accessories/baby-ornaments/baby-ornaments').then(m => m.BabyOrnaments)
+  },
+  {
+    path: 'pooboo/accessories/bands',
+    loadComponent: () =>
+      import('./pooboo/pages/accessories/bands/bands').then(m => m.Bands)
+  },
+  {
+    path: 'pooboo/accessories/hair-clips',
+    loadComponent: () =>
+      import('./pooboo/pages/accessories/hair-clips/hair-clips').then(m => m.HairClips)
+  },
+  {
+    path: 'pooboo/reviews',
+    loadComponent: () =>
+      import('./pooboo/pages/reviews/reviews').then(m => m.Reviews)
+  },
+  {
+    path: 'pooboo/cart',
+    loadComponent: () =>
+      import('./pooboo/pages/cart/cart').then(m => m.Cart),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'pooboo/wishlist',
+    loadComponent: () =>
+      import('./pooboo/pages/wishlist/wishlist').then(m => m.Wishlist),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'pooboo/enquiry',
+    loadComponent: () =>
+      import('./pooboo/pages/enquiry/pooboo-enquiry').then(m => m.PoobooEnquiry)
+  },
+  {
+    path: 'pooboo/enquiry-success',
+    loadComponent: () =>
+      import('./pooboo/pages/enquiry-success/pooboo-enquiry-success').then(m => m.PoobooEnquirySuccess)
+  },
 
   { path: '**', redirectTo: '' }
 ];

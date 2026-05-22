@@ -187,7 +187,7 @@ export class ProductView implements OnInit, OnDestroy {
   addToCart() {
     if (!this.product) return;
 
-    // ✅ Require a size selection if sizes are available
+    // Require a size selection only if this product actually has sizes
     const availableSizes = this.getAvailableSizes();
     if (availableSizes.length > 0 && !this.selectedSize) {
       this.sizeError = true;
@@ -223,9 +223,20 @@ export class ProductView implements OnInit, OnDestroy {
   // ── Size ─────────────────────────────────────────
 
   getAvailableSizes(): string[] {
+    // Array form from DB (e.g. sizes: ["S", "M", "L"])
     if (this.product?.sizes?.length) return this.product.sizes;
-    if (this.product?.size) return [this.product.size];
-    return ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+    // String form from DB (e.g. size: "S,M,L" or size: "M")
+    if (this.product?.size) {
+      const parts = (this.product.size as string)
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+      return parts;
+    }
+
+    // No size data — skip size gate entirely
+    return [];
   }
 
   selectSize(size: string) {

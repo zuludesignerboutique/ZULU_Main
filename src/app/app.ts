@@ -30,15 +30,10 @@ export class App {
 
         const url = event.urlAfterRedirects;
 
-        // ❌ hide header/footer for admin routes
-        if (url.startsWith('/admin')) {
+        // ❌ hide header/footer for admin, landing, and pooboo routes
+        if (url.startsWith('/admin') || url === '/' || url.startsWith('/pooboo')) {
           this.showLayout = false;
-        } 
-        // ❌ also hide for landing page if needed
-        else if (url === '/') {
-          this.showLayout = false;
-        } 
-        else {
+        } else {
           this.showLayout = true;
         }
 

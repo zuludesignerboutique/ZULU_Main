@@ -17,7 +17,7 @@ export class CategoryLandingComponent {
     const normalized = site.toLowerCase();
 
     if (normalized === 'pooboo') {
-      window.location.href = 'http://localhost:4300';
+      this.router.navigate(['/pooboo']);
       return;
     }
 

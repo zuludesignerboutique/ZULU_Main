@@ -249,6 +249,7 @@ $border       : rgba(255, 255, 255, 0.1);
 }
 
 .subscribe-btn {
+  margin-top: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -345,4 +346,17 @@ $border       : rgba(255, 255, 255, 0.1);
   .brand-name {
     font-size: 2.4rem;
   }
+}
+
+.subscribe-success {
+  color: #c8a96e;
+  font-size: 13px;
+  margin-top: 20px;
+  letter-spacing: 0.5px;
+}
+
+.subscribe-error {
+  color: #b76e79;
+  font-size: 12px;
+  margin-top: 8px;
 }

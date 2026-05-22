@@ -1,0 +1,137 @@
+<app-pooboo-header></app-pooboo-header>
+
+<!-- ══ PAGE HERO ══════════════════════════════════════════ -->
+<section class="pb-fab-hero">
+  <div class="pb-container">
+    <p class="pb-eyebrow">Our Collection</p>
+    <h1>Fabrics for <em>Every Little Story</em></h1>
+    <p class="pb-fab-hero-sub">Browse our curated range of kids-safe fabrics — soft, vibrant, and perfect for both ready wear and custom stitching.</p>
+  </div>
+</section>
+
+<!-- ══ FABRIC TYPE FILTERS ════════════════════════════════ -->
+<section class="pb-fab-filter-section">
+  <div class="pb-container">
+    <div class="pb-fab-filters">
+
+      <button
+        class="pb-fab-filter-btn"
+        [class.active]="selectedType === 'all'"
+        (click)="selectType('all')">
+        ✨ All Fabrics
+      </button>
+
+      @for (type of fabricTypes; track type.value) {
+        <button
+          class="pb-fab-filter-btn"
+          [class.active]="selectedType === type.value"
+          (click)="selectType(type.value)">
+          {{ type.emoji }} {{ type.label }}
+        </button>
+      }
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRODUCT GRID ═══════════════════════════════════════ -->
+<section class="pb-fab-products-section">
+  <div class="pb-container">
+
+    <!-- Result count -->
+    @if (!isLoading && products.length > 0) {
+      <p class="pb-fab-result-count">
+        Showing <strong>{{ products.length }}</strong> fabric{{ products.length === 1 ? '' : 's' }}
+        @if (selectedType !== 'all') { <span>· {{ getTypeLabel() }}</span> }
+      </p>
+    }
+
+    <!-- Loading skeletons -->
+    @if (isLoading) {
+      <div class="pb-product-grid">
+        @for (n of [1,2,3,4,5,6,7,8]; track n) {
+          <div class="pb-skeleton-card">
+            <div class="pb-sk-img"></div>
+            <div class="pb-sk-line pb-sk-name"></div>
+            <div class="pb-sk-line pb-sk-price"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Products -->
+    @if (!isLoading && products.length > 0) {
+      <div class="pb-product-grid">
+        @for (product of products; track product.id) {
+          <a [routerLink]="['/pooboo/products', product.id]" class="pb-product-card">
+
+            <div class="pb-product-img-wrap">
+              <img
+                [src]="getImageUrl(product.image_url)"
+                [alt]="product.name"
+                class="pb-product-img"
+                loading="lazy"/>
+
+              @if (product.is_customizable) {
+                <span class="pb-badge-custom">✂️ Custom</span>
+              }
+
+              <div class="pb-product-overlay">
+                <span class="pb-quick-view">View Details</span>
+              </div>
+            </div>
+
+            <div class="pb-product-info">
+              <p class="pb-product-age">{{ product.age_group }}</p>
+              <h3 class="pb-product-name">{{ product.name }}</h3>
+              <p class="pb-product-price">₹{{ product.price | number:'1.0-0' }}</p>
+            </div>
+
+          </a>
+        }
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!isLoading && products.length === 0) {
+      <div class="pb-fab-empty">
+        <span class="pb-fab-empty-icon">🧵</span>
+        <h3>No fabrics found</h3>
+        <p>We don't have any {{ selectedType !== 'all' ? getTypeLabel() + ' ' : '' }}fabrics listed right now.</p>
+        <button class="pb-reset-btn" (click)="selectType('all')">Show All Fabrics</button>
+      </div>
+    }
+
+  </div>
+</section>
+
+<!-- ══ CUSTOM ORDER BANNER ════════════════════════════════ -->
+<section class="pb-fab-cta-banner">
+  <div class="pb-container">
+    <div class="pb-fab-cta-inner">
+
+      <div class="pb-fab-cta-text">
+        <p class="pb-eyebrow" style="color: rgba(255,255,255,0.7)">Custom Orders</p>
+        <h2>Love a Fabric? <br>Let Us Stitch It for You ✂️</h2>
+        <p>Pick any fabric from our collection, share your child's measurements and occasion — we'll deliver a perfect custom outfit.</p>
+        <a routerLink="/pooboo/enquiry" class="pb-fab-cta-btn">Book Custom Stitch</a>
+      </div>
+
+      <div class="pb-fab-cta-visual">
+        <div class="pb-fab-cta-card">
+          <div class="pb-fab-cta-icon">🧵</div>
+          <h4>How it works</h4>
+          <ul>
+            <li>✓ Browse & pick your fabric</li>
+            <li>✓ Fill the enquiry form</li>
+            <li>✓ Share measurements & occasion</li>
+            <li>✓ We stitch & deliver in 7–10 days</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<app-pooboo-footer></app-pooboo-footer>

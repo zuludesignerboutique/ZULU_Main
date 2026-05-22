@@ -55,7 +55,10 @@
       <div class="form-success" *ngIf="submitted">
         ✦ &nbsp;Thank you! We'll be in touch soon.
       </div>
-
+<!-- ERROR -->
+<div class="form-error" *ngIf="errorMsg">
+  ✕ &nbsp;{{ errorMsg }}
+</div>
     </div>
 
     <!-- ══ INFO PANEL ══════════════════════════ -->
@@ -72,7 +75,7 @@
             <div class="info-icon">✉</div>
             <div>
               <div class="info-label">Email</div>
-              <div class="info-value">support&#64;zuluboutique.com</div>
+              <div class="info-value">zuludesignerboutique@gmail.com</div>
             </div>
           </li>
 

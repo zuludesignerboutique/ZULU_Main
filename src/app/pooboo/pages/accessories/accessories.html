@@ -1,0 +1,123 @@
+<!-- HERO -->
+<section class="pb-acc-hero">
+  <div class="pb-acc-hero-inner">
+    <span class="pb-acc-badge">🎀 Accessories</span>
+    <h1 class="pb-acc-title">Little Extras, <span class="pb-acc-highlight">Big Smiles</span></h1>
+    <p class="pb-acc-subtitle">Handpicked hair accessories &amp; ornaments to complete every little look.</p>
+  </div>
+</section>
+
+<!-- MAIN -->
+<section class="pb-acc-section">
+  <div class="pb-acc-inner">
+
+    <!-- TABS -->
+    <div class="pb-acc-tabs" role="tablist">
+      <button
+        *ngFor="let tab of tabs"
+        class="pb-acc-tab"
+        [class.active]="activeTab === tab.key"
+        (click)="setTab(tab.key)"
+        role="tab"
+        [attr.aria-selected]="activeTab === tab.key">
+        <span class="pb-acc-tab-icon">{{ tab.icon }}</span>
+        <span class="pb-acc-tab-label">{{ tab.label }}</span>
+        <span class="pb-acc-tab-count" *ngIf="getTabCount(tab.key) > 0">{{ getTabCount(tab.key) }}</span>
+      </button>
+    </div>
+
+    <!-- ERROR -->
+    <div class="pb-acc-state" *ngIf="error">
+      <span class="pb-acc-state-icon">⚠️</span>
+      <p>Couldn't load products. Please try again.</p>
+      <button class="pb-btn-coral" (click)="loadProducts()">Retry</button>
+    </div>
+
+    <!-- LOADING -->
+    <div class="pb-acc-state" *ngIf="loading">
+      <div class="pb-acc-spinner"></div>
+      <p>Loading accessories…</p>
+    </div>
+
+    <!-- EMPTY -->
+    <div class="pb-acc-state" *ngIf="!loading && !error && getProducts(activeTab).length === 0">
+      <span class="pb-acc-state-icon">🎀</span>
+      <p>New arrivals coming soon!</p>
+      <a routerLink="/pooboo/enquiry" class="pb-btn-coral">Request a Custom Piece</a>
+    </div>
+
+    <!-- GRID -->
+    <div class="pb-acc-grid" *ngIf="!loading && !error && getProducts(activeTab).length > 0">
+      <div
+        class="pb-acc-card"
+        *ngFor="let product of getProducts(activeTab)"
+        [class.oos]="isOutOfStock(product)">
+
+        <!-- IMAGE -->
+        <div class="pb-acc-img-wrap">
+          <img
+            [src]="product.image_url || 'assets/placeholder.png'"
+            [alt]="product.name"
+            class="pb-acc-img"
+            loading="lazy" />
+          <span class="pb-tag pb-tag-custom" *ngIf="product.is_customizable">✂️ Custom</span>
+          <span class="pb-tag pb-tag-oos"    *ngIf="isOutOfStock(product)">Out of Stock</span>
+          <span class="pb-tag pb-tag-gender">
+            <ng-container [ngSwitch]="product.gender">
+              <span *ngSwitchCase="'girls'">👧</span>
+              <span *ngSwitchCase="'boys'">👦</span>
+              <span *ngSwitchDefault>🧒</span>
+            </ng-container>
+          </span>
+        </div>
+
+        <!-- BODY -->
+        <div class="pb-acc-body">
+          <span class="pb-acc-code">{{ product.product_code }}</span>
+          <h3 class="pb-acc-name">{{ product.name }}</h3>
+          <p class="pb-acc-desc">{{ product.description }}</p>
+
+          <!-- COLOURS -->
+          <div class="pb-acc-colours" *ngIf="product.colours?.length">
+            <span
+              *ngFor="let c of product.colours.slice(0, 5)"
+              class="pb-colour-dot"
+              [title]="c"
+              [style.background]="c">
+            </span>
+            <span class="pb-colour-more" *ngIf="product.colours.length > 5">+{{ product.colours.length - 5 }}</span>
+          </div>
+
+          <!-- SIZES -->
+          <div class="pb-acc-sizes" *ngIf="product.sizes?.length">
+            <span class="pb-size-chip" *ngFor="let s of product.sizes">{{ s }}</span>
+          </div>
+
+          <div class="pb-acc-footer">
+            <span class="pb-acc-price">₹{{ product.price }}</span>
+            <a
+              [routerLink]="['/pooboo/products', product.id]"
+              class="pb-btn-view"
+              [class.disabled]="isOutOfStock(product)">
+              {{ isOutOfStock(product) ? 'Sold Out' : 'View →' }}
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="pb-acc-cta">
+  <div class="pb-acc-cta-inner">
+    <span class="pb-acc-cta-emoji">✂️</span>
+    <div>
+      <h3 class="pb-acc-cta-title">Want something unique?</h3>
+      <p class="pb-acc-cta-sub">Get accessories custom-made to match your little one's outfit perfectly.</p>
+    </div>
+    <a routerLink="/pooboo/enquiry" class="pb-btn-white">Book Custom Order</a>
+  </div>
+</section>

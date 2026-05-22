@@ -68,17 +68,30 @@
         <p class="newsletter-text">
           Subscribe for exclusive collections &amp; early access offers.
         </p>
-        <form class="newsletter-form">
+
+        <ng-container *ngIf="!subscribed; else successMsg">
           <div class="newsletter-input-wrap">
-            <input type="email" placeholder="Your email address" class="newsletter-input" />
+            <input
+              type="email"
+              placeholder="Your email address"
+              class="newsletter-input"
+              [(ngModel)]="newsletterEmail"
+              [disabled]="isSubscribing"
+            />
           </div>
-          <button type="submit" class="subscribe-btn">
-            <span>Subscribe</span>
+          <button class="subscribe-btn" (click)="subscribe()" [disabled]="isSubscribing">
+            <span>{{ isSubscribing ? 'Subscribing…' : 'Subscribe' }}</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </button>
-        </form>
+          <p *ngIf="subscribeError" class="subscribe-error">{{ subscribeError }}</p>
+        </ng-container>
+
+        <ng-template #successMsg>
+          <p class="subscribe-success">✦ &nbsp;You're on the list! Stay tuned for offers.</p>
+        </ng-template>
+
       </div>
 
     </div>
