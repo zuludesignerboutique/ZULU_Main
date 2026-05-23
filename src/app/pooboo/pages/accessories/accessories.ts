@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PoobooProductService } from '../../services/pooboo-product.service';
 import { PoobooProduct } from '../../core/models/pooboo-product.model';
-
+import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';    
+import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
 type AccessoryTab = 'baby-ornaments' | 'bands' | 'hair-clips';
 
 @Component({
   selector: 'app-accessories',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, PoobooHeader, PoobooFooter],
   templateUrl: './accessories.html',
   styleUrl: './accessories.scss'
 })

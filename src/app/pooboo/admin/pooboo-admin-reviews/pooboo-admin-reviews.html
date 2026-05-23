@@ -1,0 +1,131 @@
+<div class="pbadmin-reviews">
+
+  <!-- ── Header ── -->
+  <div class="pbadmin-header">
+    <div>
+      <h2 class="pbadmin-title">Reviews</h2>
+      <p class="pbadmin-sub">Manage all POOBOO customer reviews</p>
+    </div>
+    <div class="pbadmin-stats">
+      <div class="pbadmin-stat">
+        <span class="pbadmin-stat-val">{{ totalCount() }}</span>
+        <span class="pbadmin-stat-label">Total</span>
+      </div>
+      <div class="pbadmin-stat">
+        <span class="pbadmin-stat-val">{{ averageRating() | number: '1.1-1' }}★</span>
+        <span class="pbadmin-stat-label">Avg Rating</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Alerts ── -->
+  <div class="pbadmin-alert success" *ngIf="successMessage()">{{ successMessage() }}</div>
+  <div class="pbadmin-alert error" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+
+  <!-- ── Filters ── -->
+  <div class="pbadmin-filters">
+    <input
+      class="pbadmin-search"
+      type="text"
+      placeholder="Search by name, title, product…"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+    />
+    <div class="pbadmin-star-filters">
+      <button
+        *ngFor="let s of getStarArray()"
+        class="pbadmin-star-btn"
+        [class.active]="filterRating() === s"
+        (click)="setFilterRating(s)">
+        {{ s }}★
+      </button>
+      <button class="pbadmin-star-btn" [class.active]="filterRating() === 0"
+        (click)="setFilterRating(0)">All</button>
+    </div>
+  </div>
+
+  <!-- ── Loading ── -->
+  <div class="pbadmin-loading" *ngIf="isLoading()">
+    <div class="pbadmin-spinner"></div>
+    <p>Loading reviews…</p>
+  </div>
+
+  <!-- ── Empty ── -->
+  <div class="pbadmin-empty" *ngIf="!isLoading() && filteredReviews().length === 0">
+    <p>No reviews match your filters.</p>
+  </div>
+
+  <!-- ── Table ── -->
+  <div class="pbadmin-table-wrap" *ngIf="!isLoading() && filteredReviews().length > 0">
+    <table class="pbadmin-table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Rating</th>
+          <th>Review</th>
+          <th>Product</th>
+          <th>Date</th>
+          <th>Photo</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let review of filteredReviews(); trackBy: trackById">
+          <td>
+            <div class="pbadmin-customer">
+              <div class="pbadmin-avatar">{{ review.customerName.charAt(0) }}</div>
+              <div>
+                <div class="pbadmin-cname">{{ review.customerName }}</div>
+                <div class="pbadmin-cemail">{{ review.customerEmail }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="pbadmin-rating" [attr.data-rating]="review.rating">
+              {{ review.rating }}★
+            </span>
+          </td>
+          <td class="pbadmin-review-cell">
+            <div class="pbadmin-review-title">{{ review.title }}</div>
+            <div class="pbadmin-review-body">{{ review.body }}</div>
+          </td>
+          <td>
+            <span class="pbadmin-product-tag" *ngIf="review.productName">
+              {{ review.productName }}
+            </span>
+            <span class="pbadmin-brand-tag" *ngIf="!review.productName">Brand Review</span>
+          </td>
+          <td class="pbadmin-date">{{ review.createdAt | date: 'dd MMM yyyy' }}</td>
+          <td>
+            <a *ngIf="review.photoUrl" [href]="review.photoUrl" target="_blank"
+              class="pbadmin-photo-link">View</a>
+            <span *ngIf="!review.photoUrl" class="pbadmin-no-photo">—</span>
+          </td>
+          <td>
+            <button class="pbadmin-btn-delete" (click)="confirmDelete(review.id)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ── Delete Confirm Modal ── -->
+<div class="pbadmin-overlay" *ngIf="deleteConfirmId() !== null">
+  <div class="pbadmin-confirm-modal">
+    <div class="pbadmin-confirm-icon">🗑️</div>
+    <h3>Delete this review?</h3>
+    <p>This action cannot be undone.</p>
+    <div class="pbadmin-confirm-actions">
+      <button class="pbadmin-btn-cancel" (click)="cancelDelete()"
+        [disabled]="deleteInProgress()">Cancel</button>
+      <button class="pbadmin-btn-confirm-delete" (click)="executeDelete()"
+        [disabled]="deleteInProgress()">
+        {{ deleteInProgress() ? 'Deleting…' : 'Yes, Delete' }}
+      </button>
+    </div>
+  </div>
+</div>

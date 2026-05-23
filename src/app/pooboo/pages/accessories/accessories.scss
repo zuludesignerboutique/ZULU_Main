@@ -51,245 +51,146 @@ $muted:   rgba(#1A1A2E, 0.45);
   margin: 0;
 }
 
-// ── SECTION ───────────────────────────────────────
-.pb-acc-section {
-  padding: 44px 24px 64px;
-  background: $white;
+// ── CATEGORY CARDS ────────────────────────────────
+.pb-cat-section {
+  background: $soft;
+  padding: 48px 24px 56px;
 }
-.pb-acc-inner {
-  max-width: 1200px;
+.pb-cat-inner {
+  max-width: 960px;
   margin: 0 auto;
 }
-
-// ── TABS ──────────────────────────────────────────
-.pb-acc-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 36px;
-  border-bottom: 2px solid rgba($coral, 0.1);
-  overflow-x: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
-}
-.pb-acc-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 12px 22px;
+.pb-cat-heading {
   font-family: 'Nunito', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: $muted;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.2s, border-color 0.2s;
-  &:hover { color: $coral; }
-  &.active {
-    color: $coral;
-    border-bottom-color: $coral;
-  }
-}
-.pb-acc-tab-icon { font-size: 16px; }
-.pb-acc-tab-count {
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  background: rgba($coral, 0.12);
-  color: $coral;
   font-size: 11px;
   font-weight: 800;
-  border-radius: 50px;
-  display: inline-flex;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $muted;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+// 3-column grid, single row
+.pb-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+// Card base
+.pb-cat-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px 24px 22px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    .pb-cat-arrow { transform: translateX(4px); }
+    .pb-cat-glow { opacity: 1; }
+  }
+
+  // ── Per-category colour themes ──
+  &--ornaments {
+    background: linear-gradient(145deg, #fff9f5 0%, #fff0e8 100%);
+    border-color: rgba($coral, 0.18);
+    &:hover { box-shadow: 0 14px 36px rgba($coral, 0.14); border-color: rgba($coral, 0.35); }
+    .pb-cat-icon-wrap { background: rgba($coral, 0.1); }
+    .pb-cat-glow { background: radial-gradient(circle at top right, rgba($coral, 0.12), transparent 65%); }
+    .pb-cat-cta { color: $coral; }
+  }
+  &--bands {
+    background: linear-gradient(145deg, #fffef0 0%, #fffbd6 100%);
+    border-color: rgba($yellow, 0.4);
+    &:hover { box-shadow: 0 14px 36px rgba($yellow, 0.2); border-color: rgba($yellow, 0.65); }
+    .pb-cat-icon-wrap { background: rgba($yellow, 0.18); }
+    .pb-cat-glow { background: radial-gradient(circle at top right, rgba($yellow, 0.18), transparent 65%); }
+    .pb-cat-cta { color: darken($yellow, 22%); }
+  }
+  &--clips {
+    background: linear-gradient(145deg, #f0fbff 0%, #d8f3ff 100%);
+    border-color: rgba($sky, 0.25);
+    &:hover { box-shadow: 0 14px 36px rgba($sky, 0.15); border-color: rgba($sky, 0.45); }
+    .pb-cat-icon-wrap { background: rgba($sky, 0.12); }
+    .pb-cat-glow { background: radial-gradient(circle at top right, rgba($sky, 0.15), transparent 65%); }
+    .pb-cat-cta { color: darken($sky, 10%); }
+  }
+}
+
+// Decorative glow overlay
+.pb-cat-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+// Emoji icon circle
+.pb-cat-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
   align-items: center;
   justify-content: center;
-}
-
-// ── STATE (loading / error / empty) ───────────────
-.pb-acc-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 72px 0;
-  text-align: center;
-  font-family: 'Nunito', sans-serif;
-  font-size: 14px;
-  color: $muted;
-}
-.pb-acc-state-icon { font-size: 44px; opacity: 0.4; }
-.pb-acc-spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid rgba($coral, 0.15);
-  border-top-color: $coral;
-  border-radius: 50%;
-  animation: pb-spin 0.7s linear infinite;
-}
-@keyframes pb-spin { to { transform: rotate(360deg); } }
-
-// ── GRID ──────────────────────────────────────────
-.pb-acc-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 22px;
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-}
-
-// ── CARD ──────────────────────────────────────────
-.pb-acc-card {
-  background: $white;
-  border: 1px solid rgba($coral, 0.1);
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 28px rgba($coral, 0.12);
-    border-color: rgba($coral, 0.22);
-  }
-  &.oos { opacity: 0.65; pointer-events: none; }
-}
-
-// IMAGE
-.pb-acc-img-wrap {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  background: $soft;
-  overflow: hidden;
-}
-.pb-acc-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.35s ease;
-  .pb-acc-card:hover & { transform: scale(1.05); }
-}
-
-// TAGS
-.pb-tag {
-  position: absolute;
-  top: 10px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  padding: 3px 9px;
-  border-radius: 50px;
-  text-transform: uppercase;
-}
-.pb-tag-custom { left: 10px; background: $sky; color: $white; }
-.pb-tag-oos    { left: 10px; background: rgba($dark, 0.65); color: $white; }
-.pb-tag-gender {
-  right: 10px;
-  top: 10px;
-  background: rgba($white, 0.85);
-  backdrop-filter: blur(4px);
-  font-size: 13px;
-  padding: 3px 7px;
-  border-radius: 50px;
-}
-
-// CARD BODY
-.pb-acc-body {
-  padding: 14px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-.pb-acc-code {
-  font-family: 'Nunito', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: $muted;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-}
-.pb-acc-name {
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: $dark;
-  margin: 0;
-  line-height: 1.3;
-}
-.pb-acc-desc {
-  font-family: 'Nunito', sans-serif;
-  font-size: 12px;
-  color: $muted;
-  margin: 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-// COLOURS
-.pb-acc-colours {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 6px;
-  flex-wrap: wrap;
-}
-.pb-colour-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1.5px solid rgba($dark, 0.12);
-  display: inline-block;
   flex-shrink: 0;
 }
-.pb-colour-more {
-  font-family: 'Nunito', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: $muted;
-}
+.pb-cat-emoji { font-size: 26px; }
 
-// SIZES
-.pb-acc-sizes {
+// Text block
+.pb-cat-body {
+  flex: 1;
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 4px;
+  flex-direction: column;
+  gap: 6px;
 }
-.pb-size-chip {
-  font-family: 'Nunito', sans-serif;
-  font-size: 10px;
+.pb-cat-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
   font-weight: 800;
   color: $dark;
-  background: rgba($dark, 0.06);
-  padding: 2px 8px;
-  border-radius: 4px;
+  margin: 0;
+  line-height: 1.2;
+}
+.pb-cat-desc {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  color: $muted;
+  margin: 0;
+  line-height: 1.45;
 }
 
-// CARD FOOTER
-.pb-acc-footer {
+// Bottom CTA row
+.pb-cat-cta {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
+  gap: 5px;
+  letter-spacing: 0.2px;
 }
-.pb-acc-price {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  color: $coral;
+.pb-cat-arrow {
+  display: inline-block;
+  transition: transform 0.22s ease;
 }
 
 // ── BUTTONS ───────────────────────────────────────
-.pb-btn-coral, .pb-btn-view, .pb-btn-white {
+.pb-btn-coral, .pb-btn-white {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -308,18 +209,6 @@ $muted:   rgba(#1A1A2E, 0.45);
   color: $white;
   box-shadow: 0 4px 14px rgba($coral, 0.28);
   &:hover { background: darken($coral, 8%); transform: translateY(-1px); color: $white; }
-}
-.pb-btn-view {
-  padding: 7px 16px;
-  font-size: 12px;
-  background: $coral;
-  color: $white;
-  &:hover { background: darken($coral, 8%); color: $white; }
-  &.disabled {
-    background: rgba($dark, 0.15);
-    color: $muted;
-    pointer-events: none;
-  }
 }
 .pb-btn-white {
   padding: 11px 26px;
