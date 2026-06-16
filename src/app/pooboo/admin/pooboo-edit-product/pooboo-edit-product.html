@@ -1,1 +1,165 @@
-<p>pooboo-edit-product works!</p>
+<div class="edit-product-page">
+
+  <div class="page-header">
+    <div>
+      <h2>Edit Pooboo Product</h2>
+      <p class="subtitle">Update the product details below</p>
+    </div>
+    <a routerLink="/admin/pooboo/products" class="btn-back">← Back to Products</a>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="state-msg">Loading product...</div>
+
+  <!-- Success / Error -->
+  <div *ngIf="successMsg" class="alert success">{{ successMsg }}</div>
+  <div *ngIf="errorMsg"   class="alert error">{{ errorMsg }}</div>
+
+  <div class="form-card" *ngIf="!loading">
+    <form (ngSubmit)="onSubmit()">
+
+      <!-- ROW 1: Name + Product Code -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Product Name *</label>
+          <input type="text" [(ngModel)]="name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Product Code</label>
+          <input type="text" [(ngModel)]="product_code" name="product_code" />
+        </div>
+      </div>
+
+      <!-- ROW 2: Price + Stock -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price (₹) *</label>
+          <input type="number" [(ngModel)]="price" name="price" required />
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="stock" name="stock" />
+        </div>
+      </div>
+
+      <!-- ROW 3: Product Type -->
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label>Product Type *</label>
+          <select [(ngModel)]="productType" name="productType">
+            <option value="apparel">👕 Apparel (Clothing / Footwear / etc.) — shown on Products page</option>
+            <option value="fabric">🧵 Fabric — shown on Fabrics page</option>
+            <option value="accessory">🎀 Accessory — shown on Accessories page</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ROW 4: Category (conditional) + Age Group + Gender -->
+      <div class="form-row three-col">
+
+        <!-- Apparel category -->
+        <div class="form-group" *ngIf="productType === 'apparel'">
+          <label>Category</label>
+          <select [(ngModel)]="category" name="category">
+            <option value="">Select category</option>
+            <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+
+        <!-- Accessory sub-category -->
+        <div class="form-group" *ngIf="productType === 'accessory'">
+          <label>Accessory Type</label>
+          <select [(ngModel)]="accessoryCategory" name="accessoryCategory">
+            <option *ngFor="let a of accessoryCategories" [value]="a.value">{{ a.label }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Age Group</label>
+          <select [(ngModel)]="age_group" name="age_group">
+            <option value="">Select age group</option>
+            <option *ngFor="let a of ageGroups" [value]="a">{{ a }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select [(ngModel)]="gender" name="gender">
+            <option *ngFor="let g of genders" [value]="g">{{ g | titlecase }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ROW 4: Sizes + Colours -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sizes <span class="hint">(comma separated)</span></label>
+          <input type="text" [(ngModel)]="sizesInput" name="sizes" />
+        </div>
+        <div class="form-group">
+          <label>Colours <span class="hint">(comma separated)</span></label>
+          <input type="text" [(ngModel)]="coloursInput" name="colours" />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea [(ngModel)]="description" name="description" rows="3"></textarea>
+      </div>
+
+      <!-- Details -->
+      <div class="form-group full-width">
+        <label>Product Details <span class="hint">(one point per line)</span></label>
+        <textarea [(ngModel)]="detailsInput" name="details" rows="4"></textarea>
+      </div>
+
+      <!-- Image -->
+      <div class="form-group full-width">
+        <label>Product Image</label>
+
+        <!-- Existing image -->
+        <div *ngIf="existingImage && !imagePreview" class="existing-image-wrap">
+          <img [src]="getImageUrl(existingImage)" alt="Current image" class="existing-img" />
+          <p class="existing-label">Current image — upload a new one to replace it</p>
+        </div>
+
+        <!-- New image upload area -->
+        <div class="image-upload-area" (click)="fileInput.click()">
+          <div *ngIf="!imagePreview" class="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <span>{{ existingImage ? 'Click to replace image' : 'Click to upload image' }}</span>
+          </div>
+          <div *ngIf="imagePreview" class="image-preview-wrap">
+            <img [src]="imagePreview" class="image-preview" alt="New preview" />
+            <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); removeNewImage()">✕</button>
+          </div>
+        </div>
+        <input #fileInput type="file" accept="image/*" (change)="onFileChange($event)" hidden />
+      </div>
+
+      <!-- Toggles -->
+      <div class="form-row toggles-row">
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="is_customizable" name="is_customizable" />
+          <span>Customizable</span>
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="is_active" name="is_active" />
+          <span>Active (visible on store)</span>
+        </label>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel"
+                routerLink="/admin/pooboo/products">Cancel</button>
+        <button type="submit" class="btn-submit" [disabled]="submitting">
+          {{ submitting ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

@@ -1,0 +1,149 @@
+<div class="fab-page">
+
+  <!-- ══════════════════════════════════════════
+       PAGE HEADER
+  ══════════════════════════════════════════ -->
+  <div class="page-header">
+    <div>
+      <h2>🧵 Pooboo Fabrics</h2>
+      <p class="subtitle">{{ products.length }} fabric{{ products.length !== 1 ? 's' : '' }} total</p>
+    </div>
+    <button class="btn-add" (click)="toggleForm()">
+      {{ showForm ? '✕ Cancel' : '＋ Add Fabric' }}
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INLINE ADD FORM
+  ══════════════════════════════════════════ -->
+  <div class="add-form-wrap" *ngIf="showForm">
+
+    <div class="form-section-title">Add New Fabric</div>
+
+    <div *ngIf="successMsg" class="alert success">{{ successMsg }}</div>
+    <div *ngIf="errorMsg"   class="alert error">{{ errorMsg }}</div>
+
+    <div class="form-card">
+
+      <!-- ROW 1: Name + Product Code -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fabric Name *</label>
+          <input type="text" [(ngModel)]="f_name" name="f_name"
+                 placeholder="e.g. Cotton Floral Print" />
+        </div>
+        <div class="form-group">
+          <label>Product Code</label>
+          <input type="text" [(ngModel)]="f_product_code" name="f_product_code"
+                 placeholder="e.g. PB-FAB-001" />
+        </div>
+      </div>
+
+      <!-- ROW 2: Price per meter + Colour -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price per Meter (₹) *</label>
+          <input type="number" [(ngModel)]="f_price_per_meter" name="f_price_per_meter"
+                 placeholder="e.g. 299" />
+        </div>
+        <div class="form-group">
+          <label>Colour</label>
+          <input type="text" [(ngModel)]="f_colour" name="f_colour"
+                 placeholder="e.g. Red" />
+        </div>
+      </div>
+
+      <!-- ROW 3: Total Meters + Balance Stock -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Meters <span class="hint">(how many meters we have now)</span></label>
+          <input type="number" [(ngModel)]="f_total_meters" name="f_total_meters"
+                 placeholder="e.g. 100" />
+        </div>
+        <div class="form-group">
+          <label>Balance Stock <span class="hint">(how many left)</span></label>
+          <input type="number" [(ngModel)]="f_balance_stock" name="f_balance_stock"
+                 placeholder="e.g. 40" />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea [(ngModel)]="f_description" name="f_description" rows="3"
+                  placeholder="Describe the fabric..."></textarea>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group full-width">
+        <label>Product Image</label>
+        <div class="image-upload-area" (click)="fabFileInput.click()">
+          <div *ngIf="!f_imagePreview" class="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <span>Click to upload image</span>
+          </div>
+          <div *ngIf="f_imagePreview" class="image-preview-wrap">
+            <img [src]="f_imagePreview" class="image-preview" alt="Preview" />
+            <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); removeFabricImage()">✕</button>
+          </div>
+        </div>
+        <input #fabFileInput type="file" accept="image/*"
+               (change)="onFabricFileChange($event)" hidden />
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="toggleForm()">Cancel</button>
+        <button type="button" class="btn-submit" [disabled]="submitting" (click)="submitFabric()">
+          {{ submitting ? 'Adding...' : 'Add Fabric' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PRODUCTS TABLE
+  ══════════════════════════════════════════ -->
+  <div *ngIf="loading" class="state-msg">Loading fabrics...</div>
+  <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+  <div *ngIf="!loading && !error" class="table-wrap">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Colour</th>
+          <th>Price/Meter</th>
+          <th>Total Meters</th>
+          <th>Balance Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of products">
+          <td>
+            <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="product-thumb" />
+          </td>
+          <td class="product-name">{{ p.name }}</td>
+          <td>{{ p.colour || '—' }}</td>
+          <td>₹{{ p.price_per_meter | number }}</td>
+          <td>{{ p.total_meters ?? '—' }}</td>
+          <td>{{ p.balance_stock ?? '—' }}</td>
+          <td class="actions">
+            <button class="btn-edit"   (click)="editProduct(p.id)">Edit</button>
+            <button class="btn-delete" (click)="deleteProduct(p.id, p.name)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="products.length === 0">
+          <td colspan="7" class="empty-row">
+            No fabrics yet. Click "＋ Add Fabric" above to add your first one.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

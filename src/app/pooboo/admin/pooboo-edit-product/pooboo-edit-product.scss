@@ -1,0 +1,27 @@
+.edit-product-page {
+
+  // ... paste everything from add-product.scss here, 
+  //     just change .add-product-page → .edit-product-page
+
+  // Extra: existing image display
+  .existing-image-wrap {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .existing-img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #f0ece4;
+    }
+
+    .existing-label {
+      font-size: 12px;
+      color: #9a9080;
+      margin: 0;
+    }
+  }
+}

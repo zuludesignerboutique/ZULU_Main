@@ -29,7 +29,12 @@ export class PoobooReviewService {
     formData.append('title', payload.title);
     formData.append('body', payload.body);
     if (payload.photo) formData.append('photo', payload.photo);
-    return this.http.post<PoobooReview>(this.apiUrl, formData);
+
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders(
+      token ? { Authorization: `Bearer ${token}` } : {}
+    );
+    return this.http.post<PoobooReview>(this.apiUrl, formData, { headers });
   }
 
   /** Admin: get ALL reviews including hidden */

@@ -1,1 +1,83 @@
-<p>pooboo-products works!</p>
+<app-pooboo-header></app-pooboo-header>
+<div class="pooboo-products-page">
+
+  <!-- PAGE HERO -->
+  <section class="products-hero">
+    <div class="eyebrow">✿ Our Collection</div>
+    <h1>Shop Pooboo</h1>
+    <p>Cute, colorful & comfortable clothing for your little ones</p>
+  </section>
+
+  <!-- FILTERS -->
+  <section class="filters-bar">
+    <div class="filters-inner">
+
+      <select [(ngModel)]="selectedCategory" (change)="applyFilters()" class="filter-select">
+        <option value="">All Categories</option>
+        <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedAgeGroup" (change)="applyFilters()" class="filter-select">
+        <option value="">All Ages</option>
+        <option *ngFor="let a of ageGroups" [value]="a">{{ a }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedGender" (change)="applyFilters()" class="filter-select">
+        <option value="">All Genders</option>
+        <option *ngFor="let g of genders" [value]="g">{{ g | titlecase }}</option>
+      </select>
+
+      <button *ngIf="selectedCategory || selectedAgeGroup || selectedGender"
+              class="btn-clear" (click)="clearFilters()">
+        ✕ Clear Filters
+      </button>
+
+    </div>
+    <p class="results-count">{{ filtered.length }} product{{ filtered.length !== 1 ? 's' : '' }} found</p>
+  </section>
+
+  <!-- PRODUCTS GRID -->
+  <section class="products-section">
+
+    <div *ngIf="loading" class="state-msg">Loading products...</div>
+    <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+    <div *ngIf="!loading && filtered.length === 0 && !error" class="state-msg">
+      🧺 No products found for the selected filters.
+    </div>
+
+    <div class="products-grid" *ngIf="!loading && filtered.length > 0">
+      <div class="product-card" *ngFor="let p of filtered" (click)="goToProduct(p.id)">
+
+        <div class="card-image-wrap">
+          <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="card-img" loading="lazy" />
+
+          <!-- Hover overlay -->
+          <div class="card-overlay">
+            <span>View Details</span>
+          </div>
+
+          <div class="card-badges">
+            <span *ngIf="p.is_customizable" class="badge customizable">✂️ Custom</span>
+            <span *ngIf="p.age_group" class="badge age">{{ p.age_group }}</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <p class="card-category">{{ p.category || 'Kids Wear' }}</p>
+          <h3 class="card-name">{{ p.name }}</h3>
+          <div class="card-footer">
+            <span class="card-price">₹{{ p.price | number:'1.0-0' }}</span>
+            <button class="btn-view" (click)="goToProduct(p.id); $event.stopPropagation()">
+              View →
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+</div>
+<app-pooboo-footer></app-pooboo-footer>

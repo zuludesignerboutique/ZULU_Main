@@ -1,0 +1,182 @@
+<div class="acc-page">
+
+  <!-- ══════════════════════════════════════════
+       PAGE HEADER
+  ══════════════════════════════════════════ -->
+  <div class="page-header">
+    <div>
+      <h2>🎀 Pooboo Accessories</h2>
+      <p class="subtitle">{{ allProducts.length }} accessor{{ allProducts.length !== 1 ? 'ies' : 'y' }} total</p>
+    </div>
+    <button class="btn-add" (click)="toggleForm()">
+      {{ showForm ? '✕ Cancel' : '＋ Add Accessory' }}
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INLINE ADD FORM
+  ══════════════════════════════════════════ -->
+  <div class="add-form-wrap" *ngIf="showForm">
+
+    <div class="form-section-title">
+      Add New Accessory — adding to: <strong>{{ getActiveTabLabel() }}</strong>
+    </div>
+
+    <div *ngIf="successMsg" class="alert success">{{ successMsg }}</div>
+    <div *ngIf="errorMsg"   class="alert error">{{ errorMsg }}</div>
+
+    <div class="form-card">
+
+      <!-- Accessory Sub-type selector -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Accessory Type *</label>
+          <select [(ngModel)]="a_accessoryCategory" name="a_accessoryCategory">
+            <option *ngFor="let tab of tabs" [value]="tab.key">
+              {{ tab.emoji }} {{ tab.label }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Product Code</label>
+          <input type="text" [(ngModel)]="a_product_code" name="a_product_code"
+                 placeholder="e.g. PB-ACC-001" />
+        </div>
+      </div>
+
+      <!-- ROW 2: Name + Price -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Accessory Name *</label>
+          <input type="text" [(ngModel)]="a_name" name="a_name"
+                 placeholder="e.g. Floral Hair Clip" />
+        </div>
+        <div class="form-group">
+          <label>Price (₹) *</label>
+          <input type="number" [(ngModel)]="a_price" name="a_price"
+                 placeholder="e.g. 199" />
+        </div>
+      </div>
+
+      <!-- ROW 3: Colour + Stock -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Colour</label>
+          <input type="text" [(ngModel)]="a_colour" name="a_colour"
+                 placeholder="e.g. Pink" />
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="a_stock" name="a_stock"
+                 placeholder="e.g. 50" />
+        </div>
+      </div>
+
+      <!-- ROW 4: Balance Stock -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Balance Stock <span class="hint">(how many left)</span></label>
+          <input type="number" [(ngModel)]="a_balance_stock" name="a_balance_stock"
+                 placeholder="e.g. 20" />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea [(ngModel)]="a_description" name="a_description" rows="3"
+                  placeholder="Describe the accessory..."></textarea>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group full-width">
+        <label>Product Image</label>
+        <div class="image-upload-area" (click)="accFileInput.click()">
+          <div *ngIf="!a_imagePreview" class="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <span>Click to upload image</span>
+          </div>
+          <div *ngIf="a_imagePreview" class="image-preview-wrap">
+            <img [src]="a_imagePreview" class="image-preview" alt="Preview" />
+            <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); removeAccImage()">✕</button>
+          </div>
+        </div>
+        <input #accFileInput type="file" accept="image/*"
+               (change)="onAccFileChange($event)" hidden />
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="toggleForm()">Cancel</button>
+        <button type="button" class="btn-submit" [disabled]="submitting" (click)="submitAccessory()">
+          {{ submitting ? 'Adding...' : 'Add Accessory' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       LOADING / ERROR
+  ══════════════════════════════════════════ -->
+  <div *ngIf="loading" class="state-msg">Loading accessories...</div>
+  <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+  <!-- ══════════════════════════════════════════
+       TABS + TABLE
+  ══════════════════════════════════════════ -->
+  <div *ngIf="!loading && !error">
+
+    <div class="acc-tabs">
+      <button
+        *ngFor="let tab of tabs"
+        class="acc-tab-btn"
+        [class.active]="activeTab === tab.key"
+        (click)="setTab(tab.key)">
+        {{ tab.emoji }} {{ tab.label }}
+        <span class="acc-tab-count">{{ getTabCount(tab.key) }}</span>
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Colour</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Balance Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of getTabProducts(activeTab)">
+            <td>
+              <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="product-thumb" />
+            </td>
+            <td class="product-name">{{ p.name }}</td>
+            <td>{{ p.colour || '—' }}</td>
+            <td>₹{{ p.price | number }}</td>
+            <td>{{ p.stock }}</td>
+            <td>{{ p.balance_stock ?? '—' }}</td>
+            <td class="actions">
+              <button class="btn-edit"   (click)="editProduct(p.id)">Edit</button>
+              <button class="btn-delete" (click)="deleteProduct(p.id, p.name)">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="getTabProducts(activeTab).length === 0">
+            <td colspan="7" class="empty-row">
+              No {{ getActiveTabLabel() }} yet. Click "＋ Add Accessory" and select
+              <strong>{{ getActiveTabLabel() }}</strong> as the type.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>

@@ -181,3 +181,13 @@ $border:        rgba(255,255,255,0.07);
     min-width: 200px;
   }
 }
+
+//sidebar-section
+.sidebar-section-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 16px 20px 6px;
+  margin-top: 8px;
+}

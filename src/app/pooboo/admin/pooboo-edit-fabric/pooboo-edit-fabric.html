@@ -1,0 +1,108 @@
+<div class="fab-edit-page">
+
+  <div class="page-header">
+    <div>
+      <h2>🧵 Edit Fabric</h2>
+      <p class="subtitle" *ngIf="f_name">Editing: {{ f_name }}</p>
+    </div>
+    <button class="btn-add" (click)="cancel()">← Back to Fabrics</button>
+  </div>
+
+  <div *ngIf="loading" class="state-msg">Loading fabric...</div>
+  <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+  <div *ngIf="!loading && !error">
+
+    <div *ngIf="successMsg" class="alert success">{{ successMsg }}</div>
+    <div *ngIf="errorMsg"   class="alert error">{{ errorMsg }}</div>
+
+    <div class="form-card">
+
+      <!-- ROW 1: Name + Product Code -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fabric Name *</label>
+          <input type="text" [(ngModel)]="f_name" name="f_name"
+                 placeholder="e.g. Cotton Floral Print" />
+        </div>
+        <div class="form-group">
+          <label>Product Code</label>
+          <input type="text" [(ngModel)]="f_product_code" name="f_product_code"
+                 placeholder="e.g. PB-FAB-001" />
+        </div>
+      </div>
+
+      <!-- ROW 2: Price per meter + Colour -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price per Meter (₹) *</label>
+          <input type="number" [(ngModel)]="f_price_per_meter" name="f_price_per_meter"
+                 placeholder="e.g. 299" />
+        </div>
+        <div class="form-group">
+          <label>Colour</label>
+          <input type="text" [(ngModel)]="f_colour" name="f_colour"
+                 placeholder="e.g. Red" />
+        </div>
+      </div>
+
+      <!-- ROW 3: Total Meters + Balance Stock -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Meters <span class="hint">(how many meters we have now)</span></label>
+          <input type="number" [(ngModel)]="f_total_meters" name="f_total_meters"
+                 placeholder="e.g. 100" />
+        </div>
+        <div class="form-group">
+          <label>Balance Stock <span class="hint">(how many left)</span></label>
+          <input type="number" [(ngModel)]="f_balance_stock" name="f_balance_stock"
+                 placeholder="e.g. 40" />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea [(ngModel)]="f_description" name="f_description" rows="3"
+                  placeholder="Describe the fabric..."></textarea>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group full-width">
+        <label>Product Image</label>
+        <div class="image-upload-area" (click)="fabFileInput.click()">
+
+          <div *ngIf="!f_imagePreview && !f_existingImage" class="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <span>Click to upload image</span>
+          </div>
+
+          <div *ngIf="f_imagePreview" class="image-preview-wrap">
+            <img [src]="f_imagePreview" class="image-preview" alt="Preview" />
+            <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); removeFabricImage()">✕</button>
+          </div>
+
+          <div *ngIf="!f_imagePreview && f_existingImage" class="image-preview-wrap">
+            <img [src]="getImageUrl(f_existingImage)" class="image-preview" alt="Current image" />
+            <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); removeFabricImage()">✕</button>
+          </div>
+
+        </div>
+        <input #fabFileInput type="file" accept="image/*"
+               (change)="onFabricFileChange($event)" hidden />
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+        <button type="button" class="btn-submit" [disabled]="submitting" (click)="saveFabric()">
+          {{ submitting ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

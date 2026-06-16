@@ -1,1 +1,82 @@
-<p>pooboo-product-detail works!</p>
+<app-pooboo-header></app-pooboo-header>
+<div class="product-detail-page">
+
+  <div *ngIf="loading" class="state-msg">Loading...</div>
+  <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+  <div class="container detail-wrap" *ngIf="!loading && product">
+
+    <!-- Back -->
+    <button class="btn-back" (click)="goBack()">← Back to Products</button>
+
+    <div class="detail-grid">
+
+      <!-- LEFT: Image -->
+      <div class="detail-image-col">
+        <div class="image-frame">
+          <img [src]="getImageUrl(product.image_url)" [alt]="product.name" class="detail-img" />
+          <div *ngIf="product.is_customizable" class="custom-badge">✂ Customizable</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Info -->
+      <div class="detail-info-col">
+
+        <p class="detail-category">{{ product.category || 'Kids Wear' }}</p>
+        <h1 class="detail-name">{{ product.name }}</h1>
+        <p class="detail-price">₹{{ product.price | number }}</p>
+
+        <!-- Meta tags -->
+        <div class="detail-tags">
+          <span *ngIf="product.age_group" class="tag">👶 {{ product.age_group }}</span>
+          <span *ngIf="product.gender"    class="tag">{{ product.gender | titlecase }}</span>
+          <span *ngIf="product.product_code" class="tag">Code: {{ product.product_code }}</span>
+        </div>
+
+        <!-- Description -->
+        <p class="detail-desc" *ngIf="product.description">{{ product.description }}</p>
+
+        <!-- Sizes -->
+        <div class="option-group" *ngIf="product.sizes?.length">
+          <label>Size</label>
+          <div class="option-chips">
+            <button *ngFor="let s of product.sizes"
+                    class="chip"
+                    [class.selected]="selectedSize === s"
+                    (click)="selectedSize = s">{{ s }}</button>
+          </div>
+        </div>
+
+        <!-- Colours -->
+        <div class="option-group" *ngIf="product.colours?.length">
+          <label>Colour</label>
+          <div class="option-chips">
+            <button *ngFor="let c of product.colours"
+                    class="chip colour-chip"
+                    [class.selected]="selectedColour === c"
+                    (click)="selectedColour = c">{{ c }}</button>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <ul class="detail-bullets" *ngIf="product.details?.length">
+          <li *ngFor="let d of product.details">{{ d }}</li>
+        </ul>
+
+        <!-- Stock -->
+        <p class="stock-info" [class.low]="product.stock < 5">
+          <span *ngIf="product.stock > 0">✓ In Stock ({{ product.stock }} available)</span>
+          <span *ngIf="product.stock === 0">✕ Out of Stock</span>
+        </p>
+
+        <!-- CTA -->
+        <button class="btn-enquire" (click)="goToEnquiry()">
+          Enquire Now
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<app-pooboo-footer></app-pooboo-footer>

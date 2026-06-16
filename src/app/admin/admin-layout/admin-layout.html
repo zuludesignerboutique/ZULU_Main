@@ -17,6 +17,9 @@
         <span class="sidebar-icon">▦</span> Dashboard
       </a>
 
+      <!-- ── ZULU ── -->
+      <div class="sidebar-section-label">ZULU</div>
+
       <a routerLink="/admin/products"
          routerLinkActive="active"
          class="sidebar-link">
@@ -35,21 +38,57 @@
         <span class="sidebar-icon">◑</span> Orders
       </a>
 
+      <!-- ── POOBOO ── -->
+      <div class="sidebar-section-label">POOBOO</div>
+
+      <a routerLink="/admin/pooboo/products"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">◫</span> Products
+      </a>
+
+      <a routerLink="/admin/pooboo/add-product"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">＋</span> Add Product
+      </a>
+
+      <a routerLink="/admin/pooboo/fabrics"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">🧵</span> Fabrics
+      </a>
+
+      <a routerLink="/admin/pooboo/accessories"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">🎀</span> Accessories
+      </a>
+
+      <a routerLink="/admin/pooboo/enquiries"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">✉</span> Enquiries
+      </a>
+
+      <a routerLink="/admin/pooboo/reviews"
+         routerLinkActive="active"
+         class="sidebar-link">
+        <span class="sidebar-icon">★</span> Reviews
+      </a>
+
     </nav>
   </aside>
 
   <!-- MAIN CONTENT -->
   <main class="admin-content">
-
     <div class="admin-topbar">
       <span class="topbar-title">Admin Panel</span>
       <button class="logout-btn" (click)="logout()">Logout</button>
     </div>
-
     <div class="admin-body">
       <router-outlet></router-outlet>
     </div>
-
   </main>
 
 </div>

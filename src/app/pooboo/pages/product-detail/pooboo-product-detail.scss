@@ -1,0 +1,303 @@
+// ── POOBOO Design Tokens (matches pooboo-home.scss) ─────
+$coral:   #FF6B35;
+$yellow:  #FFD600;
+$sky:     #00B4D8;
+$dark:    #1A1A2E;
+$white:   #ffffff;
+$soft-bg: #FFF8F5;
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800&display=swap');
+
+.product-detail-page {
+  background: $soft-bg;
+  min-height: 100vh;
+  padding-bottom: 80px;
+  font-family: 'Nunito', sans-serif;
+
+  // ── States ────────────────────────────────────
+  .state-msg {
+    text-align: center;
+    padding: 100px 24px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #aaa;
+
+    &.error { color: $coral; }
+  }
+
+  // ── Wrapper ───────────────────────────────────
+  .detail-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  // ── Back button ───────────────────────────────
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 28px 0 24px;
+    background: $white;
+    border: 2px solid rgba($dark, 0.08);
+    color: $dark;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 9px 18px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+    &:hover {
+      border-color: $coral;
+      color: $coral;
+      transform: translateX(-3px);
+    }
+  }
+
+  // ── Main grid ─────────────────────────────────
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 52px;
+    align-items: start;
+
+    @media (max-width: 860px) {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+
+  // ── Left: Image ───────────────────────────────
+  .detail-image-col {
+    position: sticky;
+    top: 24px;
+
+    @media (max-width: 860px) { position: static; }
+  }
+
+  .image-frame {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: $white;
+    aspect-ratio: 3/4;
+    box-shadow: 0 8px 40px rgba($dark, 0.1);
+    border: 1px solid rgba($dark, 0.05);
+
+    .detail-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+
+      &:hover { transform: scale(1.03); }
+    }
+
+    .custom-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: $coral;
+      color: $white;
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 50px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba($coral, 0.4);
+    }
+  }
+
+  // ── Right: Info ───────────────────────────────
+  .detail-info-col {
+    padding-top: 8px;
+  }
+
+  .detail-category {
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: $coral;
+    margin: 0 0 10px;
+  }
+
+  .detail-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 800;
+    color: $dark;
+    margin: 0 0 14px;
+    line-height: 1.2;
+  }
+
+  .detail-price {
+    font-family: 'Poppins', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    color: $coral;
+    margin: 0 0 20px;
+  }
+
+  // ── Meta tags ─────────────────────────────────
+  .detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+
+    .tag {
+      padding: 5px 14px;
+      background: $white;
+      border: 1.5px solid rgba($dark, 0.08);
+      border-radius: 50px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: $dark;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+  }
+
+  // ── Description ───────────────────────────────
+  .detail-desc {
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #666;
+    line-height: 1.75;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: $white;
+    border-radius: 14px;
+    border-left: 3px solid $coral;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  // ── Size / Colour selectors ────────────────────
+  .option-group {
+    margin-bottom: 24px;
+
+    label {
+      display: block;
+      font-family: 'Nunito', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+    .option-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      .chip {
+        padding: 8px 20px;
+        border: 2px solid rgba($dark, 0.1);
+        border-radius: 50px;
+        background: $white;
+        font-family: 'Nunito', sans-serif;
+        font-size: 13px;
+        font-weight: 800;
+        color: $dark;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+
+        &:hover {
+          border-color: $coral;
+          color: $coral;
+          transform: translateY(-1px);
+        }
+
+        &.selected {
+          background: $coral;
+          border-color: $coral;
+          color: $white;
+          box-shadow: 0 4px 14px rgba($coral, 0.35);
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
+
+  // ── Bullet details ────────────────────────────
+  .detail-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    background: $white;
+    border-radius: 14px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    li {
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #555;
+      padding-left: 22px;
+      position: relative;
+
+      &::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: $coral;
+        font-size: 13px;
+        font-weight: 900;
+      }
+    }
+  }
+
+  // ── Stock ─────────────────────────────────────
+  .stock-info {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: #2ecc71;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &.low { color: $coral; }
+  }
+
+  // ── CTA button ────────────────────────────────
+  .btn-enquire {
+    width: 100%;
+    padding: 18px;
+    background: $coral;
+    color: $white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 8px 24px rgba($coral, 0.35);
+
+    &:hover {
+      background: darken(#FF6B35, 8%);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba($coral, 0.45);
+    }
+
+    &:active { transform: translateY(0); }
+  }
+}

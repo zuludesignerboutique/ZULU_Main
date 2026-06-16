@@ -1,0 +1,120 @@
+<div class="acc-edit-page">
+
+  <div class="page-header">
+    <div>
+      <h2>🎀 Edit Accessory</h2>
+      <p class="subtitle" *ngIf="a_name">Editing: {{ a_name }}</p>
+    </div>
+    <button class="btn-add" (click)="cancel()">← Back to Accessories</button>
+  </div>
+
+  <div *ngIf="loading" class="state-msg">Loading accessory...</div>
+  <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+  <div *ngIf="!loading && !error">
+
+    <div *ngIf="successMsg" class="alert success">{{ successMsg }}</div>
+    <div *ngIf="errorMsg"   class="alert error">{{ errorMsg }}</div>
+
+    <div class="form-card">
+
+      <!-- Accessory Sub-type selector -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Accessory Type *</label>
+          <select [(ngModel)]="a_accessoryCategory" name="a_accessoryCategory">
+            <option *ngFor="let tab of tabs" [value]="tab.key">
+              {{ tab.emoji }} {{ tab.label }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Product Code</label>
+          <input type="text" [(ngModel)]="a_product_code" name="a_product_code"
+                 placeholder="e.g. PB-ACC-001" />
+        </div>
+      </div>
+
+      <!-- ROW 2: Name + Price -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Accessory Name *</label>
+          <input type="text" [(ngModel)]="a_name" name="a_name"
+                 placeholder="e.g. Floral Hair Clip" />
+        </div>
+        <div class="form-group">
+          <label>Price (₹) *</label>
+          <input type="number" [(ngModel)]="a_price" name="a_price"
+                 placeholder="e.g. 199" />
+        </div>
+      </div>
+
+      <!-- ROW 3: Colour + Stock -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Colour</label>
+          <input type="text" [(ngModel)]="a_colour" name="a_colour"
+                 placeholder="e.g. Pink" />
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="a_stock" name="a_stock"
+                 placeholder="e.g. 50" />
+        </div>
+      </div>
+
+      <!-- ROW 4: Balance Stock -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Balance Stock <span class="hint">(how many left)</span></label>
+          <input type="number" [(ngModel)]="a_balance_stock" name="a_balance_stock"
+                 placeholder="e.g. 20" />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea [(ngModel)]="a_description" name="a_description" rows="3"
+                  placeholder="Describe the accessory..."></textarea>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group full-width">
+        <label>Product Image</label>
+        <div class="image-upload-area" (click)="accFileInput.click()">
+
+          <div *ngIf="!a_imagePreview && !a_existingImage" class="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <span>Click to upload image</span>
+          </div>
+
+          <div *ngIf="a_imagePreview" class="image-preview-wrap">
+            <img [src]="a_imagePreview" class="image-preview" alt="Preview" />
+            <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); removeAccImage()">✕</button>
+          </div>
+
+          <div *ngIf="!a_imagePreview && a_existingImage" class="image-preview-wrap">
+            <img [src]="getImageUrl(a_existingImage)" class="image-preview" alt="Current image" />
+            <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); removeAccImage()">✕</button>
+          </div>
+
+        </div>
+        <input #accFileInput type="file" accept="image/*"
+               (change)="onAccFileChange($event)" hidden />
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+        <button type="button" class="btn-submit" [disabled]="submitting" (click)="saveAccessory()">
+          {{ submitting ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

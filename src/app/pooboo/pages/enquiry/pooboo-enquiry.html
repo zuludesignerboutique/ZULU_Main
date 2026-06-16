@@ -1,1 +1,99 @@
-<p>pooboo-enquiry works!</p>
+<section class="enquiry-hero">
+  <div class="hero-badge">✦ Made Just For You</div>
+  <h1 class="hero-title">Custom Orders &amp; <span class="accent">Enquiries</span></h1>
+  <p class="hero-sub">Every little one deserves something special. We craft personalised kids' clothing — tailored fits, custom prints, unique colour combos, and one-of-a-kind pieces that spark joy.</p>
+</section>
+
+<section class="enquiry-features">
+  <div class="feature-card">
+    <span class="feature-icon">🎨</span>
+    <h3>Custom Prints</h3>
+    <p>Names, characters, patterns — we'll print exactly what your little one loves.</p>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">✂️</span>
+    <h3>Tailored Fits</h3>
+    <p>Send us the measurements and we'll craft a perfect fit every time.</p>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">🎁</span>
+    <h3>Gift Sets</h3>
+    <p>Curated custom bundles perfect for birthdays, baby showers, and milestones.</p>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">👕</span>
+    <h3>Bulk Orders</h3>
+    <p>School uniforms, event outfits, matching sibling sets — we handle it all.</p>
+  </div>
+</section>
+
+<section class="enquiry-form-section">
+  <div class="form-header">
+    <h2>Start Your Enquiry</h2>
+    <p>Fill in your details and we'll connect on WhatsApp right away.</p>
+  </div>
+
+  <div class="contact-form">
+    <div class="form-group">
+      <label for="name">Your Name <span class="req">*</span></label>
+      <input
+        id="name"
+        type="text"
+        [(ngModel)]="enquiryForm.name"
+        placeholder="e.g. Priya Sharma"
+        [class.error]="formErrors.name"
+      />
+      <span class="error-msg" *ngIf="formErrors.name">Please enter your name</span>
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone Number <span class="req">*</span></label>
+      <input
+        id="phone"
+        type="tel"
+        [(ngModel)]="enquiryForm.phone"
+        placeholder="e.g. +91 98765 43210"
+        [class.error]="formErrors.phone"
+      />
+      <span class="error-msg" *ngIf="formErrors.phone">Please enter a valid phone number</span>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email Address <span class="req">*</span></label>
+      <input
+        id="email"
+        type="email"
+        [(ngModel)]="enquiryForm.email"
+        placeholder="e.g. priya@email.com"
+        [class.error]="formErrors.email"
+      />
+      <span class="error-msg" *ngIf="formErrors.email">Please enter a valid email</span>
+    </div>
+
+    <div class="form-group">
+      <label for="place">Place <span class="req">*</span></label>
+      <input
+        id="place"
+        type="text"
+        [(ngModel)]="enquiryForm.place"
+        placeholder="e.g. Chennai, Tamil Nadu"
+        [class.error]="formErrors.place"
+      />
+      <span class="error-msg" *ngIf="formErrors.place">Please enter your place</span>
+    </div>
+
+    <button class="submit-btn" (click)="submitEnquiry()" [disabled]="isSubmitting">
+      <span *ngIf="!isSubmitting">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="wp-icon"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.643a.75.75 0 0 0 .918.919l5.84-1.49A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.657-.5-5.188-1.375l-.372-.217-3.852.983.997-3.793-.235-.385A9.956 9.956 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Chat on WhatsApp
+      </span>
+      <span *ngIf="isSubmitting" class="spinner-wrap">
+        <span class="spinner"></span> Saving...
+      </span>
+    </button>
+
+    <p class="error-msg submit-error" *ngIf="submitError">{{ submitError }}</p>
+
+    <p class="wp-note">Your details will be saved and WhatsApp will open automatically.</p>
+  </div>
+</section>

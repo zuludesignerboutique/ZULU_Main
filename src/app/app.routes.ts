@@ -110,6 +110,30 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pooboo/admin/pooboo-admin-enquiries/pooboo-admin-enquiries')
             .then(m => m.PoobooAdminEnquiries)
+      },
+      {
+        path: 'pooboo/fabrics',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-admin-fabrics/pooboo-admin-fabrics')
+            .then(m => m.PoobooAdminFabrics)
+      },
+      {
+        path: 'pooboo/accessories',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-admin-accessories/pooboo-admin-accessories')
+            .then(m => m.PoobooAdminAccessories)
+      },
+      {
+        path: 'pooboo/edit-fabric/:id',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-edit-fabric/pooboo-edit-fabric')
+            .then(m => m.PoobooEditFabric)
+      },
+      {
+        path: 'pooboo/edit-accessory/:id',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-edit-accessory/pooboo-edit-accessory')
+            .then(m => m.PoobooEditAccessory)
       }
     ]
   },

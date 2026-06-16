@@ -1,0 +1,256 @@
+$coral: #FF6B6B;
+$coral-dark: #E85555;
+$yellow: #FFD93D;
+$dark: #1A1A2E;
+$off-white: #FFF8F5;
+$text-muted: #8A8A9A;
+$whatsapp: #25D366;
+$whatsapp-dark: #1DA851;
+$border: #EDE8E8;
+
+// ---- Hero ----
+.enquiry-hero {
+  text-align: center;
+  padding: 3.5rem 1.5rem 2.5rem;
+  background: linear-gradient(160deg, $off-white 60%, lighten($yellow, 20%) 100%);
+
+  .hero-badge {
+    display: inline-block;
+    background: $yellow;
+    color: $dark;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.3rem 1rem;
+    border-radius: 50px;
+    margin-bottom: 1rem;
+  }
+
+  .hero-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 800;
+    color: $dark;
+    line-height: 1.2;
+    margin: 0 0 1rem;
+
+    .accent {
+      color: $coral;
+      position: relative;
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0; bottom: -3px;
+        width: 100%; height: 3px;
+        background: $yellow;
+        border-radius: 2px;
+      }
+    }
+  }
+
+  .hero-sub {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    color: lighten($dark, 25%);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+}
+
+// ---- Features ----
+.enquiry-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  padding: 2rem 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+
+  .feature-card {
+    background: #fff;
+    border: 1.5px solid $border;
+    border-radius: 16px;
+    padding: 1.4rem 1.2rem;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba($coral, 0.12);
+      border-color: lighten($coral, 15%);
+    }
+
+    .feature-icon { font-size: 1.8rem; display: block; margin-bottom: 0.6rem; }
+
+    h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: $dark;
+      margin: 0 0 0.4rem;
+    }
+
+    p {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.82rem;
+      color: $text-muted;
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+}
+
+// ---- Form Section ----
+.enquiry-form-section {
+  max-width: 500px;
+  margin: 0 auto 4rem;
+  padding: 0 1.5rem;
+
+  .form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: $dark;
+      margin: 0 0 0.4rem;
+    }
+
+    p {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      color: $text-muted;
+      margin: 0;
+    }
+  }
+}
+
+// ---- Form ----
+.contact-form {
+  background: #fff;
+  border: 1.5px solid $border;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba($dark, 0.05);
+
+  .form-group {
+    margin-bottom: 1.2rem;
+
+    label {
+      display: block;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: $dark;
+      margin-bottom: 0.45rem;
+      .req { color: $coral; margin-left: 2px; }
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.92rem;
+      color: $dark;
+      background: $off-white;
+      border: 1.5px solid $border;
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &::placeholder { color: lighten($text-muted, 15%); }
+
+      &:focus {
+        border-color: $coral;
+        box-shadow: 0 0 0 3px rgba($coral, 0.12);
+        background: #fff;
+      }
+
+      &.error {
+        border-color: $coral-dark;
+        background: lighten($coral, 36%);
+      }
+    }
+  }
+
+  .error-msg {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.78rem;
+    color: $coral-dark;
+    margin-top: 0.3rem;
+    display: block;
+  }
+
+  .submit-error { text-align: center; margin-top: 0.8rem; }
+}
+
+// ---- WhatsApp Submit Button ----
+.submit-btn {
+  width: 100%;
+  margin-top: 0.8rem;
+  padding: 0.9rem 1.5rem;
+  background: $whatsapp;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba($whatsapp, 0.4);
+
+  .wp-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  &:hover:not(:disabled) {
+    background: $whatsapp-dark;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba($whatsapp, 0.5);
+  }
+
+  &:disabled { opacity: 0.7; cursor: not-allowed; }
+
+  .spinner-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2.5px solid rgba(#fff, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+}
+
+.wp-note {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.78rem;
+  color: $text-muted;
+  text-align: center;
+  margin: 0.8rem 0 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+  .enquiry-hero { padding: 2.5rem 1.2rem 2rem; }
+  .contact-form { padding: 1.5rem 1.2rem; }
+}
