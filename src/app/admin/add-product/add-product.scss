@@ -167,7 +167,77 @@ $success:#27ae60;
   }
 }
 
-// ── IMAGE UPLOAD ─────────────────────────────────
+// ── INLINE "ADD NEW" WIDGET (category / subcategory) ─
+.select-with-action {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  select { flex: 1; }
+
+  .btn-inline-add {
+    flex-shrink: 0;
+    padding: 0 14px;
+    height: 44px;
+    border: 1.5px solid $border;
+    border-radius: 10px;
+    background: $surface;
+    color: $gold;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: 0.2s ease;
+
+    &:hover:not(:disabled) { border-color: $gold; background: rgba(200,169,110,0.08); }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+}
+
+.inline-add-widget {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+
+  input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1.5px solid $border;
+    border-radius: 10px;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    background: #fff;
+    outline: none;
+
+    &:focus { border-color: $gold; box-shadow: 0 0 0 3px rgba(200,169,110,0.12); }
+    &:disabled { opacity: 0.5; }
+  }
+
+  .btn-inline-save {
+    flex-shrink: 0;
+    padding: 0 18px;
+    border: none;
+    border-radius: 10px;
+    background: $gold;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+
+    &:hover:not(:disabled) { background: darken(#c8a96e, 8%); }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+}
+
+.inline-add-error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: $error;
+}
+
+
 .image-upload-area {
   border: 2px dashed $border;
   border-radius: 16px;

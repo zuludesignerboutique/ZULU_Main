@@ -32,6 +32,19 @@
         </div>
       </div>
 
+      <!-- ROW 1b: Fabric Type -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fabric Type *</label>
+          <select [(ngModel)]="f_fabric_type" name="f_fabric_type">
+            <option value="" disabled>Select fabric type</option>
+            <option *ngFor="let type of fabricTypes" [value]="type.value">
+              {{ type.emoji }} {{ type.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
       <!-- ROW 2: Price per meter + Colour -->
       <div class="form-row">
         <div class="form-group">

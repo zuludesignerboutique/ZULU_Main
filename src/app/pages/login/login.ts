@@ -32,10 +32,10 @@ export class LoginComponent {
       next: (res) => {
         if (res.user.role === 'admin') {
           localStorage.setItem('admin', 'true');
+          this.auth.login(this.email, res.token);
           this.router.navigate(['/admin/dashboard']);
         } else {
-          // ✅ Pass email so cart/wishlist keys are namespaced per user
-          this.auth.login(this.email);
+          this.auth.login(this.email, res.token);
           const redirect = this.route.snapshot.queryParams['redirect'] || '/home';
           this.router.navigateByUrl(redirect);
         }

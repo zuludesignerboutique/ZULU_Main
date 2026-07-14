@@ -43,7 +43,7 @@ export class SubcategoriesComponent implements OnInit {
       ]
     },
     party: {
-      label: 'Party Collection',
+      label: 'Party Wear',
       subs: [
         { name: 'All',            key: '' },
         { name: 'Party Gown',     key: 'Party Gown' },
@@ -52,7 +52,7 @@ export class SubcategoriesComponent implements OnInit {
       ]
     },
     casual: {
-      label: 'Casual Collection',
+      label: 'Casual Wear',
       subs: [
         { name: 'All',           key: '' },
         { name: 'T-Shirts',      key: 'T-Shirts' },
@@ -74,6 +74,9 @@ export class SubcategoriesComponent implements OnInit {
     if (config) {
       this.subcategories = config.subs;
       this.selectedSubcategory = '';
+    } else {
+      this.isLoading = false;
+      return;
     }
 
     this.http.get<Product[]>('http://localhost:4000/api/products').subscribe({
@@ -84,17 +87,11 @@ export class SubcategoriesComponent implements OnInit {
           id: p.id, name: p.name, category: p.category, subcategory: p.subcategory
         })));
 
-        const type = this.categoryType.toLowerCase();
+        const label = config.label.toLowerCase().trim();
 
         this.allProducts = data.filter(p => {
           const cat = (p.category || '').toLowerCase().trim();
-          const sub = (p.subcategory || '').toLowerCase().trim();
-
-          // Match if DB category equals route type
-          // OR if DB category/subcategory contains route type anywhere
-          return cat === type
-            || cat.includes(type)
-            || sub.includes(type);
+          return cat === label;
         });
 
         console.log('[Subcategories] matched products:', this.allProducts);

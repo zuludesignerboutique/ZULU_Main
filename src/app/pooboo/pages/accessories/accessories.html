@@ -25,6 +25,7 @@
         <div class="pb-cat-body">
           <h3 class="pb-cat-name">Baby Ornaments</h3>
           <p class="pb-cat-desc">Delicate pieces crafted for your tiniest one</p>
+          <p class="pb-cat-count" *ngIf="!loading">{{ getTabCount('baby-ornaments') }} available</p>
         </div>
         <span class="pb-cat-cta">Explore <span class="pb-cat-arrow">→</span></span>
       </a>
@@ -38,6 +39,7 @@
         <div class="pb-cat-body">
           <h3 class="pb-cat-name">Bands</h3>
           <p class="pb-cat-desc">Soft, stretchy bands in every colour</p>
+          <p class="pb-cat-count" *ngIf="!loading">{{ getTabCount('bands') }} available</p>
         </div>
         <span class="pb-cat-cta">Explore <span class="pb-cat-arrow">→</span></span>
       </a>
@@ -51,6 +53,7 @@
         <div class="pb-cat-body">
           <h3 class="pb-cat-name">Hair Clips</h3>
           <p class="pb-cat-desc">Snap-on clips that stay put all day long</p>
+          <p class="pb-cat-count" *ngIf="!loading">{{ getTabCount('hair-clips') }} available</p>
         </div>
         <span class="pb-cat-cta">Explore <span class="pb-cat-arrow">→</span></span>
       </a>

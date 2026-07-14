@@ -15,13 +15,14 @@ export class AuthService {
     }
   }
 
-  // ── Login ────────────────────────────────────────
-  login(email?: string) {
+  login(email?: string, token?: string) {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('loggedIn', 'true');
-      // ✅ Store the email so cart/wishlist can be namespaced per user
       if (email) {
         localStorage.setItem('userEmail', email);
+      }
+      if (token) {
+        localStorage.setItem('authToken', token);
       }
     }
     this.loggedInSignal.set(true);
@@ -31,6 +32,8 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('loggedIn');
       localStorage.removeItem('userEmail');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('admin');
     }
     this.loggedInSignal.set(false);
   }
@@ -40,9 +43,13 @@ export class AuthService {
     return localStorage.getItem('loggedIn') === 'true';
   }
 
-  // ✅ Returns current user's email — used as namespace key
   getUserEmail(): string {
     if (!isPlatformBrowser(this.platformId)) return 'guest';
     return localStorage.getItem('userEmail') || 'guest';
+  }
+
+  getToken(): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return localStorage.getItem('authToken');
   }
 }

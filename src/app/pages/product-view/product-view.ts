@@ -7,6 +7,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CartService } from '../../services/cart.service';
 import { WishlistService } from '../../services/wishlist.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-product-view',
@@ -56,6 +57,7 @@ export class ProductView implements OnInit, OnDestroy {
     private http: HttpClient,
     private cartService: CartService,
     private wishlistService: WishlistService,
+    private auth: AuthService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.navStateProduct =
@@ -186,6 +188,14 @@ export class ProductView implements OnInit, OnDestroy {
 
   addToCart() {
     if (!this.product) return;
+
+    // Must be logged in to add to cart — send to login, remember where to come back to
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: { redirect: this.router.url }
+      });
+      return;
+    }
 
     // Require a size selection only if this product actually has sizes
     const availableSizes = this.getAvailableSizes();

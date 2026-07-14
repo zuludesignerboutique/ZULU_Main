@@ -39,6 +39,19 @@
         </div>
       </div>
 
+      <!-- ROW 1b: Fabric Type -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fabric Type *</label>
+          <select [(ngModel)]="f_fabric_type" name="f_fabric_type">
+            <option value="" disabled>Select fabric type</option>
+            <option *ngFor="let type of fabricTypes" [value]="type.value">
+              {{ type.emoji }} {{ type.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
       <!-- ROW 2: Price per meter + Colour -->
       <div class="form-row">
         <div class="form-group">
@@ -77,17 +90,29 @@
       <!-- Image Upload -->
       <div class="form-group full-width">
         <label>Product Image</label>
-        <div class="image-upload-area" (click)="fabFileInput.click()">
-          <div *ngIf="!f_imagePreview" class="upload-placeholder">
-            <span class="upload-icon">📷</span>
-            <span>Click to upload image</span>
-          </div>
-          <div *ngIf="f_imagePreview" class="image-preview-wrap">
-            <img [src]="f_imagePreview" class="image-preview" alt="Preview" />
-            <button type="button" class="remove-img"
-                    (click)="$event.stopPropagation(); removeFabricImage()">✕</button>
-          </div>
-        </div>
+        <div class="image-upload-area"
+     [class.uploading]="f_imageUploading"
+     (click)="onFabricUploadClick(fabFileInput)">
+
+  <!-- idle placeholder -->
+  <div *ngIf="!f_imagePreview && !f_imageUploading" class="upload-placeholder">
+    <span class="upload-icon">📷</span>
+    <span>Click to upload image</span>
+  </div>
+
+  <!-- uploading spinner overlay -->
+  <div *ngIf="f_imageUploading" class="upload-progress">
+    <div class="spinner"></div>
+    <span class="upload-label">Uploading…</span>
+  </div>
+
+  <!-- preview -->
+  <div *ngIf="f_imagePreview && !f_imageUploading" class="image-preview-wrap">
+    <img [src]="f_imagePreview" class="image-preview" alt="Preview" />
+    <button type="button" class="remove-img"
+            (click)="$event.stopPropagation(); removeFabricImage()">✕</button>
+  </div>
+</div>
         <input #fabFileInput type="file" accept="image/*"
                (change)="onFabricFileChange($event)" hidden />
       </div>
@@ -115,6 +140,7 @@
         <tr>
           <th>Image</th>
           <th>Name</th>
+          <th>Type</th>
           <th>Colour</th>
           <th>Price/Meter</th>
           <th>Total Meters</th>
@@ -128,6 +154,7 @@
             <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="product-thumb" />
           </td>
           <td class="product-name">{{ p.name }}</td>
+          <td>{{ getTypeLabel(p.fabric_type) }}</td>
           <td>{{ p.colour || '—' }}</td>
           <td>₹{{ p.price_per_meter | number }}</td>
           <td>{{ p.total_meters ?? '—' }}</td>
@@ -138,7 +165,7 @@
           </td>
         </tr>
         <tr *ngIf="products.length === 0">
-          <td colspan="7" class="empty-row">
+          <td colspan="8" class="empty-row">
             No fabrics yet. Click "＋ Add Fabric" above to add your first one.
           </td>
         </tr>

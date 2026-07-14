@@ -42,8 +42,8 @@ export class SignupComponent {
       password: this.password
     }).subscribe({
       next: (res: any) => {
-        // after signup, go to login page
-        this.router.navigate(['/login']);
+        this.auth.login(this.email, res.token);
+        this.router.navigate(['/home']);
       },
       error: (err) => {
         if (err.status === 409) {

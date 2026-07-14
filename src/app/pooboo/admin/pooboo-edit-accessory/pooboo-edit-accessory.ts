@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, NgZone, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -49,7 +49,10 @@ export class PoobooEditAccessory implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
@@ -65,23 +68,36 @@ export class PoobooEditAccessory implements OnInit {
 
   // ── Load existing accessory ────────────────────────────
   loadAccessory() {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      return;
+    }
     this.loading = true;
+    console.log('[EditAccessory] loading id:', this.productId);
     this.http.get<any>(`${this.api}/api/pooboo/accessories/${this.productId}`).subscribe({
       next: (p) => {
-        this.a_name              = p.name ?? '';
-        this.a_description       = p.description ?? '';
-        this.a_price             = p.price ?? '';
-        this.a_stock             = p.stock ?? '';
-        this.a_balance_stock     = p.balance_stock ?? '';
-        this.a_product_code      = p.product_code ?? '';
-        this.a_colour            = p.colour ?? '';
-        this.a_accessoryCategory = (p.accessory_type as AccessoryTab) ?? 'baby-ornaments';
-        this.a_existingImage     = p.image_url ?? null;
-        this.loading = false;
+        console.log('[EditAccessory] loaded:', p);
+        this.zone.run(() => {
+          this.a_name              = p.name ?? '';
+          this.a_description       = p.description ?? '';
+          this.a_price             = p.price ?? '';
+          this.a_stock             = p.stock ?? '';
+          this.a_balance_stock     = p.balance_stock ?? '';
+          this.a_product_code      = p.product_code ?? '';
+          this.a_colour            = p.colour ?? '';
+          this.a_accessoryCategory = (p.accessory_type as AccessoryTab) ?? 'baby-ornaments';
+          this.a_existingImage     = p.image_url ?? null;
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       },
-      error: () => {
-        this.error   = 'Failed to load accessory';
-        this.loading = false;
+      error: (err) => {
+        console.error('[EditAccessory] error:', err);
+        this.zone.run(() => {
+          this.error   = 'Failed to load accessory';
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
@@ -130,13 +146,19 @@ export class PoobooEditAccessory implements OnInit {
 
     this.http.put(`${this.api}/api/pooboo/accessories/${this.productId}`, formData).subscribe({
       next: () => {
-        this.successMsg = '✅ Accessory updated successfully!';
-        this.submitting = false;
-        setTimeout(() => this.router.navigate(['/admin/pooboo/accessories']), 800);
+        this.zone.run(() => {
+          this.successMsg = '✅ Accessory updated successfully!';
+          this.submitting = false;
+          this.cdr.detectChanges();
+          setTimeout(() => this.router.navigate(['/admin/pooboo/accessories']), 800);
+        });
       },
       error: () => {
-        this.errorMsg   = '❌ Failed to update accessory. Please try again.';
-        this.submitting = false;
+        this.zone.run(() => {
+          this.errorMsg   = '❌ Failed to update accessory. Please try again.';
+          this.submitting = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }

@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, NgZone, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -22,6 +22,7 @@ export class PoobooEditFabric implements OnInit {
 
   // ── Edit-form fields ───────────────────────────────────
   f_name            = '';
+  f_fabric_type     = '';
   f_description     = '';
   f_price_per_meter = '';
   f_total_meters    = '';
@@ -32,6 +33,17 @@ export class PoobooEditFabric implements OnInit {
   f_imagePreview    : string | null = null;
   f_existingImage   : string | null = null;
 
+  // ── Fabric type options (must match admin add-form & storefront) ──
+  fabricTypes = [
+    { label: 'Cotton',     value: 'cotton',     emoji: '🌿' },
+    { label: 'Silk',       value: 'silk',        emoji: '✨' },
+    { label: 'Linen',      value: 'linen',      emoji: '🍃' },
+    { label: 'Georgette',  value: 'georgette',  emoji: '🌸' },
+    { label: 'Net',        value: 'net',        emoji: '🕸️' },
+    { label: 'Velvet',     value: 'velvet',     emoji: '💜' },
+    {label: 'satin',      value: 'satin',      emoji: '💫' },
+  ];
+
   // ── UI state ────────────────────────────────────────────
   submitting = false;
   successMsg = '';
@@ -40,7 +52,10 @@ export class PoobooEditFabric implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
@@ -56,22 +71,36 @@ export class PoobooEditFabric implements OnInit {
 
   // ── Load existing fabric ───────────────────────────────
   loadFabric() {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      return;
+    }
     this.loading = true;
+    console.log('[EditFabric] loading id:', this.productId);
     this.http.get<any>(`${this.api}/api/pooboo/fabrics/${this.productId}`).subscribe({
       next: (p) => {
-        this.f_name            = p.name ?? '';
-        this.f_description     = p.description ?? '';
-        this.f_price_per_meter = p.price_per_meter ?? '';
-        this.f_total_meters    = p.total_meters ?? '';
-        this.f_balance_stock   = p.balance_stock ?? '';
-        this.f_product_code    = p.product_code ?? '';
-        this.f_colour          = p.colour ?? '';
-        this.f_existingImage   = p.image_url ?? null;
-        this.loading = false;
+        console.log('[EditFabric] loaded:', p);
+        this.zone.run(() => {
+          this.f_name            = p.name ?? '';
+          this.f_fabric_type     = p.fabric_type ?? '';
+          this.f_description     = p.description ?? '';
+          this.f_price_per_meter = p.price_per_meter ?? '';
+          this.f_total_meters    = p.total_meters ?? '';
+          this.f_balance_stock   = p.balance_stock ?? '';
+          this.f_product_code    = p.product_code ?? '';
+          this.f_colour          = p.colour ?? '';
+          this.f_existingImage   = p.image_url ?? null;
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       },
-      error: () => {
-        this.error   = 'Failed to load fabric';
-        this.loading = false;
+      error: (err) => {
+        console.error('[EditFabric] error:', err);
+        this.zone.run(() => {
+          this.error   = 'Failed to load fabric';
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
@@ -95,8 +124,8 @@ export class PoobooEditFabric implements OnInit {
 
   // ── Save changes ─────────────────────────────────────────
   saveFabric() {
-    if (!this.f_name || !this.f_price_per_meter) {
-      this.errorMsg = 'Name and price are required.';
+    if (!this.f_name || !this.f_price_per_meter || !this.f_fabric_type) {
+      this.errorMsg = 'Name, price, and fabric type are required.';
       return;
     }
 
@@ -106,6 +135,7 @@ export class PoobooEditFabric implements OnInit {
 
     const formData = new FormData();
     formData.append('name',            this.f_name);
+    formData.append('fabric_type',     this.f_fabric_type);
     formData.append('description',     this.f_description);
     formData.append('price_per_meter', this.f_price_per_meter);
     formData.append('total_meters',    this.f_total_meters);
@@ -119,13 +149,19 @@ export class PoobooEditFabric implements OnInit {
 
     this.http.put(`${this.api}/api/pooboo/fabrics/${this.productId}`, formData).subscribe({
       next: () => {
-        this.successMsg = '✅ Fabric updated successfully!';
-        this.submitting = false;
-        setTimeout(() => this.router.navigate(['/admin/pooboo/fabrics']), 800);
+        this.zone.run(() => {
+          this.successMsg = '✅ Fabric updated successfully!';
+          this.submitting = false;
+          this.cdr.detectChanges();
+          setTimeout(() => this.router.navigate(['/admin/pooboo/fabrics']), 800);
+        });
       },
       error: () => {
-        this.errorMsg   = '❌ Failed to update fabric. Please try again.';
-        this.submitting = false;
+        this.zone.run(() => {
+          this.errorMsg   = '❌ Failed to update fabric. Please try again.';
+          this.submitting = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }

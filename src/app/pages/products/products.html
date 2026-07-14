@@ -55,7 +55,7 @@
     </div>
     <div class="product-info">
       <h4>{{ product.name }}</h4>
-      <p class="category">{{ product.description }}</p>
+      <p class="category">{{ product.category }}</p>
       <div class="price-row">
         <span class="price">{{ product.price | number }}</span>
         <button class="view-btn" (click)="$event.stopPropagation(); goToProduct(product)">

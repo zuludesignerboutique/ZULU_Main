@@ -37,7 +37,7 @@ export const routes: Routes = [
   { path: 'products', component: Products },
   { path: 'gallery',  component: Gallery },
   { path: 'reviews',  component: Reviews, runGuardsAndResolvers: 'always' },
-  { path: 'contact',  component: Contact, canActivate: [authGuard] },
+  { path: 'contact',  component: Contact },
 
   { path: 'categories',       component: Categories },
   { path: 'categories/:type', component: SubcategoriesComponent },
@@ -134,6 +134,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pooboo/admin/pooboo-edit-accessory/pooboo-edit-accessory')
             .then(m => m.PoobooEditAccessory)
+      },
+      {
+        path: 'pooboo/reviews',
+        loadComponent: () =>
+          import('./pooboo/admin/pooboo-admin-reviews/pooboo-admin-reviews')
+            .then(m => m.PoobooAdminReviews)
       }
     ]
   },

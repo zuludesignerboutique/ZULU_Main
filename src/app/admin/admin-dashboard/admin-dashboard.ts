@@ -22,17 +22,17 @@ export class AdminDashboard implements OnInit {
   ngOnInit() {
     this.http.get<any[]>(`${this.api}/api/products`).subscribe({
       next: (data) => this.totalProducts = data.length,
-      error: () => {}
+      error: (err) => console.error('Dashboard: Failed to load products', err)
     });
 
     this.http.get<any[]>(`${this.api}/api/users`).subscribe({
       next: (data) => this.totalUsers = data.length,
-      error: () => {}
+      error: (err) => console.error('Dashboard: Failed to load users', err)
     });
 
     this.http.get<any[]>(`${this.api}/api/orders`).subscribe({
       next: (data) => this.totalOrders = data.length,
-      error: () => {}
+      error: (err) => console.error('Dashboard: Failed to load orders', err)
     });
   }
 }

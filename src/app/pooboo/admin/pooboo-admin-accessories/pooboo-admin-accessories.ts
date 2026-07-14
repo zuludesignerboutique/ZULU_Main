@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, NgZone, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -51,9 +51,15 @@ export class PoobooAdminAccessories implements OnInit {
   successMsg = '';
   errorMsg   = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private zone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
     this.loadAccessories();
   }
 
@@ -70,15 +76,39 @@ export class PoobooAdminAccessories implements OnInit {
 
   // ── Load accessories ──────────────────────────────────
   loadAccessories() {
-    this.loading = true;
+    // Only show the big "Loading accessories..." state when we truly have
+    // nothing on screen yet (first load). On any later call — SSR hydration
+    // re-fetch, delete refresh, add-accessory refresh — keep showing the
+    // existing rows and just swap them once the fresh data arrives. This
+    // stops the table from blanking out during SSR/hydration timing races.
+    const isFirstLoad = this.allProducts.length === 0;
+    if (isFirstLoad) {
+      this.loading = true;
+    }
+
     this.http.get<any[]>(`${this.api}/api/pooboo/accessories/all`).subscribe({
       next: (data) => {
-        this.allProducts = data;
-        this.loading     = false;
+        // zone.run() guarantees Angular repaints the view right away.
+        // Without it, during SSR/hydration this callback can land outside
+        // Angular's zone, so `loading`/`allProducts` update in memory but
+        // the DOM keeps showing "Loading accessories..." until some
+        // unrelated click forces change detection.
+        this.zone.run(() => {
+          this.allProducts = data;
+          this.loading     = false;
+          this.error       = '';
+        });
       },
       error: () => {
-        this.error   = 'Failed to load accessories';
-        this.loading = false;
+        this.zone.run(() => {
+          // Only surface the error state if we have nothing to show at all.
+          // If we already have data on screen, silently keep it rather than
+          // replacing it with an error message.
+          if (isFirstLoad) {
+            this.error = 'Failed to load accessories';
+          }
+          this.loading = false;
+        });
       }
     });
   }
@@ -101,19 +131,43 @@ export class PoobooAdminAccessories implements OnInit {
   }
 
   // ── Image handling ────────────────────────────────────
-  onAccFileChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.a_selectedFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => this.a_imagePreview = e.target?.result as string;
-      reader.readAsDataURL(this.a_selectedFile);
-    }
+  a_imageUploading = false;
+
+  onAccUploadClick(input: HTMLInputElement): void {
+    if (this.a_imageUploading) return;
+    input.click();
   }
 
-  removeAccImage() {
-    this.a_selectedFile = null;
-    this.a_imagePreview = null;
+  onAccFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.a_imageUploading = true;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.zone.run(() => {
+        this.a_imagePreview   = e.target?.result as string;
+        this.a_selectedFile   = file;
+        this.a_imageUploading = false;
+        input.value = '';        // allow re-selecting the same file later
+      });
+    };
+    reader.onerror = () => {
+      this.zone.run(() => {
+        this.a_imageUploading = false;
+        this.errorMsg = 'Failed to read image. Please try again.';
+        input.value = '';
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeAccImage(): void {
+    this.a_imagePreview   = null;
+    this.a_selectedFile   = null;
+    this.a_imageUploading = false;
   }
 
   // ── Submit add-accessory form ─────────────────────────
@@ -147,9 +201,13 @@ export class PoobooAdminAccessories implements OnInit {
         this.submitting = false;
         // Switch to the tab of what was just added
         this.activeTab  = this.a_accessoryCategory;
-        this.resetForm();
-        this.showForm   = false;
         this.loadAccessories();
+        // give the user a moment to see the success message before the
+        // form resets and closes
+        setTimeout(() => {
+          this.resetForm();
+          this.showForm = false;
+        }, 800);
       },
       error: () => {
         this.errorMsg   = '❌ Failed to add accessory. Please try again.';
@@ -167,7 +225,7 @@ export class PoobooAdminAccessories implements OnInit {
     this.a_balance_stock     = '';
     this.a_product_code      = '';
     this.a_colour            = '';
-    this.a_accessoryCategory = 'baby-ornaments';
+    this.a_accessoryCategory = this.activeTab;
     this.a_selectedFile      = null;
     this.a_imagePreview      = null;
     this.errorMsg            = '';

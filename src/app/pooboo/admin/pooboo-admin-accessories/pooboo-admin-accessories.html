@@ -91,17 +91,29 @@
       <!-- Image Upload -->
       <div class="form-group full-width">
         <label>Product Image</label>
-        <div class="image-upload-area" (click)="accFileInput.click()">
-          <div *ngIf="!a_imagePreview" class="upload-placeholder">
-            <span class="upload-icon">📷</span>
-            <span>Click to upload image</span>
-          </div>
-          <div *ngIf="a_imagePreview" class="image-preview-wrap">
-            <img [src]="a_imagePreview" class="image-preview" alt="Preview" />
-            <button type="button" class="remove-img"
-                    (click)="$event.stopPropagation(); removeAccImage()">✕</button>
-          </div>
-        </div>
+        <div class="image-upload-area"
+     [class.uploading]="a_imageUploading"
+     (click)="onAccUploadClick(accFileInput)">
+
+  <!-- idle placeholder -->
+  <div *ngIf="!a_imagePreview && !a_imageUploading" class="upload-placeholder">
+    <span class="upload-icon">📷</span>
+    <span>Click to upload image</span>
+  </div>
+
+  <!-- uploading spinner overlay -->
+  <div *ngIf="a_imageUploading" class="upload-progress">
+    <div class="spinner"></div>
+    <span class="upload-label">Uploading…</span>
+  </div>
+
+  <!-- preview -->
+  <div *ngIf="a_imagePreview && !a_imageUploading" class="image-preview-wrap">
+    <img [src]="a_imagePreview" class="image-preview" alt="Preview" />
+    <button type="button" class="remove-img"
+            (click)="$event.stopPropagation(); removeAccImage()">✕</button>
+  </div>
+</div>
         <input #accFileInput type="file" accept="image/*"
                (change)="onAccFileChange($event)" hidden />
       </div>

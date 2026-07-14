@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { CategoryService, Category, Subcategory } from '../../services/category.service';
 
 @Component({
   selector: 'app-add-product',
@@ -11,7 +12,7 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './add-product.html',
   styleUrls: ['./add-product.scss']
 })
-export class AddProduct {
+export class AddProduct implements OnInit {
 
   product = {
     name: '', description: '', price: 0,
@@ -25,36 +26,170 @@ export class AddProduct {
   successMsg = '';
   errorMsg = '';
 
-  categories = [
-    { value: 'bridal', label: 'Bridal Collection' },
-    { value: 'groom',  label: 'Groom Collection' },
-    { value: 'party',  label: 'Party Wear' },
-    { value: 'casual', label: 'Casual Wear' },
-  ];
+  // ── Categories / subcategories (loaded from DB) ────────
+  categories: Category[] = [];
+  subcategories: Subcategory[] = [];       // subs for the currently selected category (form dropdown)
+  allSubcategories: Subcategory[] = [];    // every subcategory (sidebar "Category Guide")
+  private selectedCategoryId: number | null = null;
 
-  subcategoryMap: Record<string, string[]> = {
-    bridal: ['Bridal Blouse', 'Bridal Saree', 'Lehenga', 'Gown', 'Half Saree'],
-    groom:  ['Designer Shirt', 'Traditional Dhoti'],
-    party:  ['Party Gown', 'Designer Kurti', 'Western Dress'],
-    casual: ['T-Shirts', 'Casual Shirts', 'Everyday Wear'],
-  };
+  // ── "+ Add New Category" inline widget state ───────────
+  addingCategory = false;
+  newCategoryName = '';
+  categorySaveError = '';
+  savingCategory = false;
 
-  get currentSubcategories(): string[] {
-    return this.subcategoryMap[this.product.category] || [];
+  // ── "+ Add New Subcategory" inline widget state ────────
+  addingSubcategory = false;
+  newSubcategoryName = '';
+  subcategorySaveError = '';
+  savingSubcategory = false;
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private categoryService: CategoryService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    this.loadCategories();
+    this.loadAllSubcategories();
   }
 
-  constructor(private http: HttpClient, private router: Router) {}
+  // ── Load categories ─────────────────────────────────────
+  loadCategories() {
+    this.categoryService.getCategories().subscribe({
+      next: (cats) => {
+        this.categories = cats;
+        this.cdr.detectChanges(); // force view update — subscribe callback doesn't always trigger CD on its own
+      },
+      error: (err) => console.error('[AddProduct] Failed to load categories:', err)
+    });
+  }
 
+  // ── Load every subcategory (for the sidebar Category Guide) ──
+  loadAllSubcategories() {
+    this.categoryService.getSubcategories().subscribe({
+      next: (subs) => {
+        this.allSubcategories = subs;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('[AddProduct] Failed to load all subcategories:', err)
+    });
+  }
+
+  // Used by the sidebar to show each category's subs without re-fetching
+  getSubsForCategory(categoryId: number): Subcategory[] {
+    return this.allSubcategories.filter(s => s.category_id === categoryId);
+  }
+
+  // ── Category change (existing category picked) ─────────
   onCategoryChange() {
     this.product.subcategory = '';
+    this.subcategories = [];
+    this.addingSubcategory = false;
+
+    const match = this.categories.find(c => c.name === this.product.category);
+    this.selectedCategoryId = match ? match.id : null;
+
+    if (this.selectedCategoryId) {
+      this.categoryService.getSubcategories(this.selectedCategoryId).subscribe({
+        next: (subs) => {
+          this.subcategories = subs;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('[AddProduct] Failed to load subcategories:', err)
+      });
+    }
   }
 
+  // ── Inline "Add New Category" widget ────────────────────
+  toggleAddCategory() {
+    this.addingCategory = !this.addingCategory;
+    this.newCategoryName = '';
+    this.categorySaveError = '';
+  }
+
+  saveNewCategory() {
+    const name = this.newCategoryName.trim();
+    if (!name) {
+      this.categorySaveError = 'Please enter a category name.';
+      return;
+    }
+
+    this.savingCategory = true;
+    this.categorySaveError = '';
+
+    this.categoryService.addCategory(name).subscribe({
+      next: (created) => {
+        this.savingCategory = false;
+        this.categories.push(created);
+        this.categories.sort((a, b) => a.name.localeCompare(b.name));
+        this.product.category = created.name;
+        this.onCategoryChange();
+        this.addingCategory = false;
+        this.newCategoryName = '';
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.savingCategory = false;
+        this.categorySaveError = err?.error?.error || 'Failed to add category. Please try again.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ── Inline "Add New Subcategory" widget ─────────────────
+  toggleAddSubcategory() {
+    if (!this.selectedCategoryId) return;
+    this.addingSubcategory = !this.addingSubcategory;
+    this.newSubcategoryName = '';
+    this.subcategorySaveError = '';
+  }
+
+  saveNewSubcategory() {
+    const name = this.newSubcategoryName.trim();
+    if (!name) {
+      this.subcategorySaveError = 'Please enter a subcategory name.';
+      return;
+    }
+    if (!this.selectedCategoryId) {
+      this.subcategorySaveError = 'Please select a category first.';
+      return;
+    }
+
+    this.savingSubcategory = true;
+    this.subcategorySaveError = '';
+
+    this.categoryService.addSubcategory(this.selectedCategoryId, name).subscribe({
+      next: (created) => {
+        this.savingSubcategory = false;
+        this.subcategories.push(created);
+        this.subcategories.sort((a, b) => a.name.localeCompare(b.name));
+        this.allSubcategories.push(created);
+        this.product.subcategory = created.name;
+        this.addingSubcategory = false;
+        this.newSubcategoryName = '';
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.savingSubcategory = false;
+        this.subcategorySaveError = err?.error?.error || 'Failed to add subcategory. Please try again.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ── Image handling ───────────────────────────────────────
   onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files?.[0]) {
       this.selectedFile = input.files[0];
       const reader = new FileReader();
-      reader.onload = (e) => { this.imagePreview = e.target?.result as string; };
+      reader.onload = (e) => {
+        this.imagePreview = e.target?.result as string;
+        this.cdr.detectChanges();
+      };
       reader.readAsDataURL(this.selectedFile);
     }
   }
@@ -65,6 +200,7 @@ export class AddProduct {
     this.imagePreview = null;
   }
 
+  // ── Submit ────────────────────────────────────────────────
   addProduct() {
     this.successMsg = '';
     this.errorMsg = '';
@@ -93,12 +229,13 @@ export class AddProduct {
       next: () => {
         this.isSubmitting = false;
         this.successMsg = 'Product added successfully!';
-        // Reset form after 1.5s then go to products list
+        this.cdr.detectChanges();
         setTimeout(() => this.router.navigate(['/admin/products']), 1500);
       },
       error: (err) => {
         this.isSubmitting = false;
         this.errorMsg = 'Failed to add product. Please try again.';
+        this.cdr.detectChanges();
         console.error(err);
       }
     });

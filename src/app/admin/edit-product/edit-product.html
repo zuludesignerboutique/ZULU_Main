@@ -46,7 +46,8 @@
           <div class="field-row">
             <div class="field-group">
               <label>Category *</label>
-              <select [(ngModel)]="product.category" name="category" required>
+              <select [(ngModel)]="product.category" name="category" required
+                (ngModelChange)="onCategoryChange()">
                 <option value="">Select Category</option>
                 <option>Bridal Collection</option>
                 <option>Groom Collection</option>
@@ -56,21 +57,12 @@
             </div>
             <div class="field-group">
               <label>Subcategory *</label>
-              <select [(ngModel)]="product.subcategory" name="subcategory" required>
-                <option value="">Select Subcategory</option>
-                <option>Bridal Blouse</option>
-                <option>Bridal Saree</option>
-                <option>Lehenga</option>
-                <option>Gown</option>
-                <option>Half Saree</option>
-                <option>Designer Shirt</option>
-                <option>Traditional Dhoti</option>
-                <option>Party Gown</option>
-                <option>Designer Kurti</option>
-                <option>Western Dress</option>
-                <option>T-Shirts</option>
-                <option>Casual Shirts</option>
-                <option>Everyday Wear</option>
+              <select [(ngModel)]="product.subcategory" name="subcategory" required
+                [disabled]="!product.category">
+                <option value="">
+                  {{ product.category ? 'Select Subcategory' : 'Select a category first' }}
+                </option>
+                <option *ngFor="let sub of availableSubcategories">{{ sub }}</option>
               </select>
             </div>
           </div>

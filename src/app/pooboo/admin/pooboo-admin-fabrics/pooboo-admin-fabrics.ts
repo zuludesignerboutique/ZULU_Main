@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, NgZone, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -25,6 +25,7 @@ export class PoobooAdminFabrics implements OnInit {
 
   // ── Add-form fields ───────────────────────────────────
   f_name             = '';
+  f_fabric_type      = '';
   f_description      = '';
   f_price_per_meter  = '';
   f_total_meters     = '';
@@ -34,14 +35,35 @@ export class PoobooAdminFabrics implements OnInit {
   f_selectedFile     : File | null = null;
   f_imagePreview     : string | null = null;
 
+  // ── Fabric type options (must match storefront fabricTypes) ──
+  fabricTypes = [
+    { label: 'Cotton',     value: 'cotton',     emoji: '🌿' },
+    { label: 'Silk',       value: 'silk',        emoji: '✨' },
+    { label: 'Linen',      value: 'linen',       emoji: '🍃' },
+    { label: 'Georgette',  value: 'georgette',   emoji: '🌸' },
+    { label: 'Net',        value: 'net',         emoji: '🕸️' },
+    { label: 'Velvet',     value: 'velvet',      emoji: '💜' },
+    {label: 'satin',      value: 'satin',       emoji: '💫' },
+  ];
+
+  getTypeLabel(value: string): string {
+    return this.fabricTypes.find(t => t.value === value)?.label ?? (value || '—');
+  }
+
   // ── UI state ──────────────────────────────────────────
   submitting = false;
   successMsg = '';
   errorMsg   = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private zone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
     this.loadFabrics();
   }
 
@@ -67,25 +89,49 @@ export class PoobooAdminFabrics implements OnInit {
   }
 
   // ── Image handling ────────────────────────────────────
-  onFabricFileChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.f_selectedFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => this.f_imagePreview = e.target?.result as string;
-      reader.readAsDataURL(this.f_selectedFile);
-    }
-  }
+f_imageUploading = false;
 
-  removeFabricImage() {
-    this.f_selectedFile = null;
-    this.f_imagePreview = null;
+onFabricUploadClick(input: HTMLInputElement): void {
+  if (this.f_imageUploading) return;
+  input.click();
+}
+
+onFabricFileChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  this.f_imageUploading = true;   // ← show spinner
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    this.zone.run(() => {
+      this.f_imagePreview   = e.target?.result as string;
+      this.f_selectedFile   = file;
+      this.f_imageUploading = false;
+      input.value = '';          // allow re-selecting the same file later
+    });
+  };
+  reader.onerror = () => {
+    this.zone.run(() => {
+      this.f_imageUploading = false;
+      this.errorMsg = 'Failed to read image. Please try again.';
+      input.value = '';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+  removeFabricImage(): void {
+    this.f_imagePreview   = null;
+    this.f_selectedFile   = null;
+    this.f_imageUploading = false;
   }
 
   // ── Submit add-fabric form ────────────────────────────
   submitFabric() {
-    if (!this.f_name || !this.f_price_per_meter) {
-      this.errorMsg = 'Name and price are required.';
+    if (!this.f_name || !this.f_price_per_meter || !this.f_fabric_type) {
+      this.errorMsg = 'Name, price, and fabric type are required.';
       return;
     }
 
@@ -95,6 +141,7 @@ export class PoobooAdminFabrics implements OnInit {
 
     const formData = new FormData();
     formData.append('name',            this.f_name);
+    formData.append('fabric_type',     this.f_fabric_type);
     formData.append('description',     this.f_description);
     formData.append('price_per_meter', this.f_price_per_meter);
     formData.append('total_meters',    this.f_total_meters);
@@ -110,9 +157,13 @@ export class PoobooAdminFabrics implements OnInit {
       next: () => {
         this.successMsg = '✅ Fabric added successfully!';
         this.submitting = false;
-        this.resetForm();
-        this.showForm   = false;
         this.loadFabrics();
+        // give the user a moment to see the success message before the
+        // form resets and closes
+        setTimeout(() => {
+          this.resetForm();
+          this.showForm = false;
+        }, 800);
       },
       error: () => {
         this.errorMsg   = '❌ Failed to add fabric. Please try again.';
@@ -124,6 +175,7 @@ export class PoobooAdminFabrics implements OnInit {
   // ── Reset form fields ─────────────────────────────────
   resetForm() {
     this.f_name             = '';
+    this.f_fabric_type      = '';
     this.f_description      = '';
     this.f_price_per_meter  = '';
     this.f_total_meters     = '';

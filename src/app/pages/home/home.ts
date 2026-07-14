@@ -75,12 +75,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       subtitle: 'TRENDING NOW',
       title: 'Style That Speaks',
       description: 'Discover timeless beauty and designer collections.'
-    },
-    {
-      image: 'assets/images/newslide9.jpg',
-      subtitle: 'PREMIUM COLLECTION',
-      title: 'Made For Every Occasion',
-      description: 'Fashion that blends elegance and confidence.'
     }
   ];
 

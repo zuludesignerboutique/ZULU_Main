@@ -63,7 +63,7 @@
     @if (!isLoading && products.length > 0) {
       <div class="pb-product-grid">
         @for (product of products; track product.id) {
-          <a [routerLink]="['/pooboo/products', product.id]" class="pb-product-card">
+          <a routerLink="/pooboo/enquiry" class="pb-product-card">
 
             <div class="pb-product-img-wrap">
               <img
@@ -72,19 +72,17 @@
                 class="pb-product-img"
                 loading="lazy"/>
 
-              @if (product.is_customizable) {
-                <span class="pb-badge-custom">✂️ Custom</span>
-              }
+              <span class="pb-badge-custom">✂️ Custom Stitch</span>
 
               <div class="pb-product-overlay">
-                <span class="pb-quick-view">View Details</span>
+                <span class="pb-quick-view">Enquire Now</span>
               </div>
             </div>
 
             <div class="pb-product-info">
-              <p class="pb-product-age">{{ product.age_group }}</p>
+              <p class="pb-product-age">{{ product.colour || getTypeLabelFor(product.fabric_type) }}</p>
               <h3 class="pb-product-name">{{ product.name }}</h3>
-              <p class="pb-product-price">₹{{ product.price | number:'1.0-0' }}</p>
+              <p class="pb-product-price">₹{{ product.price_per_meter | number:'1.0-0' }} / meter</p>
             </div>
 
           </a>

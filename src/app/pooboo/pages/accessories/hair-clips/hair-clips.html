@@ -1,1 +1,69 @@
-<p>hair-clips works!</p>
+<app-pooboo-header></app-pooboo-header>
+
+<section class="pb-sub-hero">
+  <div class="pb-sub-hero-inner">
+    <a routerLink="/pooboo/accessories" class="pb-sub-back">← All Accessories</a>
+    <span class="pb-sub-badge">🩷 Hair Clips</span>
+    <h1 class="pb-sub-title">Snap-On Clips That <span>Stay All Day</span></h1>
+    <p class="pb-sub-sub">Cute clips in every colour that hold strong.</p>
+  </div>
+</section>
+
+<section class="pb-sub-products">
+  <div class="pb-container">
+
+    <p class="pb-sub-count" *ngIf="!isLoading && products.length > 0">
+      Showing {{ products.length }} item{{ products.length === 1 ? '' : 's' }}
+    </p>
+
+    <!-- Loading -->
+    <div class="pb-sub-grid" *ngIf="isLoading">
+      <div class="pb-sub-skeleton" *ngFor="let n of [1,2,3,4,5,6,7,8]">
+        <div class="sk-img"></div>
+        <div class="sk-line"></div>
+        <div class="sk-line short"></div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="pb-sub-grid" *ngIf="!isLoading && products.length > 0">
+      <div class="pb-sub-card" *ngFor="let p of products">
+        <div class="pb-sub-img-wrap">
+          <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="pb-sub-img" loading="lazy" />
+          <span class="pb-sub-oos" *ngIf="isOutOfStock(p)">Out of Stock</span>
+        </div>
+        <div class="pb-sub-info">
+          <p class="pb-sub-colour" *ngIf="p.colour">{{ p.colour }}</p>
+          <h3 class="pb-sub-name">{{ p.name }}</h3>
+          <p class="pb-sub-price">₹{{ p.price | number:'1.0-0' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty -->
+    <div class="pb-sub-empty" *ngIf="!isLoading && !hasError && products.length === 0">
+      <span class="pb-sub-empty-icon">🩷</span>
+      <h3>No hair clips yet</h3>
+      <p>Check back soon — new pieces are added regularly.</p>
+    </div>
+
+    <!-- Error -->
+    <div class="pb-sub-empty" *ngIf="hasError">
+      <h3>Couldn't load products</h3>
+      <p>Please refresh and try again.</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="pb-sub-cta">
+  <div class="pb-container pb-sub-cta-inner">
+    <div>
+      <h3>Want something custom-made?</h3>
+      <p>Tell us what you have in mind and we'll craft it for your little one.</p>
+    </div>
+    <a routerLink="/pooboo/enquiry" class="pb-sub-cta-btn">Book Custom Order</a>
+  </div>
+</section>
+
+<app-pooboo-footer></app-pooboo-footer>

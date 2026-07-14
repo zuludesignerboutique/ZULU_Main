@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
@@ -13,24 +14,25 @@ import { AuthService } from './services/auth.service';
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
-export class App {
+export class App implements OnDestroy {
 
   showLayout = true;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private auth: AuthService,
     private router: Router
   ) {
 
-    // this.auth.logout(); // keep your existing logic
-
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
       .subscribe((event: NavigationEnd) => {
 
         const url = event.urlAfterRedirects;
 
-        // ❌ hide header/footer for admin, landing, and pooboo routes
         if (url.startsWith('/admin') || url === '/' || url.startsWith('/pooboo')) {
           this.showLayout = false;
         } else {
@@ -38,5 +40,10 @@ export class App {
         }
 
       });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

@@ -43,17 +43,49 @@
           <div class="field-row">
             <div class="field-group">
               <label>Category *</label>
-              <select [(ngModel)]="product.category" name="category" (change)="onCategoryChange()" required>
-                <option value="">Select Category</option>
-                <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.label }}</option>
-              </select>
+              <div class="select-with-action">
+                <select [(ngModel)]="product.category" name="category" (change)="onCategoryChange()" required>
+                  <option value="">Select Category</option>
+                  <option *ngFor="let cat of categories" [value]="cat.name">{{ cat.name }}</option>
+                </select>
+                <button type="button" class="btn-inline-add" (click)="toggleAddCategory()">
+                  {{ addingCategory ? '✕' : '+ New' }}
+                </button>
+              </div>
+
+              <div class="inline-add-widget" *ngIf="addingCategory">
+                <input type="text" [(ngModel)]="newCategoryName" name="newCategoryName"
+                  placeholder="e.g. Festive Wear" [disabled]="savingCategory" />
+                <button type="button" class="btn-inline-save" [disabled]="savingCategory"
+                  (click)="saveNewCategory()">
+                  {{ savingCategory ? 'Saving...' : 'Save' }}
+                </button>
+              </div>
+              <p class="inline-add-error" *ngIf="categorySaveError">{{ categorySaveError }}</p>
             </div>
+
             <div class="field-group">
               <label>Subcategory *</label>
-              <select [(ngModel)]="product.subcategory" name="subcategory" required [disabled]="!product.category">
-                <option value="">Select Subcategory</option>
-                <option *ngFor="let sub of currentSubcategories" [value]="sub">{{ sub }}</option>
-              </select>
+              <div class="select-with-action">
+                <select [(ngModel)]="product.subcategory" name="subcategory" required [disabled]="!product.category">
+                  <option value="">{{ product.category ? 'Select Subcategory' : 'Select a category first' }}</option>
+                  <option *ngFor="let sub of subcategories" [value]="sub.name">{{ sub.name }}</option>
+                </select>
+                <button type="button" class="btn-inline-add" [disabled]="!product.category"
+                  (click)="toggleAddSubcategory()">
+                  {{ addingSubcategory ? '✕' : '+ New' }}
+                </button>
+              </div>
+
+              <div class="inline-add-widget" *ngIf="addingSubcategory">
+                <input type="text" [(ngModel)]="newSubcategoryName" name="newSubcategoryName"
+                  placeholder="e.g. Indo-Western" [disabled]="savingSubcategory" />
+                <button type="button" class="btn-inline-save" [disabled]="savingSubcategory"
+                  (click)="saveNewSubcategory()">
+                  {{ savingSubcategory ? 'Saving...' : 'Save' }}
+                </button>
+              </div>
+              <p class="inline-add-error" *ngIf="subcategorySaveError">{{ subcategorySaveError }}</p>
             </div>
           </div>
         </div>
@@ -119,9 +151,9 @@
       <div class="sidebar-card">
         <h4 class="sidebar-title">Category Guide</h4>
         <div class="cat-guide" *ngFor="let cat of categories">
-          <div class="cat-guide-name">{{ cat.label }}</div>
+          <div class="cat-guide-name">{{ cat.name }}</div>
           <div class="cat-guide-subs">
-            <span *ngFor="let sub of subcategoryMap[cat.value]">{{ sub }}</span>
+            <span *ngFor="let sub of getSubsForCategory(cat.id)">{{ sub.name }}</span>
           </div>
         </div>
       </div>

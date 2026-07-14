@@ -20,6 +20,29 @@ export class EditProduct implements OnInit {
 
   imageBase: string = 'http://localhost:4000/uploads/';
 
+  // ── Category → allowed subcategories (must match dropdown option text exactly) ──
+  categorySubMap: Record<string, string[]> = {
+    'Bridal Collection': ['Bridal Blouse', 'Bridal Saree', 'Lehenga', 'Gown', 'Half Saree'],
+    'Groom Collection':  ['Designer Shirt', 'Traditional Dhoti'],
+    'Party Wear':        ['Party Gown', 'Designer Kurti', 'Western Dress'],
+    'Casual Wear':       ['T-Shirts', 'Casual Shirts', 'Everyday Wear'],
+  };
+
+  get availableSubcategories(): string[] {
+    return this.categorySubMap[this.product.category] || [];
+  }
+
+  // Only clears the subcategory when the user actively changes the category
+  // dropdown to something whose sub-list no longer includes the current value.
+  // Does NOT run during ngOnInit's initial data load (that's a plain property
+  // assignment, not a view event), so existing saved products load correctly.
+  onCategoryChange() {
+    const validSubs = this.categorySubMap[this.product.category] || [];
+    if (!validSubs.includes(this.product.subcategory)) {
+      this.product.subcategory = '';
+    }
+  }
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,

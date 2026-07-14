@@ -142,7 +142,46 @@
     overflow: hidden;
 
     &:hover { border-color: #ff6b9d; }
+// ── Uploading state ───────────────────────────────
+&.uploading {
+  border-color: #ff6b9d;
+  background: #fff5f9;
 
+  .upload-placeholder { opacity: 0.4; }
+}
+
+.upload-progress {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.82);
+  border-radius: 10px;
+  pointer-events: none;
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #f0ece4;
+    border-top-color: #ff6b9d;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  .upload-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff6b9d;
+    letter-spacing: 0.3px;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
     .upload-placeholder {
       display: flex;
       flex-direction: column;

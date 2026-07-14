@@ -100,7 +100,9 @@
           <span class="size-label">Size</span>
           <button class="size-chart-link" (click)="toggleSizeChart()">View Size Chart</button>
         </div>
-        <div class="size-options">
+        <div class="size-options" [style.outline]="sizeError ? '2px solid #e05c5c' : 'none'"
+             [style.borderRadius]="sizeError ? '6px' : 'none'"
+             [style.padding]="sizeError ? '4px' : '0'">
           <button
             class="size-btn"
             *ngFor="let size of getAvailableSizes()"
@@ -110,7 +112,10 @@
             {{ size }}
           </button>
         </div>
-        <p class="size-error" *ngIf="sizeError">Please select a size</p>
+        <p class="size-error" *ngIf="sizeError"
+           style="color:#e05c5c; font-size:13px; font-weight:600; margin-top:8px;">
+          ⚠ Please select a size first
+        </p>
       </div>
 
       <!-- QUANTITY -->
@@ -173,7 +178,7 @@
         </div>
         <div class="trust-item">
           <span class="trust-icon">✦</span>
-          Authentic & amp; verified
+          Authentic &amp; verified
         </div>
         <div class="trust-item">
           <span class="trust-icon">↩</span>
