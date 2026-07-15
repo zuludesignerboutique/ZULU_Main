@@ -146,14 +146,115 @@
       </form>
     </div>
 
-    <!-- ══ SIDEBAR: Category Guide ══ -->
+    <!-- ══ SIDEBAR: Category Guide (manage: edit / delete) ══ -->
     <div class="ap-sidebar">
       <div class="sidebar-card">
         <h4 class="sidebar-title">Category Guide</h4>
+        <p class="sidebar-hint">Click ✎ to rename or 🗑 to delete. Edits apply everywhere, including existing products.</p>
+
         <div class="cat-guide" *ngFor="let cat of categories">
-          <div class="cat-guide-name">{{ cat.name }}</div>
+
+          <!-- Category row: view mode -->
+          <div class="cat-guide-name" *ngIf="editingCategoryId !== cat.id">
+            <span class="cg-text">{{ cat.name }}</span>
+            <span class="cg-actions">
+              <button type="button" class="cg-icon-btn" title="Rename category" (click)="startEditCategory(cat, $event)">✎</button>
+              <button type="button" class="cg-icon-btn cg-danger" title="Delete category" (click)="requestDeleteCategory(cat, $event)">🗑</button>
+            </span>
+          </div>
+
+          <!-- Category row: edit mode -->
+          <div class="cg-edit-row" *ngIf="editingCategoryId === cat.id">
+            <input type="text" [(ngModel)]="editCategoryName" name="editCategoryName-{{cat.id}}"
+              [disabled]="savingCategoryEdit" (keyup.enter)="saveEditCategory(cat)" />
+            <button type="button" class="btn-inline-save" [disabled]="savingCategoryEdit" (click)="saveEditCategory(cat)">
+              {{ savingCategoryEdit ? '...' : 'Save' }}
+            </button>
+            <button type="button" class="btn-inline-cancel" [disabled]="savingCategoryEdit" (click)="cancelEditCategory()">✕</button>
+          </div>
+          <p class="inline-add-error" *ngIf="editingCategoryId === cat.id && categoryEditError">{{ categoryEditError }}</p>
+
+          <!-- Category delete confirm / in-use warning -->
+          <div class="cg-delete-box" *ngIf="deleteCategoryTarget?.id === cat.id">
+            <ng-container *ngIf="!deleteCategoryBlockedProducts">
+              <p>Delete "<strong>{{ cat.name }}</strong>"? This also removes its subcategories.</p>
+              <div class="cg-delete-actions">
+                <button type="button" class="btn-inline-save cg-danger-btn" [disabled]="deletingCategory" (click)="confirmDeleteCategory(false)">
+                  {{ deletingCategory ? 'Deleting...' : 'Delete' }}
+                </button>
+                <button type="button" class="btn-inline-cancel" [disabled]="deletingCategory" (click)="cancelDeleteCategory()">Cancel</button>
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="deleteCategoryBlockedProducts">
+              <p class="cg-warning-title" *ngIf="deleteCategoryBlockedProducts.length">
+                ⚠ This category is used by {{ deleteCategoryBlockedProducts.length }} product(s):
+              </p>
+              <ul class="cg-warning-list" *ngIf="deleteCategoryBlockedProducts.length">
+                <li *ngFor="let p of deleteCategoryBlockedProducts">{{ p.name }} — <code>{{ p.product_code }}</code></li>
+              </ul>
+              <div class="cg-delete-actions">
+                <button type="button" class="btn-inline-save cg-danger-btn" [disabled]="deletingCategory" (click)="confirmDeleteCategory(true)">
+                  {{ deletingCategory ? 'Deleting...' : 'Delete Anyway' }}
+                </button>
+                <button type="button" class="btn-inline-cancel" [disabled]="deletingCategory" (click)="cancelDeleteCategory()">Cancel</button>
+              </div>
+            </ng-container>
+            <p class="inline-add-error" *ngIf="deleteCategoryError">{{ deleteCategoryError }}</p>
+          </div>
+
+          <!-- Subcategories under this category -->
           <div class="cat-guide-subs">
-            <span *ngFor="let sub of getSubsForCategory(cat.id)">{{ sub.name }}</span>
+            <div class="cg-sub-row" *ngFor="let sub of getSubsForCategory(cat.id)">
+
+              <!-- Subcategory: view mode -->
+              <span class="cg-sub-view" *ngIf="editingSubcategoryId !== sub.id">
+                {{ sub.name }}
+                <button type="button" class="cg-icon-btn cg-icon-sm" title="Rename subcategory" (click)="startEditSubcategory(sub, $event)">✎</button>
+                <button type="button" class="cg-icon-btn cg-icon-sm cg-danger" title="Delete subcategory" (click)="requestDeleteSubcategory(sub, $event)">🗑</button>
+              </span>
+
+              <!-- Subcategory: edit mode -->
+              <span class="cg-edit-row cg-edit-row-sm" *ngIf="editingSubcategoryId === sub.id">
+                <input type="text" [(ngModel)]="editSubcategoryName" name="editSubcategoryName-{{sub.id}}"
+                  [disabled]="savingSubcategoryEdit" (keyup.enter)="saveEditSubcategory(sub)" />
+                <button type="button" class="btn-inline-save" [disabled]="savingSubcategoryEdit" (click)="saveEditSubcategory(sub)">
+                  {{ savingSubcategoryEdit ? '...' : 'Save' }}
+                </button>
+                <button type="button" class="btn-inline-cancel" [disabled]="savingSubcategoryEdit" (click)="cancelEditSubcategory()">✕</button>
+              </span>
+              <p class="inline-add-error" *ngIf="editingSubcategoryId === sub.id && subcategoryEditError">{{ subcategoryEditError }}</p>
+
+              <!-- Subcategory delete confirm / in-use warning -->
+              <div class="cg-delete-box" *ngIf="deleteSubcategoryTarget?.id === sub.id">
+                <ng-container *ngIf="!deleteSubcategoryBlockedProducts">
+                  <p>Delete "<strong>{{ sub.name }}</strong>"?</p>
+                  <div class="cg-delete-actions">
+                    <button type="button" class="btn-inline-save cg-danger-btn" [disabled]="deletingSubcategory" (click)="confirmDeleteSubcategory(false)">
+                      {{ deletingSubcategory ? 'Deleting...' : 'Delete' }}
+                    </button>
+                    <button type="button" class="btn-inline-cancel" [disabled]="deletingSubcategory" (click)="cancelDeleteSubcategory()">Cancel</button>
+                  </div>
+                </ng-container>
+
+                <ng-container *ngIf="deleteSubcategoryBlockedProducts">
+                  <p class="cg-warning-title" *ngIf="deleteSubcategoryBlockedProducts.length">
+                    ⚠ This subcategory is used by {{ deleteSubcategoryBlockedProducts.length }} product(s):
+                  </p>
+                  <ul class="cg-warning-list" *ngIf="deleteSubcategoryBlockedProducts.length">
+                    <li *ngFor="let p of deleteSubcategoryBlockedProducts">{{ p.name }} — <code>{{ p.product_code }}</code></li>
+                  </ul>
+                  <div class="cg-delete-actions">
+                    <button type="button" class="btn-inline-save cg-danger-btn" [disabled]="deletingSubcategory" (click)="confirmDeleteSubcategory(true)">
+                      {{ deletingSubcategory ? 'Deleting...' : 'Delete Anyway' }}
+                    </button>
+                    <button type="button" class="btn-inline-cancel" [disabled]="deletingSubcategory" (click)="cancelDeleteSubcategory()">Cancel</button>
+                  </div>
+                </ng-container>
+                <p class="inline-add-error" *ngIf="deleteSubcategoryError">{{ deleteSubcategoryError }}</p>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
