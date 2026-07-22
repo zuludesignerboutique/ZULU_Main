@@ -1,83 +1,255 @@
+/* ════════════════════════════════════════════════
+   PRODUCT CARD — Dark Luxury Editorial
+   (matches products-page card design)
+   ════════════════════════════════════════════════ */
 
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap');
 
 :host {
   display: block;
+  height: 100%;
+
+  --ink:       #0d0d0d;
+  --ink-soft:  #1c1c1c;
+  --card:      #161616;
+  --card-hover:#1e1e1e;
+  --border:    rgba(255,255,255,0.07);
+  --gold:      #c8a96e;
+  --gold-dim:  rgba(200,169,110,0.12);
+  --gold-glow: rgba(200,169,110,0.25);
+  --text:      #f0ece4;
+  --muted:     rgba(240,236,228,0.45);
+  --radius-lg: 14px;
+  --ease:      cubic-bezier(0.4, 0, 0.2, 1);
+  --spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+// ── CARD ─────────────────────────────────────────
 .product-card {
-  width: 260px;
-  border-radius: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #fff;
+  border: 1px solid var(--border);
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-family: 'Jost', sans-serif;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.4s,
+    background 0.3s;
+
+  &:hover {
+    transform: translateY(-8px);
+    border-color: rgba(200,169,110,.2);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,169,110,.08);
+    background: var(--card-hover);
+  }
 }
 
-.product-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-}
-
-.product-img {
-  width: 100%;
+// ── IMAGE BOX ────────────────────────────────────
+.image-box {
+  position: relative;
   height: 320px;
-  object-fit: cover;
-  display: block;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #111;
+
+  .product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .product-card:hover & .product-img {
+    transform: scale(1.07);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(13,13,13,0.55) 0%,
+      transparent 50%
+    );
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .product-card:hover &::after {
+    opacity: 0.6;
+  }
+
+  @media (max-width: 600px) {
+    height: 220px;
+  }
 }
 
+// ── CARD INFO ────────────────────────────────────
 .product-info {
-  padding: 12px;
-  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 20px;
+  border-top: 1px solid var(--border);
+
+  h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text);
+    margin: 0 0 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .category {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .03em;
+    margin: 0 0 14px;
+    min-height: 1em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-.product-info h5 {
-  font-size: 16px;
-  margin-bottom: 6px;
+// ── PRICE ROW ────────────────────────────────────
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: nowrap;
 }
 
-.product-info p {
+.price {
+  font-family: 'Jost', sans-serif;
+  font-size: 15px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
+  letter-spacing: .02em;
+  white-space: nowrap;
+
+  &::before {
+    content: '₹';
+    font-weight: 300;
+    font-size: 13px;
+    color: var(--muted);
+    margin-right: 1px;
+  }
 }
+
+// ── VIEW BUTTON ──────────────────────────────────
+.view-btn {
+  position: relative;
+  padding: 7px 18px;
+  border-radius: 50px;
+  border: 1px solid rgba(200,169,110,.35);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  overflow: hidden;
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    color 0.25s,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+  }
+
+  span {
+    position: relative;
+    z-index: 1;
+  }
+
+  &:hover {
+    color: var(--ink);
+    border-color: var(--gold);
+    box-shadow: 0 4px 20px rgba(200,169,110,0.25);
+    transform: scale(1.04);
+
+    &::before { transform: scaleX(1); }
+  }
+
+  &:active { transform: scale(0.97); }
+}
+
+// ── ACTIONS (Add to Cart / Wishlist) ─────────────
 .actions {
   display: flex;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 10px;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
 }
 
-.actions button {
+.action-btn {
   flex: 1;
-  padding: 10px 14px;
-  border-radius: 999px; /* pill shape */
-  border: 1px solid #111;
+  padding: 9px 14px;
+  border-radius: 50px;
+  border: 1px solid rgba(200,169,110,.35);
   background: transparent;
-  color: #111;
+  color: var(--gold);
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.25s ease;
-}
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    color 0.25s,
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s;
 
-.actions button:hover {
-  background: #111;
-  color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
+  &:hover {
+    background: var(--gold);
+    color: var(--ink);
+    box-shadow: 0 4px 20px rgba(200,169,110,0.25);
+    transform: translateY(-1px);
+  }
 
-.actions button:active {
-  transform: translateY(0);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
+  &:active {
+    transform: translateY(0);
+  }
 
-/* Optional: make Wishlist look softer */
-.actions button:last-child {
-  border-color: #b76e79;   /* soft rose-gold vibe */
-  color: #b76e79;
-}
+  // Wishlist gets a softer rose-gold treatment to differentiate it
+  &.wishlist {
+    border-color: rgba(183,110,121,.4);
+    color: #d99aa5;
 
-.actions button:last-child:hover {
-  background: #b76e79;
-  color: #fff;
+    &:hover {
+      background: #b76e79;
+      border-color: #b76e79;
+      color: #fff;
+    }
+  }
 }

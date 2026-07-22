@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ProductCardComponent } from '../../components/product-card/product-card';
 import { Product } from '../../core/models/product.model';
+import { CategoryService, Category } from '../../services/category.service';
 
 @Component({
   selector: 'app-subcategories',
@@ -14,88 +15,79 @@ import { Product } from '../../core/models/product.model';
 })
 export class SubcategoriesComponent implements OnInit {
 
-  categoryType = '';
+  categoryType = '';       // the :type slug from the URL, e.g. "casual-wear"
+  categoryLabel = '';      // resolved display name, e.g. "Casual Wear"
   selectedSubcategory = '';
   subcategories: { name: string; key: string }[] = [];
 
   allProducts: Product[] = [];
   filteredProducts: Product[] = [];
   isLoading = true;
+  notFound = false;
 
-  private categoryMap: Record<string, { label: string; subs: { name: string; key: string }[] }> = {
-    bridal: {
-      label: 'Bridal Collection',
-      subs: [
-        { name: 'All',           key: '' },
-        { name: 'Bridal Blouse', key: 'Bridal Blouse' },
-        { name: 'Bridal Saree',  key: 'Bridal Saree' },
-        { name: 'Lehenga',       key: 'Lehenga' },
-        { name: 'Gown',          key: 'Gown' },
-        { name: 'Half Saree',    key: 'Half Saree' },
-      ]
-    },
-    groom: {
-      label: 'Groom Collection',
-      subs: [
-        { name: 'All',               key: '' },
-        { name: 'Designer Shirt',    key: 'Designer Shirt' },
-        { name: 'Traditional Dhoti', key: 'Traditional Dhoti' },
-      ]
-    },
-    party: {
-      label: 'Party Wear',
-      subs: [
-        { name: 'All',            key: '' },
-        { name: 'Party Gown',     key: 'Party Gown' },
-        { name: 'Designer Kurti', key: 'Designer Kurti' },
-        { name: 'Western Dress',  key: 'Western Dress' },
-      ]
-    },
-    casual: {
-      label: 'Casual Wear',
-      subs: [
-        { name: 'All',           key: '' },
-        { name: 'T-Shirts',      key: 'T-Shirts' },
-        { name: 'Casual Shirts', key: 'Casual Shirts' },
-        { name: 'Everyday Wear', key: 'Everyday Wear' },
-      ]
-    }
-  };
+  private matchedCategory: Category | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
+    private categoryService: CategoryService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     this.categoryType = this.route.snapshot.params['type'];
-    const config = this.categoryMap[this.categoryType];
-    if (config) {
-      this.subcategories = config.subs;
-      this.selectedSubcategory = '';
-    } else {
-      this.isLoading = false;
-      return;
-    }
 
+    // Resolve the slug in the URL against real categories from the DB —
+    // replaces the old hardcoded `categoryMap` lookup.
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.matchedCategory = categories.find(
+          c => this.slugify(c.name) === this.categoryType
+        ) || null;
+
+        if (!this.matchedCategory) {
+          this.notFound = true;
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.categoryLabel = this.matchedCategory.name;
+        this.loadSubcategories(this.matchedCategory.id);
+        this.loadProducts(this.matchedCategory.name);
+      },
+      error: () => {
+        this.notFound = true;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadSubcategories(categoryId: number) {
+    this.categoryService.getSubcategories(categoryId).subscribe({
+      next: (subs) => {
+        this.subcategories = [
+          { name: 'All', key: '' },
+          ...subs.map(s => ({ name: s.name, key: s.name }))
+        ];
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Tabs are non-critical — fall back to just "All" rather than blocking the page
+        this.subcategories = [{ name: 'All', key: '' }];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadProducts(categoryName: string) {
     this.http.get<Product[]>('http://localhost:4000/api/products').subscribe({
       next: (data) => {
-        // Debug: see exactly what category/subcategory values the DB returns
-        console.log('[Subcategories] route type:', this.categoryType);
-        console.log('[Subcategories] all products from DB:', data.map(p => ({
-          id: p.id, name: p.name, category: p.category, subcategory: p.subcategory
-        })));
-
-        const label = config.label.toLowerCase().trim();
-
-        this.allProducts = data.filter(p => {
-          const cat = (p.category || '').toLowerCase().trim();
-          return cat === label;
-        });
-
-        console.log('[Subcategories] matched products:', this.allProducts);
-
+        const label = categoryName.toLowerCase().trim();
+        this.allProducts = data.filter(
+          p => (p.category || '').toLowerCase().trim() === label
+        );
         this.filterProducts();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -106,10 +98,6 @@ export class SubcategoriesComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  get categoryLabel(): string {
-    return this.categoryMap[this.categoryType]?.label || this.categoryType + ' Collection';
   }
 
   selectSubcategory(key: string) {
@@ -127,6 +115,14 @@ export class SubcategoriesComponent implements OnInit {
         (p.subcategory || '').toLowerCase().trim() === sel
       );
     }
-    console.log('[Subcategories] filteredProducts:', this.filteredProducts.length, 'for sub:', this.selectedSubcategory || 'ALL');
+  }
+
+  // Must match the slugify logic in categories.ts so routes resolve consistently.
+  private slugify(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   }
 }

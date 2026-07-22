@@ -2,7 +2,19 @@
 
   <h2 class="text-center mb-5">Shop by Category</h2>
 
-  <div class="row">
+  <!-- LOADING -->
+  <div class="cat-status text-center" *ngIf="isLoading">Loading categories...</div>
+
+  <!-- ERROR -->
+  <div class="cat-status text-center" *ngIf="!isLoading && errorMsg">{{ errorMsg }}</div>
+
+  <!-- EMPTY -->
+  <div class="cat-status text-center" *ngIf="!isLoading && !errorMsg && categories.length === 0">
+    No categories yet. Add one from the admin panel.
+  </div>
+
+  <!-- CATEGORY GRID -->
+  <div class="row" *ngIf="!isLoading && categories.length > 0">
 
     <div
       class="col-md-3 mb-4"

@@ -1,27 +1,348 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap');
+
+$gold:   #c8a96e;
+$ink:    #1a1814;
+$muted:  #9a9080;
+$border: rgba(0,0,0,0.08);
+$surface:#faf8f5;
+$error:  #c0392b;
+$success:#27ae60;
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+@keyframes dotPulse {
+  0%,100% { transform:scale(0.6);opacity:0.4; }
+  50%     { transform:scale(1);opacity:1; }
+}
+
+// ── PAGE ─────────────────────────────────────────
 .edit-product-page {
+  font-family: 'Jost', sans-serif;
+  color: $ink;
+  animation: fadeUp 0.4s ease both;
+}
 
-  // ... paste everything from add-product.scss here, 
-  //     just change .add-product-page → .edit-product-page
+// ── HEADER ───────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
 
-  // Extra: existing image display
-  .existing-image-wrap {
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    .existing-img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 10px;
-      border: 1px solid #f0ece4;
-    }
-
-    .existing-label {
-      font-size: 12px;
-      color: #9a9080;
-      margin: 0;
-    }
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: $ink;
+    margin: 0 0 6px;
   }
+
+  .subtitle {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: $muted;
+    margin: 0;
+  }
+}
+
+.btn-back {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $muted;
+  text-decoration: none;
+  padding: 10px 20px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  transition: 0.2s ease;
+  white-space: nowrap;
+
+  &:hover { border-color: $ink; color: $ink; }
+}
+
+// ── STATE MESSAGES ───────────────────────────────
+.state-msg {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $muted;
+
+  &.error { color: $error; }
+}
+
+.alert {
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  animation: fadeUp 0.3s ease both;
+
+  &.success {
+    background: rgba(39,174,96,0.08);
+    color: $success;
+    border: 1px solid rgba(39,174,96,0.25);
+  }
+
+  &.error {
+    background: rgba(192,57,43,0.08);
+    color: $error;
+    border: 1px solid rgba(192,57,43,0.25);
+  }
+}
+
+// ── FORM CARD ────────────────────────────────────
+.form-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px;
+  border: 1px solid $border;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+
+  @media (max-width: 768px) { padding: 24px; }
+}
+
+// ── FORM ROWS ────────────────────────────────────
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+
+  &.three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+  &.toggles-row {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    &.three-col { grid-template-columns: 1fr; }
+  }
+}
+
+// ── FIELD GROUPS ─────────────────────────────────
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+
+  &.full-width { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $muted;
+  }
+
+  .hint {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0.04em;
+    color: lighten(#9a9080, 10%);
+  }
+
+  input, select, textarea {
+    padding: 12px 14px;
+    border: 1.5px solid $border;
+    border-radius: 10px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    color: $ink;
+    background: $surface;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+
+    &::placeholder { color: #c5bdb3; }
+
+    &:focus {
+      border-color: $gold;
+      box-shadow: 0 0 0 3px rgba(200,169,110,0.12);
+      background: #fff;
+    }
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9080' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+}
+
+// ── TOGGLES (checkboxes) ─────────────────────────
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $ink;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: $gold;
+    cursor: pointer;
+  }
+}
+
+// ── IMAGE SECTION ────────────────────────────────
+.existing-image-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+
+  .existing-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid $border;
+  }
+
+  .existing-label {
+    font-size: 12px;
+    color: $muted;
+    margin: 0;
+  }
+}
+
+.image-upload-area {
+  border: 2px dashed $border;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s;
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $surface;
+
+  &:hover { border-color: $gold; background: rgba(200,169,110,0.04); }
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  .upload-icon { font-size: 36px; opacity: 0.4; }
+
+  span:not(.upload-icon) {
+    font-size: 14px;
+    color: $muted;
+    font-weight: 500;
+  }
+}
+
+.image-preview-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
+}
+
+.remove-img {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  &:hover { background: $error; }
+}
+
+// ── FORM ACTIONS ─────────────────────────────────
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.btn-submit {
+  flex: 1;
+  padding: 15px 32px;
+  background: linear-gradient(135deg, #b76e79, #c8a96e);
+  color: #111;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: 0 6px 18px rgba(183,110,121,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+
+  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(183,110,121,0.4); }
+  &:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+}
+
+.btn-cancel {
+  padding: 15px 28px;
+  background: $surface;
+  color: $muted;
+  border: 1.5px solid $border;
+  border-radius: 12px;
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover { background: #edeae5; color: $ink; }
 }

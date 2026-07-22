@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -46,7 +46,9 @@ export class EditProduct implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -70,6 +72,17 @@ export class EditProduct implements OnInit {
             this.product.detailsRaw = this.product.details || '';
           }
         }
+
+        // ── Fix for "form fields blank until click" ──
+        // If HttpClient is using the fetch-based backend (provideHttpClient(withFetch())),
+        // the response resolves via native fetch(), which zone.js does NOT patch.
+        // That means Angular never schedules change detection when this data arrives,
+        // so the form stays blank until some unrelated zone-patched event (a click)
+        // triggers a CD pass. Forcing it here inside ngZone.run() guarantees the view
+        // updates the instant the data is set, with no dependency on user interaction.
+        this.ngZone.run(() => {
+          this.cdr.detectChanges();
+        });
       });
   }
 
@@ -80,7 +93,10 @@ export class EditProduct implements OnInit {
 
     // Show preview in the upload area
     const reader = new FileReader();
-    reader.onload = (e: any) => this.imagePreview = e.target.result;
+    reader.onload = (e: any) => {
+      this.imagePreview = e.target.result;
+      this.ngZone.run(() => this.cdr.detectChanges());
+    };
     reader.readAsDataURL(file);
   }
 

@@ -1,4 +1,4 @@
-import { Component, NgZone, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, NgZone, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -59,6 +59,7 @@ export class PoobooAdminFabrics implements OnInit {
     private http: HttpClient,
     private router: Router,
     private zone: NgZone,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -78,49 +79,61 @@ export class PoobooAdminFabrics implements OnInit {
     this.loading = true;
     this.http.get<any[]>(`${this.api}/api/pooboo/fabrics/all`).subscribe({
       next: (data) => {
-        this.products = data;
-        this.loading  = false;
+        // zone.run() + detectChanges() guarantees Angular repaints the view
+        // right away. Without this, during SSR/hydration this callback can
+        // resolve outside a change-detection window (the transfer-cache
+        // response comes back synchronously), so `loading`/`products`
+        // update in memory but the DOM keeps showing "Loading fabrics..."
+        // until some unrelated click forces change detection.
+        this.zone.run(() => {
+          this.products = data;
+          this.loading  = false;
+          this.cdr.detectChanges();
+        });
       },
       error: () => {
-        this.error   = 'Failed to load fabrics';
-        this.loading = false;
+        this.zone.run(() => {
+          this.error   = 'Failed to load fabrics';
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
 
   // ── Image handling ────────────────────────────────────
-f_imageUploading = false;
+  f_imageUploading = false;
 
-onFabricUploadClick(input: HTMLInputElement): void {
-  if (this.f_imageUploading) return;
-  input.click();
-}
+  onFabricUploadClick(input: HTMLInputElement): void {
+    if (this.f_imageUploading) return;
+    input.click();
+  }
 
-onFabricFileChange(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
+  onFabricFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
 
-  this.f_imageUploading = true;   // ← show spinner
+    this.f_imageUploading = true;   // ← show spinner
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    this.zone.run(() => {
-      this.f_imagePreview   = e.target?.result as string;
-      this.f_selectedFile   = file;
-      this.f_imageUploading = false;
-      input.value = '';          // allow re-selecting the same file later
-    });
-  };
-  reader.onerror = () => {
-    this.zone.run(() => {
-      this.f_imageUploading = false;
-      this.errorMsg = 'Failed to read image. Please try again.';
-      input.value = '';
-    });
-  };
-  reader.readAsDataURL(file);
-}
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.zone.run(() => {
+        this.f_imagePreview   = e.target?.result as string;
+        this.f_selectedFile   = file;
+        this.f_imageUploading = false;
+        input.value = '';          // allow re-selecting the same file later
+      });
+    };
+    reader.onerror = () => {
+      this.zone.run(() => {
+        this.f_imageUploading = false;
+        this.errorMsg = 'Failed to read image. Please try again.';
+        input.value = '';
+      });
+    };
+    reader.readAsDataURL(file);
+  }
 
   removeFabricImage(): void {
     this.f_imagePreview   = null;

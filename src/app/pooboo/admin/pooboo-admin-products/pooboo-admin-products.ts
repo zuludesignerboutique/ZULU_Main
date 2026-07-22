@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -20,6 +20,8 @@ export class PoobooAdminProducts implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
+    private cd: ChangeDetectorRef,
+    private ngZone: NgZone,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -31,8 +33,20 @@ export class PoobooAdminProducts implements OnInit {
   loadProducts() {
     this.loading = true;
     this.http.get<any[]>(`${this.api}/api/pooboo/products/all`).subscribe({
-      next: (data) => { this.products = data; this.loading = false; },
-      error: () => { this.error = 'Failed to load products'; this.loading = false; }
+      next: (data) => {
+        this.ngZone.run(() => {
+          this.products = data;
+          this.loading = false;
+          this.cd.detectChanges();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.error = 'Failed to load products';
+          this.loading = false;
+          this.cd.detectChanges();
+        });
+      }
     });
   }
 

@@ -1,5 +1,6 @@
 <div class="product-card" (click)="goToProduct(product)">
-  <div class="image-wrapper">
+
+  <div class="image-box">
     <img
       class="product-img"
       [src]="getImageUrl(product.image_url)"
@@ -8,12 +9,27 @@
       decoding="async"
     />
   </div>
+
   <div class="product-info">
-    <h5>{{ product.name }}</h5>
-    <p>{{ product.price | currency:'INR' }}</p>
+    <h4>{{ product.name }}</h4>
+
+    <p class="category">{{ product.category || '\u00A0' }}</p>
+
+    <div class="price-row">
+      <span class="price">{{ product.price | number }}</span>
+      <button class="view-btn" (click)="$event.stopPropagation(); goToProduct(product)">
+        <span>View</span>
+      </button>
+    </div>
+
+    <div class="actions">
+      <button class="action-btn" (click)="addToCart(product); $event.stopPropagation()">
+        <span>Add to Cart</span>
+      </button>
+      <button class="action-btn wishlist" (click)="addToWishlist(product); $event.stopPropagation()">
+        <span>Wishlist</span>
+      </button>
+    </div>
   </div>
-  <div class="actions">
-    <button (click)="addToCart(product); $event.stopPropagation()">Add to Cart</button>
-    <button (click)="addToWishlist(product); $event.stopPropagation()">Wishlist</button>
-  </div>
+
 </div>

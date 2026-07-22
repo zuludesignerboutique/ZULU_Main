@@ -1,4 +1,4 @@
-import { Component, NgZone, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, NgZone, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -55,6 +55,7 @@ export class PoobooAdminAccessories implements OnInit {
     private http: HttpClient,
     private router: Router,
     private zone: NgZone,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -88,15 +89,18 @@ export class PoobooAdminAccessories implements OnInit {
 
     this.http.get<any[]>(`${this.api}/api/pooboo/accessories/all`).subscribe({
       next: (data) => {
-        // zone.run() guarantees Angular repaints the view right away.
-        // Without it, during SSR/hydration this callback can land outside
-        // Angular's zone, so `loading`/`allProducts` update in memory but
-        // the DOM keeps showing "Loading accessories..." until some
-        // unrelated click forces change detection.
+        // zone.run() + detectChanges() guarantees Angular repaints the view
+        // right away. Without detectChanges(), during SSR/hydration this
+        // callback can resolve outside a change-detection window (the
+        // transfer-cache response comes back synchronously), so
+        // `loading`/`allProducts` update in memory but the DOM keeps
+        // showing "Loading accessories..." until some unrelated click
+        // forces change detection.
         this.zone.run(() => {
           this.allProducts = data;
           this.loading     = false;
           this.error       = '';
+          this.cdr.detectChanges();
         });
       },
       error: () => {
@@ -108,6 +112,7 @@ export class PoobooAdminAccessories implements OnInit {
             this.error = 'Failed to load accessories';
           }
           this.loading = false;
+          this.cdr.detectChanges();
         });
       }
     });
@@ -209,8 +214,14 @@ export class PoobooAdminAccessories implements OnInit {
           this.showForm = false;
         }, 800);
       },
-      error: () => {
-        this.errorMsg   = '❌ Failed to add accessory. Please try again.';
+      error: (err) => {
+        console.error('Add accessory error:', err);
+        // Show the backend's actual message when it sends one, instead of
+        // hiding it behind a generic string — makes issues like this one
+        // (a missing DB column) visible immediately instead of needing devtools.
+        this.errorMsg   = err?.error?.error
+          ? `❌ ${err.error.error}`
+          : '❌ Failed to add accessory. Please try again.';
         this.submitting = false;
       }
     });

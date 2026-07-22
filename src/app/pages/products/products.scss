@@ -146,6 +146,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: top center;
     display: block;
     transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -209,6 +210,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .price {
@@ -217,6 +219,7 @@
   font-weight: 600;
   color: #f0ece4;
   letter-spacing: .02em;
+  white-space: nowrap;
 
   &::before {
     content: '₹';

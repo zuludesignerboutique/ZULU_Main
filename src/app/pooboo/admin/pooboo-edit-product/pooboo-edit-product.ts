@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -59,7 +59,9 @@ export class PoobooEditProduct implements OnInit {
   constructor(
     private http   : HttpClient,
     private router : Router,
-    private route  : ActivatedRoute
+    private route  : ActivatedRoute,
+    private cd     : ChangeDetectorRef,
+    private ngZone : NgZone
   ) {}
 
   ngOnInit() {
@@ -70,39 +72,45 @@ export class PoobooEditProduct implements OnInit {
   loadProduct() {
     this.http.get<any>(`${this.api}/api/pooboo/products/${this.productId}`).subscribe({
       next: (p) => {
-        this.name            = p.name           || '';
-        this.description     = p.description    || '';
-        this.price           = p.price          || '';
-        this.category        = p.category       || '';
-        this.age_group       = p.age_group      || '';
-        this.gender          = p.gender         || 'unisex';
-        this.stock           = p.stock          || '';
-        this.product_code    = p.product_code   || '';
-        this.is_customizable = p.is_customizable == 1;
-        this.is_active       = p.is_active      != 0;
-        this.existingImage   = p.image_url      || null;
+        this.ngZone.run(() => {
+          this.name            = p.name           || '';
+          this.description     = p.description    || '';
+          this.price           = p.price          || '';
+          this.category        = p.category       || '';
+          this.age_group       = p.age_group      || '';
+          this.gender          = p.gender         || 'unisex';
+          this.stock           = p.stock          || '';
+          this.product_code    = p.product_code   || '';
+          this.is_customizable = p.is_customizable == 1;
+          this.is_active       = p.is_active      != 0;
+          this.existingImage   = p.image_url      || null;
 
-        // Derive product type + sub-category from the stored category value
-        const accessoryValues = this.accessoryCategories.map(a => a.value);
-        if (p.category === 'fabric') {
-          this.productType = 'fabric';
-        } else if (accessoryValues.includes(p.category)) {
-          this.productType = 'accessory';
-          this.accessoryCategory = p.category;
-        } else {
-          this.productType = 'apparel';
-        }
+          // Derive product type + sub-category from the stored category value
+          const accessoryValues = this.accessoryCategories.map(a => a.value);
+          if (p.category === 'fabric') {
+            this.productType = 'fabric';
+          } else if (accessoryValues.includes(p.category)) {
+            this.productType = 'accessory';
+            this.accessoryCategory = p.category;
+          } else {
+            this.productType = 'apparel';
+          }
 
-        // Arrays → comma separated strings for input fields
-        this.sizesInput   = Array.isArray(p.sizes)   ? p.sizes.join(', ')   : '';
-        this.coloursInput = Array.isArray(p.colours) ? p.colours.join(', ') : '';
-        this.detailsInput = Array.isArray(p.details) ? p.details.join('\n') : '';
+          // Arrays → comma separated strings for input fields
+          this.sizesInput   = Array.isArray(p.sizes)   ? p.sizes.join(', ')   : '';
+          this.coloursInput = Array.isArray(p.colours) ? p.colours.join(', ') : '';
+          this.detailsInput = Array.isArray(p.details) ? p.details.join('\n') : '';
 
-        this.loading = false;
+          this.loading = false;
+          this.cd.detectChanges();
+        });
       },
       error: () => {
-        this.errorMsg = 'Failed to load product.';
-        this.loading  = false;
+        this.ngZone.run(() => {
+          this.errorMsg = 'Failed to load product.';
+          this.loading  = false;
+          this.cd.detectChanges();
+        });
       }
     });
   }
@@ -117,7 +125,12 @@ export class PoobooEditProduct implements OnInit {
     if (input.files && input.files[0]) {
       this.selectedFile = input.files[0];
       const reader = new FileReader();
-      reader.onload = (e) => this.imagePreview = e.target?.result as string;
+      reader.onload = (e) => {
+        this.ngZone.run(() => {
+          this.imagePreview = e.target?.result as string;
+          this.cd.detectChanges();
+        });
+      };
       reader.readAsDataURL(this.selectedFile);
     }
   }
@@ -172,13 +185,19 @@ export class PoobooEditProduct implements OnInit {
 
     this.http.put(`${this.api}/api/pooboo/products/${this.productId}`, formData).subscribe({
       next: () => {
-        this.successMsg = '✅ Product updated successfully!';
-        this.submitting = false;
-        setTimeout(() => this.router.navigate(['/admin/pooboo/products']), 1200);
+        this.ngZone.run(() => {
+          this.successMsg = '✅ Product updated successfully!';
+          this.submitting = false;
+          this.cd.detectChanges();
+          setTimeout(() => this.router.navigate(['/admin/pooboo/products']), 1200);
+        });
       },
       error: () => {
-        this.errorMsg   = '❌ Failed to update product. Please try again.';
-        this.submitting = false;
+        this.ngZone.run(() => {
+          this.errorMsg   = '❌ Failed to update product. Please try again.';
+          this.submitting = false;
+          this.cd.detectChanges();
+        });
       }
     });
   }
