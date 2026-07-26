@@ -130,6 +130,57 @@ $border: #EDE8E8;
   }
 }
 
+// ---- Regarding (linked product) box ----
+.regarding-box {
+  background: $off-white;
+  border: 1.5px solid $border;
+  border-left: 4px solid $coral;
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.4rem;
+
+  .regarding-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $coral;
+  }
+
+  .regarding-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $dark;
+    margin: 0.35rem 0 0.6rem;
+  }
+
+  .regarding-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    .regarding-chip {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: $dark;
+      background: #fff;
+      border: 1px solid $border;
+      border-radius: 50px;
+      padding: 0.25rem 0.7rem;
+    }
+  }
+}
+
+.optional {
+  color: $text-muted;
+  font-weight: 500;
+  font-size: 0.78rem;
+  margin-left: 4px;
+}
+
 // ---- Form ----
 .contact-form {
   background: #fff;

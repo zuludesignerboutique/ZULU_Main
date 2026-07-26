@@ -50,11 +50,25 @@
           </div>
           <div class="field-group full">
             <label class="field-label">Phone Number</label>
+
+            <!-- ✅ Saved numbers from dashboard — pick one, or just type over it -->
+            <div class="saved-chip-row" *ngIf="savedPhones.length">
+              <button
+                type="button"
+                class="saved-chip"
+                *ngFor="let p of savedPhones"
+                [class.selected]="selectedPhoneId === p.id"
+                (click)="selectPhone(p)"
+              >
+                {{ p.label }} · {{ p.value }}
+              </button>
+            </div>
+
             <div class="field-wrap" [class.error]="isInvalid('phone')" [class.valid]="isValid('phone')">
               <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/>
               </svg>
-              <input type="tel" class="field-input" placeholder="10-digit mobile number" formControlName="phone" maxlength="10" />
+              <input type="tel" class="field-input" placeholder="10-digit mobile number" formControlName="phone" maxlength="10" (input)="onPhoneFieldEdited()" />
             </div>
             <p class="field-error" *ngIf="isInvalid('phone')">Enter a valid 10-digit number</p>
           </div>
@@ -75,34 +89,52 @@
             </div>
             <p class="field-error" *ngIf="isInvalid('name')">Name is required</p>
           </div>
+          <!-- ✅ Saved addresses from dashboard — pick one, still fully editable below -->
+          <div class="field-group full" *ngIf="savedAddresses.length">
+            <label class="field-label">Deliver To</label>
+            <div class="saved-address-row">
+              <button
+                type="button"
+                class="saved-address-card"
+                *ngFor="let a of savedAddresses"
+                [class.selected]="selectedAddressId === a.id"
+                (click)="selectAddress(a)"
+              >
+                <span class="saved-address-tag">{{ a.label }}</span>
+                <span class="saved-address-text">{{ a.address }}, {{ a.city }} {{ a.state }} - {{ a.pincode }}</span>
+              </button>
+            </div>
+            <p class="field-hint">Or edit the fields below to use a different address.</p>
+          </div>
+
           <div class="field-group full">
             <label class="field-label">Street Address</label>
             <div class="field-wrap" [class.error]="isInvalid('address')" [class.valid]="isValid('address')">
               <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
-              <input type="text" class="field-input" placeholder="House no., street, area" formControlName="address" />
+              <input type="text" class="field-input" placeholder="House no., street, area" formControlName="address" (input)="onAddressFieldEdited()" />
             </div>
             <p class="field-error" *ngIf="isInvalid('address')">Address is required</p>
           </div>
           <div class="field-group">
-            <label class="field-label">City</label>
+            <label class="field-label">City / District</label>
             <div class="field-wrap" [class.error]="isInvalid('city')" [class.valid]="isValid('city')">
-              <input type="text" class="field-input" placeholder="City" formControlName="city" />
+              <input type="text" class="field-input" placeholder="City" formControlName="city" (input)="onAddressFieldEdited()" />
             </div>
             <p class="field-error" *ngIf="isInvalid('city')">Required</p>
           </div>
           <div class="field-group">
             <label class="field-label">State</label>
             <div class="field-wrap" [class.error]="isInvalid('state')" [class.valid]="isValid('state')">
-              <input type="text" class="field-input" placeholder="State" formControlName="state" />
+              <input type="text" class="field-input" placeholder="State" formControlName="state" (input)="onAddressFieldEdited()" />
             </div>
             <p class="field-error" *ngIf="isInvalid('state')">Required</p>
           </div>
           <div class="field-group">
             <label class="field-label">Pincode</label>
             <div class="field-wrap" [class.error]="isInvalid('pincode')" [class.valid]="isValid('pincode')">
-              <input type="text" class="field-input" placeholder="6-digit pincode" formControlName="pincode" maxlength="6" />
+              <input type="text" class="field-input" placeholder="6-digit pincode" formControlName="pincode" maxlength="6" (input)="onAddressFieldEdited()" />
             </div>
             <p class="field-error" *ngIf="isInvalid('pincode')">Enter valid 6-digit pincode</p>
           </div>
@@ -112,16 +144,16 @@
       <!-- SHIPPING METHOD -->
       <div class="form-section">
         <h2 class="section-title">Shipping Method</h2>
-        <div class="shipping-box" [class.free]="subtotal >= 999">
+        <div class="shipping-box" [class.free]="subtotal >= 2500">
           <div class="shipping-box-left">
             <span class="shipping-radio">●</span>
             <div>
-              <p class="shipping-name">{{ subtotal >= 4000 ? 'Free Delivery' : 'Standard Delivery' }}</p>
+              <p class="shipping-name">{{ subtotal >= 2500 ? 'Free Delivery' : 'Standard Delivery' }}</p>
               <p class="shipping-time">Within 15 days</p>
             </div>
           </div>
-          <span class="shipping-price" [class.free-tag]="subtotal >= 999">
-            {{ subtotal >= 999 ? 'FREE' : '₹99' }}
+          <span class="shipping-price" [class.free-tag]="subtotal >= 2500">
+            {{ subtotal >= 2500 ? 'FREE' : '₹99' }}
           </span>
         </div>
       </div>

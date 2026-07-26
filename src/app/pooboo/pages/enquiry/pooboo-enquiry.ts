@@ -1,13 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
+import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';
+import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
 
 interface EnquiryForm {
   name: string;
   phone: string;
   email: string;
   place: string;
+  manualProductCode: string; // optional, only used when no linked product
 }
 
 interface FormErrors {
@@ -17,30 +21,85 @@ interface FormErrors {
   place: boolean;
 }
 
+interface LinkedProduct {
+  name: string;
+  code: string;
+  price: string;
+  category: string;
+}
+
 @Component({
   selector: 'app-pooboo-enquiry',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PoobooHeader, PoobooFooter],
   templateUrl: './pooboo-enquiry.html',
   styleUrl: './pooboo-enquiry.scss',
 })
-export class PoobooEnquiry {
-  enquiryForm: EnquiryForm = { name: '', phone: '', email: '', place: '' };
+export class PoobooEnquiry implements OnInit {
+  enquiryForm: EnquiryForm = { name: '', phone: '', email: '', place: '', manualProductCode: '' };
 
   formErrors: FormErrors = { name: false, phone: false, email: false, place: false };
 
   isSubmitting = false;
   submitError = '';
 
+  linkedProduct: LinkedProduct | null = null;
+
   readonly wpNumber = '918089506206';
 
-  get whatsappUrl(): string {
-    const text = encodeURIComponent(
-      `Hi POOBOO! I'm ${this.enquiryForm.name} from ${this.enquiryForm.place}. I'd like to enquire about a custom order. Please let me know what options are available!`
-    );
-    return `https://wa.me/${this.wpNumber}?text=${text}`;
+  constructor(private http: HttpClient, private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    const qp = this.route.snapshot.queryParamMap;
+    const name = qp.get('productName');
+
+    if (name) {
+      this.linkedProduct = {
+        name,
+        code: qp.get('productCode') || '',
+        price: qp.get('productPrice') || '',
+        category: qp.get('productCategory') || ''
+      };
+    }
   }
 
-  constructor(private http: HttpClient) {}
+  // Builds a compact "Regarding" summary string, e.g. "Satin (PB-FAB-002) — ₹230/meter"
+  get productLinkString(): string {
+    if (this.linkedProduct) {
+      const { name, code, price, category } = this.linkedProduct;
+      const sameAsName = category.trim().toLowerCase() === name.trim().toLowerCase();
+      const parts = [
+        category && !sameAsName ? category : null,
+        code ? `${name} (${code})` : name,
+        price ? `— ${price}` : null
+      ].filter(Boolean);
+      return parts.join(' · ');
+    }
+    if (this.enquiryForm.manualProductCode.trim()) {
+      return `Product code: ${this.enquiryForm.manualProductCode.trim()}`;
+    }
+    return '';
+  }
+
+  get whatsappUrl(): string {
+    const lines = [
+      `Hi POOBOO! 👋`,
+      ``,
+      `*Name:* ${this.enquiryForm.name}`,
+      `*Place:* ${this.enquiryForm.place}`,
+    ];
+
+    if (this.productLinkString) {
+      lines.push(`*Regarding:* ${this.productLinkString}`);
+    }
+
+    lines.push(
+      ``,
+      `I'd like to enquire about a custom order. Please let me know what options are available!`
+    );
+
+    const text = encodeURIComponent(lines.join('\n'));
+    return `https://wa.me/${this.wpNumber}?text=${text}`;
+  }
 
   validate(): boolean {
     this.formErrors = {
@@ -58,10 +117,17 @@ export class PoobooEnquiry {
     this.isSubmitting = true;
     this.submitError = '';
 
-    this.http.post('/api/pooboo/enquiries', this.enquiryForm).subscribe({
+    const payload = {
+      name: this.enquiryForm.name,
+      phone: this.enquiryForm.phone,
+      email: this.enquiryForm.email,
+      place: this.enquiryForm.place,
+      product_link: this.productLinkString
+    };
+
+    this.http.post('/api/pooboo/enquiries', payload).subscribe({
       next: () => {
         this.isSubmitting = false;
-        // Open WhatsApp immediately after save
         window.open(this.whatsappUrl, '_blank');
       },
       error: (err) => {

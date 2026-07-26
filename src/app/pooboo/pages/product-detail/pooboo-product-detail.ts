@@ -53,11 +53,16 @@ export class PoobooProductDetail implements OnInit {
     return img.startsWith('http') ? img : `${this.api}/uploads/${img}`;
   }
 
-  goToEnquiry() {
-    this.router.navigate(['/pooboo/enquiry'], {
-      queryParams: { product: this.product.name }
-    });
-  }
+goToEnquiry() {
+  this.router.navigate(['/pooboo/enquiry'], {
+    queryParams: {
+      productName:     this.product.name,
+      productCode:     this.product.product_code || '',
+      productPrice:    `₹${this.product.price}`,
+      productCategory: this.product.category || 'Kids Wear'
+    }
+  });
+}
 
   goBack() {
     this.router.navigate(['/pooboo/products']);

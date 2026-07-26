@@ -63,12 +63,6 @@
           <li *ngFor="let d of product.details">{{ d }}</li>
         </ul>
 
-        <!-- Stock -->
-        <p class="stock-info" [class.low]="product.stock < 5">
-          <span *ngIf="product.stock > 0">✓ In Stock ({{ product.stock }} available)</span>
-          <span *ngIf="product.stock === 0">✕ Out of Stock</span>
-        </p>
-
         <!-- CTA -->
         <button class="btn-enquire" (click)="goToEnquiry()">
           Enquire Now

@@ -9,6 +9,9 @@ const PUBLIC_ENDPOINTS = [
   '/api/subcategories'
 ];
 
+// Must match the prefix used in auth.service.ts
+const ADMIN_PATH_PREFIX = '/admin';
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
 
@@ -24,7 +27,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const token = localStorage.getItem('authToken');
+  // Use whichever session (admin/customer) owns the page this request came from,
+  // instead of one shared token. This is what keeps an admin tab and a customer
+  // tab from clobbering each other's login state.
+  const scope = window.location.pathname.startsWith(ADMIN_PATH_PREFIX) ? 'admin' : 'customer';
+  const token = localStorage.getItem(`${scope}_authToken`);
 
   // No token stored (not logged in) — send request as-is
   if (!token) {

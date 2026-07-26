@@ -6,7 +6,30 @@
     <a routerLink="/products" class="btn-shop-now">Shop Now</a>
   </div>
 
+  <!-- ✅ Select all row -->
+  <div class="cart-select-all" *ngIf="cartItems.length > 0">
+    <label class="cart-checkbox">
+      <input
+        type="checkbox"
+        [checked]="allSelected"
+        (change)="toggleAll($any($event.target).checked)"
+      />
+      <span class="checkmark"></span>
+      Select All ({{ selectedCount }}/{{ cartItems.length }})
+    </label>
+  </div>
+
   <div class="cart-card" *ngFor="let item of cartItems">
+    <!-- ✅ Per-item checkbox -->
+    <label class="cart-checkbox item-checkbox">
+      <input
+        type="checkbox"
+        [checked]="isSelected(item)"
+        (change)="toggleItem(item, $any($event.target).checked)"
+      />
+      <span class="checkmark"></span>
+    </label>
+
     <div class="cart-img">
       <img [src]="'http://localhost:4000/uploads/' + item.image_url" [alt]="item.name" />
     </div>
@@ -35,12 +58,14 @@
 
   <div class="cart-footer" *ngIf="cartItems.length > 0">
     <div class="cart-total-row">
-      <span class="cart-total-label">Total Amount</span>
+      <span class="cart-total-label">
+        Total Amount ({{ selectedCount }} item{{ selectedCount === 1 ? '' : 's' }} selected)
+      </span>
       <span class="cart-total-value">₹{{ total | number }}</span>
     </div>
     <div class="cart-footer-actions">
       <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
-      <button class="btn-checkout" (click)="goToCheckout()">
+      <button class="btn-checkout" [disabled]="selectedCount === 0" (click)="goToCheckout()">
         Proceed to Checkout →
       </button>
     </div>

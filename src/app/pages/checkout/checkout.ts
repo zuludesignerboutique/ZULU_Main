@@ -29,6 +29,12 @@ export class Checkout implements OnInit, AfterViewInit {
   paymentError = '';
   razorpayReady = false;
 
+  // ✅ Saved profile data (dashboard) — used to build selectable address/phone options
+  savedAddresses: { id: string; label: string; address: string; city: string; state: string; pincode: string }[] = [];
+  savedPhones: { id: string; label: string; value: string }[] = [];
+  selectedAddressId: string | null = null;
+  selectedPhoneId: string | null = null;
+
   imageBase  = 'http://localhost:4000/uploads/';
   private api = 'http://localhost:4000';
 
@@ -60,7 +66,13 @@ export class Checkout implements OnInit, AfterViewInit {
       this.checkoutForm.patchValue({ email });
     }
 
-    this.cartItems = this.cart.getAll();
+    // ✅ Pull saved name / phones / addresses from the dashboard profile
+    if (this.isLoggedIn) {
+      this.loadSavedProfile();
+    }
+
+    // ✅ Only the items ticked on the cart page — not the whole cart
+    this.cartItems = this.cart.getCheckoutItems();
 
     if (this.cartItems.length === 0) {
       this.router.navigate(['/cart']);
@@ -88,13 +100,90 @@ export class Checkout implements OnInit, AfterViewInit {
     document.body.appendChild(script);
   }
 
+  // ── Saved profile (from User Dashboard) ─────────
+  private loadSavedProfile(): void {
+    this.http.get<any>(`${this.api}/api/users/me`).subscribe({
+      next: (data) => {
+        // Prefill name — user can still overwrite it
+        if (data.name) this.checkoutForm.patchValue({ name: data.name });
+
+        // Build selectable phone numbers
+        this.savedPhones = [];
+        if (data.phone1) this.savedPhones.push({ id: 'phone1', label: 'Primary', value: data.phone1 });
+        if (data.phone2) this.savedPhones.push({ id: 'phone2', label: 'Secondary', value: data.phone2 });
+        if (this.savedPhones.length) {
+          this.selectPhone(this.savedPhones[0]);
+        }
+
+        // Build selectable addresses
+        this.savedAddresses = [];
+        if (data.address1) {
+          this.savedAddresses.push({
+            id: 'address1', label: 'Home',
+            address: data.address1, city: data.district || '', state: data.state || '', pincode: data.pincode || ''
+          });
+        }
+        if (data.address2) {
+          this.savedAddresses.push({
+            id: 'address2', label: 'Office',
+            address: data.address2, city: data.district || '', state: data.state || '', pincode: data.pincode || ''
+          });
+        }
+        if (this.savedAddresses.length) {
+          this.selectAddress(this.savedAddresses[0]);
+        }
+      },
+      error: (err) => {
+        // Non-fatal — checkout still works as a plain manual form
+        console.error('[Checkout] Could not load saved profile:', err.status, err.error);
+      }
+    });
+  }
+
+  selectPhone(phone: { id: string; label: string; value: string }): void {
+    this.selectedPhoneId = phone.id;
+    this.checkoutForm.patchValue({ phone: phone.value });
+  }
+
+  selectAddress(addr: { id: string; label: string; address: string; city: string; state: string; pincode: string }): void {
+    this.selectedAddressId = addr.id;
+    this.checkoutForm.patchValue({
+      address: addr.address,
+      city:    addr.city,
+      state:   addr.state,
+      pincode: addr.pincode
+    });
+  }
+
+  // ✅ Any manual edit to the address/city/state/pincode fields deselects the saved-address
+  // chip, so the UI doesn't imply "Home" is still selected once the user has changed it.
+  onAddressFieldEdited(): void {
+    if (!this.selectedAddressId) return;
+    const selected = this.savedAddresses.find(a => a.id === this.selectedAddressId);
+    if (!selected) return;
+    const v = this.checkoutForm.value;
+    const stillMatches =
+      v.address === selected.address &&
+      v.city === selected.city &&
+      v.state === selected.state &&
+      v.pincode === selected.pincode;
+    if (!stillMatches) this.selectedAddressId = null;
+  }
+
+  onPhoneFieldEdited(): void {
+    if (!this.selectedPhoneId) return;
+    const selected = this.savedPhones.find(p => p.id === this.selectedPhoneId);
+    if (!selected) return;
+    if (this.checkoutForm.value.phone !== selected.value) this.selectedPhoneId = null;
+  }
+
   // ── Totals ───────────────────────────────────────
   get subtotal(): number {
     return this.cartItems.reduce((sum, item) => sum + item.price * (item.qty || 1), 0);
   }
 
   get grandTotal(): number {
-    return this.subtotal + (this.subtotal >= 999 ? 0 : 99);
+    return this.subtotal + (this.subtotal >= 2500 ? 0 : 99);
   }
 
   // ── Validation ───────────────────────────────────
@@ -217,8 +306,9 @@ export class Checkout implements OnInit, AfterViewInit {
           this.paymentError = 'Payment verification failed. Please contact support.';
           return;
         }
-        // STEP 6: Clear cart → success page
-        this.cart.clear();
+        // STEP 6: Remove only the paid-for items → keep whatever was left unchecked in the cart
+        this.cart.removeItems(this.cartItems);
+        this.cart.clearCheckoutItems();
         this.router.navigate(['/order-success'], {
           state: {
             orderId,

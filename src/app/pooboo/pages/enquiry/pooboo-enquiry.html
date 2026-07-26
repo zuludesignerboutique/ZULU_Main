@@ -1,3 +1,4 @@
+<app-pooboo-header></app-pooboo-header>
 <section class="enquiry-hero">
   <div class="hero-badge">✦ Made Just For You</div>
   <h1 class="hero-title">Custom Orders &amp; <span class="accent">Enquiries</span></h1>
@@ -33,7 +34,29 @@
     <p>Fill in your details and we'll connect on WhatsApp right away.</p>
   </div>
 
+  <!-- Linked product (read-only) OR optional manual code -->
+  <div class="regarding-box" *ngIf="linkedProduct">
+    <span class="regarding-label">Regarding</span>
+    <p class="regarding-name">{{ linkedProduct.name }}</p>
+    <div class="regarding-meta">
+      <span *ngIf="linkedProduct.category" class="regarding-chip">{{ linkedProduct.category }}</span>
+      <span *ngIf="linkedProduct.code" class="regarding-chip">Code: {{ linkedProduct.code }}</span>
+      <span *ngIf="linkedProduct.price" class="regarding-chip">{{ linkedProduct.price }}</span>
+    </div>
+  </div>
+
   <div class="contact-form">
+
+    <div class="form-group" *ngIf="!linkedProduct">
+      <label for="productCode">Product Code <span class="optional">(optional)</span></label>
+      <input
+        id="productCode"
+        type="text"
+        [(ngModel)]="enquiryForm.manualProductCode"
+        placeholder="e.g. PB-FAB-002 (if you have one)"
+      />
+    </div>
+
     <div class="form-group">
       <label for="name">Your Name <span class="req">*</span></label>
       <input
@@ -97,3 +120,4 @@
     <p class="wp-note">Your details will be saved and WhatsApp will open automatically.</p>
   </div>
 </section>
+<app-pooboo-footer></app-pooboo-footer>

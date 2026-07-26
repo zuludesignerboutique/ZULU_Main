@@ -18,6 +18,9 @@ export class OrderHistoryComponent implements OnInit {
   errorMsg = '';
   imageBase = 'http://localhost:4000/uploads/';
 
+  // ✅ id of the order currently being cancelled (disables its button / shows spinner text)
+  cancellingId: number | null = null;
+
   statusSteps = [
     { key: 'pending',   label: 'Placed'    },
     { key: 'confirmed', label: 'Confirmed' },
@@ -78,5 +81,50 @@ export class OrderHistoryComponent implements OnInit {
   isStepDone(currentStatus: string, stepKey: string): boolean {
     const order = ['pending', 'confirmed', 'shipped', 'delivered'];
     return order.indexOf(stepKey) <= order.indexOf(currentStatus);
+  }
+
+  // ✅ Cancel only allowed up through "confirmed" — once shipped/delivered/cancelled, no button shows
+  isCancellable(status: string): boolean {
+    return status === 'pending' || status === 'confirmed';
+  }
+
+  // ✅ No penalty while still "pending"; 25% penalty once the order has moved to "confirmed"
+  getCancelPenaltyPercent(status: string): number {
+    return status === 'confirmed' ? 25 : 0;
+  }
+
+  cancelOrder(order: any) {
+    const penaltyPercent = this.getCancelPenaltyPercent(order.status);
+    const refundPercent = 100 - penaltyPercent;
+    const refundAmount = Math.round(order.total_amount * refundPercent / 100);
+    const penaltyAmount = order.total_amount - refundAmount;
+
+    const message = penaltyPercent === 0
+      ? `Cancel Order #${order.id}?\n\nYou'll receive a full refund of ₹${refundAmount}.`
+      : `Cancel Order #${order.id}?\n\nThis order has already been confirmed, so a 25% cancellation fee (₹${penaltyAmount}) applies. You'll be refunded ₹${refundAmount} of ₹${order.total_amount}.`;
+
+    // ✅ Popup confirmation before cancelling
+    const confirmed = window.confirm(message);
+    if (!confirmed) return;
+
+    this.cancellingId = order.id;
+
+    // ✅ Dedicated customer-facing cancel route — server re-checks eligibility and
+    // computes the authoritative refund/penalty split (server owns the money math).
+    this.http.patch<any>(`http://localhost:4000/api/orders/${order.id}/cancel`, {}).subscribe({
+      next: (res) => {
+        order.status = 'cancelled';
+        order.refund_amount = res.refundAmount;
+        order.penalty_amount = res.penaltyAmount;
+        this.cancellingId = null;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('[OrderHistory] cancel error:', err.status, err.error);
+        alert('Could not cancel the order. Please try again.');
+        this.cancellingId = null;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

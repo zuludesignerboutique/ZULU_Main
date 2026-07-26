@@ -63,8 +63,7 @@
     @if (!isLoading && products.length > 0) {
       <div class="pb-product-grid">
         @for (product of products; track product.id) {
-          <a routerLink="/pooboo/enquiry" class="pb-product-card">
-
+<a [routerLink]="['/pooboo/fabrics', product.id]" class="pb-product-card">
             <div class="pb-product-img-wrap">
               <img
                 [src]="getImageUrl(product.image_url)"

@@ -29,8 +29,7 @@ export class Reviews implements OnInit {
   selectedPhotoPreview = signal<string | null>(null);
 
   // Use the signal directly for reactivity, fall back to method for SSR safety
-  isLoggedIn = computed(() => this.authService.loggedInSignal());
-
+isLoggedIn = computed(() => this.authService.customerLoggedInSignal());
   filterRating = signal<number>(0);
   filteredReviews = computed(() => {
     const all = this.reviews();

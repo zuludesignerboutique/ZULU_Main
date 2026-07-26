@@ -30,6 +30,83 @@ $text:        #1a1814;
   color: $text;
 }
 
+// ── SAVED PROFILE PICKERS ─────────────────────────
+.saved-address-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.saved-address-card {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: $card;
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover { border-color: $gold-border; }
+
+  &.selected {
+    border-color: $gold;
+    background: $gold-dim;
+  }
+}
+
+.saved-address-tag {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $gold;
+  font-weight: 500;
+}
+
+.saved-address-text {
+  font-size: 13px;
+  color: $text;
+  line-height: 1.4;
+}
+
+.saved-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.saved-chip {
+  padding: 7px 14px;
+  border: 1px solid $border;
+  border-radius: 999px;
+  background: $card;
+  font-size: 12.5px;
+  font-family: 'Jost', sans-serif;
+  color: $text;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover { border-color: $gold-border; }
+
+  &.selected {
+    border-color: $gold;
+    background: $gold-dim;
+    color: darken($gold, 15%);
+  }
+}
+
+.field-hint {
+  font-size: 11.5px;
+  color: $muted;
+  margin-top: 4px;
+}
+
 // ── HEADER ────────────────────────────────────────
 .checkout-header {
   background: #fff;

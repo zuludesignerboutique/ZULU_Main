@@ -21,7 +21,7 @@ import { Checkout } from './pages/checkout/checkout';
 import { OrderSuccessComponent } from './pages/order-success/order-success';
 import { OrderHistoryComponent } from './pages/order-history/order-history';
 import { adminGuard } from './admin/admin-guard';
-
+import { UserDashboard } from './pages/user-dashboard/user-dashboard';
 
 export const routes: Routes = [
 
@@ -47,7 +47,7 @@ export const routes: Routes = [
   { path: 'checkout',      component: Checkout,              canActivate: [authGuard] },
   { path: 'order-history', component: OrderHistoryComponent, canActivate: [authGuard] },
   { path: 'order-success', component: OrderSuccessComponent },
-
+   {path: 'dashboard', component: UserDashboard},
   {
     path: 'product/:id',
     loadComponent: () =>
@@ -191,6 +191,26 @@ export const routes: Routes = [
     path: 'pooboo/accessories/hair-clips',
     loadComponent: () =>
       import('./pooboo/pages/accessories/hair-clips/hair-clips').then(m => m.HairClips)
+  },
+  {
+    path: 'pooboo/fabrics/:id',
+    loadComponent: () =>
+      import('./pooboo/pages/fabric-detail/fabric-detail').then(m => m.FabricDetail)
+  },
+  {
+    path: 'pooboo/accessories/baby-ornaments/:id',
+    loadComponent: () =>
+      import('./pooboo/pages/accessory-detail/accessory-detail').then(m => m.AccessoryDetail)
+  },
+  {
+    path: 'pooboo/accessories/bands/:id',
+    loadComponent: () =>
+      import('./pooboo/pages/accessory-detail/accessory-detail').then(m => m.AccessoryDetail)
+  },
+  {
+    path: 'pooboo/accessories/hair-clips/:id',
+    loadComponent: () =>
+      import('./pooboo/pages/accessory-detail/accessory-detail').then(m => m.AccessoryDetail)
   },
   {
     path: 'pooboo/reviews',

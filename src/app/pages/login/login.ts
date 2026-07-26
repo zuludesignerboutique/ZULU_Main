@@ -31,11 +31,13 @@ export class LoginComponent {
     }).subscribe({
       next: (res) => {
         if (res.user.role === 'admin') {
-          localStorage.setItem('admin', 'true');
-          this.auth.login(this.email, res.token);
+          // Explicit scope — we're still on /login when this runs, so
+          // relying on the current URL to guess "admin vs customer" would
+          // get it wrong. We already know the role from the response.
+          this.auth.login(this.email, res.token, 'admin');
           this.router.navigate(['/admin/dashboard']);
         } else {
-          this.auth.login(this.email, res.token);
+          this.auth.login(this.email, res.token, 'customer');
           const redirect = this.route.snapshot.queryParams['redirect'] || '/home';
           this.router.navigateByUrl(redirect);
         }

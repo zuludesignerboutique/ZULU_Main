@@ -27,7 +27,7 @@
 
     <!-- Products -->
     <div class="pb-sub-grid" *ngIf="!isLoading && products.length > 0">
-      <div class="pb-sub-card" *ngFor="let p of products">
+      <a [routerLink]="['/pooboo/accessories/baby-ornaments', p.id]" class="pb-sub-card" *ngFor="let p of products">
         <div class="pb-sub-img-wrap">
           <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="pb-sub-img" loading="lazy" />
           <span class="pb-sub-oos" *ngIf="isOutOfStock(p)">Out of Stock</span>
@@ -37,7 +37,7 @@
           <h3 class="pb-sub-name">{{ p.name }}</h3>
           <p class="pb-sub-price">₹{{ p.price | number:'1.0-0' }}</p>
         </div>
-      </div>
+      </a>
     </div>
 
     <!-- Empty -->

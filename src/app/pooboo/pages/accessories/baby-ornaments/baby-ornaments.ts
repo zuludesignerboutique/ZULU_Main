@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PoobooHeader } from '../../../layout/pooboo-header/pooboo-header';
@@ -19,7 +19,11 @@ export class BabyOrnaments implements OnInit {
   isLoading = false;
   hasError = false;
 
-  constructor(private accessoryService: PoobooAccessoryService) {}
+  constructor(
+    private accessoryService: PoobooAccessoryService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadProducts();
@@ -31,12 +35,18 @@ export class BabyOrnaments implements OnInit {
 
     this.accessoryService.getAll({ type: 'baby-ornaments' }).subscribe({
       next: (data: PoobooAccessory[]) => {
-        this.products = data;
-        this.isLoading = false;
+        this.ngZone.run(() => {
+          this.products = data;
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        });
       },
       error: () => {
-        this.hasError = true;
-        this.isLoading = false;
+        this.ngZone.run(() => {
+          this.hasError = true;
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }

@@ -1,0 +1,50 @@
+<app-pooboo-header></app-pooboo-header>
+<div class="fabric-detail-page">
+
+  <div *ngIf="loading" class="state-msg">Loading...</div>
+  <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+  <div class="container detail-wrap" *ngIf="!loading && product">
+
+    <button class="btn-back" (click)="goBack()">← Back to Fabrics</button>
+
+    <div class="detail-grid">
+
+      <div class="detail-image-col">
+        <div class="image-frame">
+          <img [src]="getImageUrl(product.image_url)" [alt]="product.name" class="detail-img" />
+          <div class="custom-badge">✂ Custom Stitch Available</div>
+        </div>
+      </div>
+
+      <div class="detail-info-col">
+
+        <p class="detail-category">{{ getTypeLabel(product.fabric_type) }}</p>
+        <h1 class="detail-name">{{ product.name }}</h1>
+        <p class="detail-price">₹{{ product.price_per_meter | number }} / meter</p>
+
+        <div class="detail-tags">
+          <span *ngIf="product.colour" class="tag">🎨 {{ product.colour }}</span>
+          <span *ngIf="product.product_code" class="tag">Code: {{ product.product_code }}</span>
+          <span *ngIf="product.total_meters" class="tag">{{ product.total_meters }}m in stock</span>
+        </div>
+
+        <p class="detail-desc" *ngIf="product.description">{{ product.description }}</p>
+
+        <ul class="detail-bullets">
+          <li>✓ Browse & pick this fabric</li>
+          <li>✓ Fill the enquiry form</li>
+          <li>✓ Share measurements & occasion</li>
+          <li>✓ We stitch & deliver in 7–10 days</li>
+        </ul>
+
+        <button class="btn-enquire" (click)="goToEnquiry()">
+          Enquire / Book Custom Stitch
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<app-pooboo-footer></app-pooboo-footer>

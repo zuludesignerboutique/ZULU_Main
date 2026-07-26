@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { Header } from "../../layout/header/header";
 
 @Component({
   selector: 'app-order-success',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, Header],
   templateUrl: './order-success.html',
   styleUrls: ['./order-success.scss']
 })

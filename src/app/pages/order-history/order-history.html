@@ -62,8 +62,30 @@
         </ng-container>
       </div>
 
+      <!-- ✅ Cancel action — only while the order is still pending or confirmed -->
+      <div class="cancel-row" *ngIf="isCancellable(order.status)">
+        <p class="cancel-note">
+          <ng-container *ngIf="order.status === 'pending'">
+            Cancel now for a full refund.
+          </ng-container>
+          <ng-container *ngIf="order.status === 'confirmed'">
+            This order is confirmed — cancelling now applies a 25% fee; 75% will be refunded.
+          </ng-container>
+        </p>
+        <button
+          class="btn-cancel-order"
+          [disabled]="cancellingId === order.id"
+          (click)="cancelOrder(order)"
+        >
+          {{ cancellingId === order.id ? 'Cancelling…' : 'Cancel Order' }}
+        </button>
+      </div>
+
       <div class="cancelled-banner" *ngIf="order.status === 'cancelled'">
         ✕ This order was cancelled
+        <ng-container *ngIf="order.refund_amount !== undefined">
+          &nbsp;· ₹{{ order.refund_amount | number }} refunded
+        </ng-container>
       </div>
 
       <!-- Items -->

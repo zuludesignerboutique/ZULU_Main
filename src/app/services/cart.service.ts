@@ -5,6 +5,8 @@ import { AuthService } from './auth.service';
 @Injectable({ providedIn: 'root' })
 export class CartService {
 
+  private readonly CHECKOUT_KEY = 'checkout_items';
+
   constructor(private auth: AuthService) {}
 
   // ✅ Unique key per user: "cart_user@email.com"
@@ -67,5 +69,31 @@ export class CartService {
 
   getCount(): number {
     return this.load().reduce((sum, p) => sum + (p.qty || 1), 0);
+  }
+
+  // ✅ Cart page calls this with only the checked items right before navigating to /checkout
+  setCheckoutItems(items: (Product & { qty: number; size?: string })[]) {
+    sessionStorage.setItem(this.CHECKOUT_KEY, JSON.stringify(items));
+  }
+
+  // ✅ Checkout page should read from here instead of getAll(), so it only charges for what was checked
+  getCheckoutItems(): (Product & { qty: number; size?: string })[] {
+    try {
+      return JSON.parse(sessionStorage.getItem(this.CHECKOUT_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  clearCheckoutItems() {
+    sessionStorage.removeItem(this.CHECKOUT_KEY);
+  }
+
+  // ✅ Removes only the given rows (id+size) — used after a successful order,
+  // so items the user left unchecked stay in the cart instead of being wiped by clear()
+  removeItems(items: { id: number; size?: string }[]) {
+    const keys = new Set(items.map(i => `${i.id}_${i.size ?? ''}`));
+    const remaining = this.load().filter(p => !keys.has(`${p.id}_${p.size ?? ''}`));
+    this.save(remaining);
   }
 }

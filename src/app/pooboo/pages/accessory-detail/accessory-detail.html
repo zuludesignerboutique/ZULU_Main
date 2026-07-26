@@ -1,0 +1,42 @@
+<app-pooboo-header></app-pooboo-header>
+<div class="accessory-detail-page">
+
+  <div *ngIf="loading" class="state-msg">Loading...</div>
+  <div *ngIf="error"   class="state-msg error">{{ error }}</div>
+
+  <div class="container detail-wrap" *ngIf="!loading && product">
+
+    <button class="btn-back" (click)="goBack()">← Back to {{ meta?.backLabel }}</button>
+
+    <div class="detail-grid">
+
+      <div class="detail-image-col">
+        <div class="image-frame">
+          <img [src]="getImageUrl(product.image_url)" [alt]="product.name" class="detail-img" />
+          <div *ngIf="isOutOfStock()" class="oos-badge">Out of Stock</div>
+        </div>
+      </div>
+
+      <div class="detail-info-col">
+
+        <p class="detail-category">{{ meta?.emoji }} {{ meta?.label }}</p>
+        <h1 class="detail-name">{{ product.name }}</h1>
+        <p class="detail-price">₹{{ product.price | number }}</p>
+
+        <div class="detail-tags">
+          <span *ngIf="product.colour" class="tag">🎨 {{ product.colour }}</span>
+          <span *ngIf="product.product_code" class="tag">Code: {{ product.product_code }}</span>
+        </div>
+
+        <p class="detail-desc" *ngIf="product.description">{{ product.description }}</p>
+
+        <button class="btn-enquire" (click)="goToEnquiry()" [disabled]="isOutOfStock()">
+          {{ isOutOfStock() ? 'Out of Stock' : 'Enquire Now' }}
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<app-pooboo-footer></app-pooboo-footer>

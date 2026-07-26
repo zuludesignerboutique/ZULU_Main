@@ -171,6 +171,13 @@
   }
 }
 
+.btn-checkout:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none !important;
+}
+
 /* Empty state */
 .empty-cart {
   text-align: center;
@@ -203,6 +210,71 @@
     box-shadow: 0 12px 28px rgba(212,175,55,0.45);
   }
 }
+/* ✅ Select all row */
+.cart-select-all {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 0 4px;
+}
+
+/* ✅ Custom checkbox used for both select-all and per-item */
+.cart-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #555;
+  text-transform: uppercase;
+  user-select: none;
+  position: relative;
+
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+    margin: 0;
+  }
+
+  .checkmark {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    border: 1.5px solid rgba(0, 0, 0, 0.18);
+    background: #fff;
+    position: relative;
+    transition: 0.2s ease;
+  }
+
+  input[type="checkbox"]:checked + .checkmark {
+    background: linear-gradient(135deg, #b76e79, #d4af37);
+    border-color: transparent;
+  }
+
+  input[type="checkbox"]:checked + .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+}
+
+/* ✅ Item checkbox sits before the image, aligned to the top of the card */
+.item-checkbox {
+  align-self: flex-start;
+  margin-top: 6px;
+}
+
 .qty-control {
   display: flex;
   align-items: center;
