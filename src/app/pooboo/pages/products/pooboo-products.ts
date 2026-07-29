@@ -15,7 +15,7 @@ import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
 })
 export class PoobooProducts implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
 
   products    : any[] = [];
   filtered    : any[] = [];

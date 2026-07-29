@@ -15,7 +15,7 @@ type AccessoryTab = 'baby-ornaments' | 'bands' | 'hair-clips';
 })
 export class PoobooAdminAccessories implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
 
   // ── List state ────────────────────────────────────────
   allProducts: any[] = [];

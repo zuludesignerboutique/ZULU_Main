@@ -13,7 +13,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class PoobooEditFabric implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
   private productId!: number;
 
   // ── Page state ─────────────────────────────────────────

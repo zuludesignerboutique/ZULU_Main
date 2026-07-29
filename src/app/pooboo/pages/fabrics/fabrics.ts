@@ -29,7 +29,7 @@ export class Fabrics implements OnInit {
     { label: 'Georgette',  value: 'georgette',   emoji: '🌸' },
     { label: 'Net',        value: 'net',         emoji: '🕸️' },
     { label: 'Velvet',     value: 'velvet',      emoji: '💜' },
-    {label: 'satin',      value: 'satin',       emoji: '💫' },
+    { label: 'Satin',     value: 'satin',       emoji: '💫' },
   ];
 
   constructor(
@@ -79,6 +79,6 @@ export class Fabrics implements OnInit {
   getImageUrl(path: string | null): string {
     if (!path) return 'assets/images/placeholder.jpg';
     if (path.startsWith('http')) return path;
-    return `http://localhost:4000/uploads/${path}`;
+    return `/uploads/${path}`;
   }
 }

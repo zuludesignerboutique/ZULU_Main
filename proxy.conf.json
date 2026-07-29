@@ -8,5 +8,15 @@
     "target": "http://localhost:4000",
     "secure": false,
     "changeOrigin": true
+  },
+  "/login": {
+    "target": "http://localhost:4000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/signup": {
+    "target": "http://localhost:4000",
+    "secure": false,
+    "changeOrigin": true
   }
 }

@@ -15,7 +15,7 @@ import { PoobooAccessory } from '../../core/models/pooboo-accessory.model';
 })
 export class AccessoryDetail implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
 
   typeMeta: Record<string, { label: string; emoji: string; backLink: string; backLabel: string }> = {
     'baby-ornaments': { label: 'Baby Ornaments', emoji: '🌟', backLink: '/pooboo/accessories/baby-ornaments', backLabel: 'Baby Ornaments' },

@@ -123,6 +123,6 @@ export class PoobooHome implements OnInit, OnDestroy {
   getImageUrl(path: string): string {
     if (!path) return 'assets/images/placeholder.jpg';
     if (path.startsWith('http')) return path;
-    return `http://localhost:4000/uploads/${path}`;
+    return `/uploads/${path}`;
   }
 }

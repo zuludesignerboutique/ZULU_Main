@@ -30,6 +30,7 @@ interface LinkedProduct {
 
 @Component({
   selector: 'app-pooboo-enquiry',
+  standalone: true,
   imports: [CommonModule, FormsModule, PoobooHeader, PoobooFooter],
   templateUrl: './pooboo-enquiry.html',
   styleUrl: './pooboo-enquiry.scss',

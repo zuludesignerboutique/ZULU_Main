@@ -119,8 +119,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
+    // Same unified `products` table issue as ProductService/admin-products —
+    // without brand=zulu this pulls in Pooboo apparel/fabrics/accessories too.
     this.http
-      .get<Product[]>('http://localhost:4000/api/products')
+      .get<Product[]>('/api/products', { params: { brand: 'zulu' } })
       .subscribe({
 
         next: (data) => {

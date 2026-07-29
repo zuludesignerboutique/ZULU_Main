@@ -1,1 +1,31 @@
-<p>cart works!</p>
+<app-pooboo-header></app-pooboo-header>
+<div class="pooboo-cart-page">
+  <div class="container py-4">
+    <h2>Your Cart</h2>
+    <div *ngIf="items.length === 0" class="empty-state">
+      <p>Your cart is empty</p>
+      <a routerLink="/pooboo/products" class="btn btn-primary">Shop Now</a>
+    </div>
+    <div *ngIf="items.length > 0">
+      <div class="cart-item" *ngFor="let item of items; let i = index">
+        <img [src]="item.product.image_url ? '/uploads/' + item.product.image_url : 'assets/images/placeholder.jpg'" alt="{{ item.product.name }}" class="cart-item-img" />
+        <div class="cart-item-info">
+          <h5>{{ item.product.name }}</h5>
+          <p *ngIf="item.size">Size: {{ item.size }}</p>
+          <p>&#8377;{{ item.product.price }} &#215; {{ item.qty }}</p>
+        </div>
+        <div class="cart-item-actions">
+          <button (click)="updateQty(item.product.id, item.qty - 1, item.size)" [disabled]="item.qty <= 1">&minus;</button>
+          <span>{{ item.qty }}</span>
+          <button (click)="updateQty(item.product.id, item.qty + 1, item.size)">+</button>
+        </div>
+        <button class="btn-remove" (click)="remove(item.product.id, item.size)">Remove</button>
+      </div>
+      <div class="cart-total">
+        <h4>Total: &#8377;{{ total | number }}</h4>
+        <a routerLink="/pooboo/enquiry" class="btn btn-primary">Proceed to Enquiry</a>
+      </div>
+    </div>
+  </div>
+</div>
+<app-pooboo-footer></app-pooboo-footer>

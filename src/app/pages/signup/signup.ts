@@ -36,7 +36,7 @@ export class SignupComponent {
       return;
     }
 
-    this.http.post<any>('http://localhost:4000/signup', {
+    this.http.post<any>('/signup', {
       name: this.name,
       email: this.email,
       password: this.password

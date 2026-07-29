@@ -82,7 +82,7 @@ export class SubcategoriesComponent implements OnInit {
   }
 
   private loadProducts(categoryName: string) {
-    this.http.get<Product[]>('http://localhost:4000/api/products').subscribe({
+    this.http.get<Product[]>('/api/products').subscribe({
       next: (data) => {
         const label = categoryName.toLowerCase().trim();
         this.allProducts = data.filter(

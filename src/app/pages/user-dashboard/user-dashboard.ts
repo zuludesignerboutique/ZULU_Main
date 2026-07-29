@@ -1,6 +1,5 @@
 import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import {
   ReactiveFormsModule,
@@ -8,12 +7,11 @@ import {
   FormGroup,
   Validators
 } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './user-dashboard.html',
   styleUrls: ['./user-dashboard.scss']
 })
@@ -27,14 +25,13 @@ export class UserDashboard implements OnInit {
   loadError  = '';
   saveError  = '';
 
-  userName = ''; // shown in the sidebar header once loaded
+  userName = ''; // kept for future use (e.g. a personalized header)
 
-  private api = 'http://localhost:4000';
+  private api = '';
 
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    private auth: AuthService,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
   ) {}
@@ -59,7 +56,7 @@ export class UserDashboard implements OnInit {
     this.isLoading = true;
     this.loadError = '';
 
-    this.http.get<any>(`${this.api}/api/users/me`).subscribe({
+    this.http.get<any>('/api/users/me').subscribe({
       next: (data) => {
         this.zone.run(() => {
           this.userName = data.name;
@@ -114,7 +111,7 @@ export class UserDashboard implements OnInit {
     // ✅ email intentionally excluded — read-only field, not sent to the update endpoint
     const { name, phone1, phone2, address1, address2, district, state, pincode } = this.profileForm.getRawValue();
 
-    this.http.put(`${this.api}/api/users/me`, {
+    this.http.put('/api/users/me', {
       name, phone1, phone2, address1, address2, district, state, pincode
     }).subscribe({
       next: () => {
@@ -138,9 +135,5 @@ export class UserDashboard implements OnInit {
         });
       }
     });
-  }
-
-  logout() {
-    this.auth.logout?.();
   }
 }

@@ -1,0 +1,114 @@
+<div class="admin-stock">
+
+  <div class="as-header">
+    <div>
+      <h2 class="as-title">Stock Dashboard</h2>
+      <p class="as-sub">{{ products.length }} total products across all brands</p>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="as-summary">
+    <div class="summary-card">
+      <span class="summary-value">{{ summary.total }}</span>
+      <span class="summary-label">Total Products</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-value">{{ summary.inStock }}</span>
+      <span class="summary-label">In Stock</span>
+    </div>
+    <div class="summary-card warn">
+      <span class="summary-value">{{ summary.lowStock }}</span>
+      <span class="summary-label">Low Stock (≤5)</span>
+    </div>
+    <div class="summary-card danger">
+      <span class="summary-value">{{ summary.outOfStock }}</span>
+      <span class="summary-label">Out of Stock</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="as-filters">
+    <div class="filter-group">
+      <label>Brand</label>
+      <button *ngFor="let b of brands"
+        class="chip-btn" [class.active]="brandFilter === b"
+        (click)="setBrandFilter(b)">
+        {{ b === 'all' ? 'All' : (b | titlecase) }}
+      </button>
+    </div>
+
+    <div class="filter-group">
+      <label>Type</label>
+      <button *ngFor="let t of types"
+        class="chip-btn" [class.active]="typeFilter === t"
+        (click)="setTypeFilter(t)">
+        {{ t === 'all' ? 'All' : (t | titlecase) }}
+      </button>
+    </div>
+
+    <div class="filter-group">
+      <label class="low-stock-toggle" (click)="toggleLowStock()">
+        <input type="checkbox" [checked]="lowStockOnly">
+        Low stock only (≤5)
+      </label>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="as-loading" *ngIf="isLoading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- Table -->
+  <div class="as-table-wrap" *ngIf="!isLoading">
+    <table class="as-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Brand</th>
+          <th>Type</th>
+          <th>Code</th>
+          <th>Stock</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pagedProducts" class="as-row">
+          <td>
+            <div class="product-cell">
+              <img *ngIf="p.image_url" [src]="'/uploads/' + p.image_url" class="product-thumb">
+              <span class="product-name">{{ p.name }}</span>
+            </div>
+          </td>
+          <td><span class="brand-pill" [ngClass]="p.brand">{{ p.brand | titlecase }}</span></td>
+          <td><span class="type-label">{{ p.product_type | titlecase }}</span></td>
+          <td><span class="code">{{ p.product_code || '—' }}</span></td>
+          <td>
+            <span class="stock-value" [ngClass]="getStockClass(p)">
+              {{ getStockValue(p) }}
+              <span *ngIf="p.product_type === 'fabric'">m</span>
+            </span>
+          </td>
+          <td>
+            <span class="stock-badge" [ngClass]="getStockClass(p)">
+              {{ getStockValue(p) <= 0 ? 'Out' : getStockValue(p) <= 5 ? 'Low' : 'OK' }}
+            </span>
+          </td>
+        </tr>
+
+        <tr *ngIf="pagedProducts.length === 0">
+          <td colspan="6" class="empty-row">No products match the current filters.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="as-pagination" *ngIf="totalPages > 1">
+      <button class="page-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+    </div>
+  </div>
+
+</div>

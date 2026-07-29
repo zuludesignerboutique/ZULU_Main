@@ -36,7 +36,7 @@ export class Footer {
     this.subscribed     = false;
     this.subscribeError = '';
 
-    this.http.post<{ message: string }>('http://localhost:4000/api/newsletter/subscribe', { email }).subscribe({
+    this.http.post<{ message: string }>('/api/newsletter/subscribe', { email }).subscribe({
       next: () => {
         this.isSubscribing  = false;
         this.subscribed     = true;

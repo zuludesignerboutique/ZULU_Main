@@ -18,7 +18,7 @@ export class EditProduct implements OnInit {
   imagePreview: string | null = null;   // ← new: for upload area preview
   isSaving: boolean = false;
 
-  imageBase: string = 'http://localhost:4000/uploads/';
+  imageBase: string = '/uploads/';
 
   // ── Category → allowed subcategories (must match dropdown option text exactly) ──
   categorySubMap: Record<string, string[]> = {
@@ -54,7 +54,7 @@ export class EditProduct implements OnInit {
   ngOnInit() {
     const id = this.route.snapshot.params['id'];
 
-    this.http.get<any[]>('http://localhost:4000/api/products')
+    this.http.get<any[]>('/api/products')
       .subscribe(data => {
         const found = data.find(p => p.id == id);
         if (found) {
@@ -140,7 +140,7 @@ export class EditProduct implements OnInit {
     }
 
     this.http.put(
-      `http://localhost:4000/api/products/${this.product.id}`,
+      `/api/products/${this.product.id}`,
       formData
     ).subscribe({
       next: () => {

@@ -1,20 +1,103 @@
-<h2>Admin Dashboard</h2>
+<div class="admin-dashboard">
 
-<div class="cards">
-
-  <div class="card">
-    <h3>Total Products</h3>
-    <p>{{ totalProducts }}</p>
+  <div class="dash-header">
+    <h2 class="dash-title">Dashboard Overview</h2>
+    <div class="dash-brand-chips">
+      <button *ngFor="let b of brands"
+        class="chip-btn" [class.active]="brandFilter === b"
+        (click)="setBrandFilter(b)">
+        {{ b === 'all' ? 'All Brands' : (b | titlecase) }}
+      </button>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>Total Users</h3>
-    <p>{{ totalUsers }}</p>
+  <!-- Summary Cards -->
+  <div class="dash-cards">
+    <div class="dash-card">
+      <div class="card-icon products-icon">◫</div>
+      <div class="card-body">
+        <span class="card-value">{{ totalProducts }}</span>
+        <span class="card-label">Products</span>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <div class="card-icon users-icon">👤</div>
+      <div class="card-body">
+        <span class="card-value">{{ totalUsers }}</span>
+        <span class="card-label">Users</span>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <div class="card-icon orders-icon">◑</div>
+      <div class="card-body">
+        <span class="card-value">{{ totalOrders }}</span>
+        <span class="card-label">Orders</span>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <div class="card-icon revenue-icon">₹</div>
+      <div class="card-body">
+        <span class="card-value">₹{{ totalRevenue | number:'1.0-0' }}</span>
+        <span class="card-label">Revenue</span>
+      </div>
+    </div>
+
+    <div class="dash-card warn">
+      <div class="card-icon stock-icon">▤</div>
+      <div class="card-body">
+        <span class="card-value">{{ lowStockCount }}</span>
+        <span class="card-label">Low Stock</span>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>Total Orders</h3>
-    <p>{{ totalOrders }}</p>
+  <!-- Quick Actions -->
+  <div class="dash-actions">
+    <h3 class="section-title">Quick Actions</h3>
+    <div class="action-grid">
+      <a routerLink="/admin/add-product" class="action-btn">＋ Add Product</a>
+      <a routerLink="/admin/orders" class="action-btn">◑ View Orders</a>
+      <a routerLink="/admin/stock" class="action-btn">▤ Stock Dashboard</a>
+      <a routerLink="/admin/transactions" class="action-btn">₹ Transactions</a>
+    </div>
+  </div>
+
+  <!-- Recent Orders -->
+  <div class="dash-recent">
+    <h3 class="section-title">Recent Orders</h3>
+    <div class="recent-table-wrap">
+      <table class="recent-table" *ngIf="recentOrders.length">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of recentOrders">
+            <td><span class="order-id">#{{ o.id }}</span></td>
+            <td>
+              <span class="customer-name">{{ o.user_name }}</span>
+              <span class="customer-email">{{ o.email }}</span>
+            </td>
+            <td><span class="amount">₹{{ o.total_amount | number }}</span></td>
+            <td>
+              <span class="status-pill" [ngClass]="getStatusClass(o.status)">
+                {{ o.status | titlecase }}
+              </span>
+            </td>
+            <td><span class="date">{{ o.created_at | date:'dd MMM' }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="no-recent" *ngIf="!recentOrders.length">No orders yet.</div>
+    </div>
   </div>
 
 </div>

@@ -17,7 +17,7 @@ export class ProductCardComponent {
   @Input() product!: Product;
 
   // ✅ Products from DB use filename only; assets use full path
-  private readonly imageBase = 'http://localhost:4000/uploads/';
+  private readonly imageBase = '/uploads/';
 
   constructor(
     private cartService: CartService,

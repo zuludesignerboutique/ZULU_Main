@@ -9,7 +9,7 @@ import { map } from 'rxjs/operators';
 export class ReviewService {
   constructor(private http: HttpClient) {}
 
-apiUrl = 'http://localhost:4000/api/reviews';
+apiUrl = '/api/reviews';
 
 getReviews(): Observable<Review[]> {
   return this.http.get<any[]>(this.apiUrl).pipe(

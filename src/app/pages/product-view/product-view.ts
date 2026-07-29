@@ -41,7 +41,7 @@ export class ProductView implements OnInit, OnDestroy {
   shareMenuOpen: boolean = false;
   linkCopied: boolean = false;
 
-  imageBase: string = 'http://localhost:4000/uploads/';
+  imageBase: string = '/uploads/';
 
   private navStateProduct: any = null;
   private destroy$ = new Subject<void>();
@@ -136,7 +136,7 @@ export class ProductView implements OnInit, OnDestroy {
   private fetchProduct(id: string | number) {
     this.isLoading = true;
     this.error = null;
-    this.http.get<any[]>('http://localhost:4000/api/products')
+    this.http.get<any[]>('/api/products')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
@@ -158,7 +158,7 @@ export class ProductView implements OnInit, OnDestroy {
   }
 
   private fetchProductSilently(id: string | number) {
-    this.http.get<any[]>('http://localhost:4000/api/products')
+    this.http.get<any[]>('/api/products')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {

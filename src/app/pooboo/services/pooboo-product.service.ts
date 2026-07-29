@@ -6,7 +6,7 @@ import { PoobooProduct } from '../core/models/pooboo-product.model';
 @Injectable({ providedIn: 'root' })
 export class PoobooProductService {
 
-  private base = 'http://localhost:4000/api/pooboo/products';
+  private base = '/api/pooboo/products';
 
   constructor(private http: HttpClient) {}
 

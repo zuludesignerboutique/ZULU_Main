@@ -25,7 +25,7 @@ export class LoginComponent {
   ) {}
 
   login() {
-    this.http.post<any>('http://localhost:4000/login', {
+    this.http.post<any>('/login', {
       email: this.email,
       password: this.password
     }).subscribe({

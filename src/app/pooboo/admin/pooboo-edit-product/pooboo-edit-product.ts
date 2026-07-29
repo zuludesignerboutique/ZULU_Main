@@ -13,7 +13,7 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 })
 export class PoobooEditProduct implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
   productId!: number;
 
   // Form fields
@@ -81,7 +81,7 @@ export class PoobooEditProduct implements OnInit {
           this.gender          = p.gender         || 'unisex';
           this.stock           = p.stock          || '';
           this.product_code    = p.product_code   || '';
-          this.is_customizable = p.is_customizable == 1;
+          this.is_customizable = p.is_customizable === 1 || p.is_customizable === true;
           this.is_active       = p.is_active      != 0;
           this.existingImage   = p.image_url      || null;
 

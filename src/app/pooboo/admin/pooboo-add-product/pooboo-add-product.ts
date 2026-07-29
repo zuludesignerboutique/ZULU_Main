@@ -15,7 +15,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class PoobooAddProduct {
 
-  private api = 'http://localhost:4000';
+  private api = '';
 
   // Form fields
   name          = '';

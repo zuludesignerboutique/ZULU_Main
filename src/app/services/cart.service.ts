@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Product } from '../core/models/product.model';
+import { Product, CartItem } from '../core/models/product.model';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -9,12 +9,11 @@ export class CartService {
 
   constructor(private auth: AuthService) {}
 
-  // ✅ Unique key per user: "cart_user@email.com"
   private get KEY(): string {
     return `cart_${this.auth.getUserEmail()}`;
   }
 
-  private load(): (Product & { qty: number; size?: string })[] {
+  private load(): CartItem[] {
     try {
       return JSON.parse(localStorage.getItem(this.KEY) || '[]');
     } catch {
@@ -22,24 +21,28 @@ export class CartService {
     }
   }
 
-  private save(cart: (Product & { qty: number; size?: string })[]) {
+  private save(cart: CartItem[]) {
     localStorage.setItem(this.KEY, JSON.stringify(cart));
   }
 
-  // ✅ size and initialQty are now optional params
   add(product: Product, size?: string, initialQty: number = 1) {
     const cart = this.load();
-    // Match on both id AND size so the same product in different sizes = separate rows
     const existing = cart.find(p => p.id === product.id && p.size === size);
     if (existing) {
       existing.qty = (existing.qty || 1) + initialQty;
     } else {
-      cart.push({ ...product, qty: initialQty, size });
+      cart.push({
+        ...product,
+        qty: initialQty,
+        size,
+        brand: product.brand || 'zulu',
+        product_type: product.product_type || 'apparel',
+        product_code: product.product_code || ''
+      });
     }
     this.save(cart);
   }
 
-  // ✅ size param lets us update the right row when same product has multiple sizes
   updateQty(id: number, qty: number, size?: string) {
     const items = this.load();
     const item = size !== undefined
@@ -51,7 +54,7 @@ export class CartService {
     }
   }
 
-  getAll(): (Product & { qty: number; size?: string })[] {
+  getAll(): CartItem[] {
     return this.load();
   }
 
@@ -71,13 +74,11 @@ export class CartService {
     return this.load().reduce((sum, p) => sum + (p.qty || 1), 0);
   }
 
-  // ✅ Cart page calls this with only the checked items right before navigating to /checkout
-  setCheckoutItems(items: (Product & { qty: number; size?: string })[]) {
+  setCheckoutItems(items: CartItem[]) {
     sessionStorage.setItem(this.CHECKOUT_KEY, JSON.stringify(items));
   }
 
-  // ✅ Checkout page should read from here instead of getAll(), so it only charges for what was checked
-  getCheckoutItems(): (Product & { qty: number; size?: string })[] {
+  getCheckoutItems(): CartItem[] {
     try {
       return JSON.parse(sessionStorage.getItem(this.CHECKOUT_KEY) || '[]');
     } catch {
@@ -89,8 +90,6 @@ export class CartService {
     sessionStorage.removeItem(this.CHECKOUT_KEY);
   }
 
-  // ✅ Removes only the given rows (id+size) — used after a successful order,
-  // so items the user left unchecked stay in the cart instead of being wiped by clear()
   removeItems(items: { id: number; size?: string }[]) {
     const keys = new Set(items.map(i => `${i.id}_${i.size ?? ''}`));
     const remaining = this.load().filter(p => !keys.has(`${p.id}_${p.size ?? ''}`));

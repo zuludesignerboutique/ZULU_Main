@@ -21,16 +21,22 @@ export class AdminProducts implements OnInit {
     private http: HttpClient,
     private cdr: ChangeDetectorRef
   ){}
+
 deleteProduct(id: number){
   if(confirm("Are you sure?")){
-    this.http.delete(`http://localhost:4000/api/products/${id}`)
+    this.http.delete(`/api/products/${id}`)
       .subscribe(() => {
         this.products = this.products.filter(p => p.id !== id);
       });
   }
 }
+
   ngOnInit(){
-    this.http.get<any[]>('http://localhost:4000/api/products')
+    // This is the ZULU-only admin products list (separate from the
+    // POOBOO admin section) — scope it to brand=zulu, or Pooboo's
+    // apparel/fabric/accessory rows leak in since they all live in
+    // the same unified `products` table now.
+    this.http.get<any[]>('/api/products/all', { params: { brand: 'zulu' } })
       .subscribe((data: any[]) => {
         console.log("Admin Products:", data);
         this.products = data;

@@ -15,8 +15,6 @@ export class PoobooAdminEnquiries implements OnInit {
   isLoading = true;
   filterStatus = '';
 
-  private api = 'http://localhost:4000';
-
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
@@ -26,8 +24,8 @@ export class PoobooAdminEnquiries implements OnInit {
   loadEnquiries() {
     this.isLoading = true;
     const url = this.filterStatus
-      ? `${this.api}/api/pooboo/enquiries?status=${this.filterStatus}`
-      : `${this.api}/api/pooboo/enquiries`;
+      ? `/api/pooboo/enquiries?status=${this.filterStatus}`
+      : '/api/pooboo/enquiries';
     this.http.get<any[]>(url).subscribe({
       next: (data) => { this.enquiries = data; this.isLoading = false; },
       error: () => { this.isLoading = false; }
@@ -35,14 +33,14 @@ export class PoobooAdminEnquiries implements OnInit {
   }
 
   updateStatus(id: number, status: string) {
-    this.http.patch(`${this.api}/api/pooboo/enquiries/${id}/status`, { status }).subscribe({
+    this.http.patch(`/api/pooboo/enquiries/${id}/status`, { status }).subscribe({
       next: () => this.loadEnquiries()
     });
   }
 
   deleteEnquiry(id: number) {
     if (confirm('Delete this enquiry?')) {
-      this.http.delete(`${this.api}/api/pooboo/enquiries/${id}`).subscribe({
+      this.http.delete(`/api/pooboo/enquiries/${id}`).subscribe({
         next: () => this.loadEnquiries()
       });
     }

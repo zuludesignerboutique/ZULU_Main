@@ -13,7 +13,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class PoobooAdminFabrics implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
 
   // ── List state ────────────────────────────────────────
   products: any[] = [];

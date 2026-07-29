@@ -15,7 +15,7 @@ type AccessoryTab = 'baby-ornaments' | 'bands' | 'hair-clips';
 })
 export class PoobooEditAccessory implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
   private productId!: number;
 
   // ── Page state ─────────────────────────────────────────

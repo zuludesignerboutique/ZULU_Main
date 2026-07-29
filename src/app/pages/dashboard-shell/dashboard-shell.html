@@ -1,0 +1,42 @@
+<div class="dashboard-page">
+
+  <!-- HEADER -->
+  <div class="dashboard-header">
+    <div class="header-eyebrow">My Account</div>
+    <h1 class="dashboard-title">My Dashboard</h1>
+    <p class="dashboard-sub">Manage your details, orders, cart and wishlist in one place</p>
+  </div>
+
+  <div class="dashboard-layout">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="dashboard-sidebar">
+      <nav class="sidebar-nav">
+        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="sidebar-link">
+          <span class="sidebar-icon">&#9670;</span>
+          Profile Details
+        </a>
+        <a routerLink="/dashboard/order-history" routerLinkActive="active" class="sidebar-link">
+          <span class="sidebar-icon">&#9678;</span>
+          Order History
+        </a>
+        <a routerLink="/dashboard/cart" routerLinkActive="active" class="sidebar-link">
+          <span class="sidebar-icon">&#128722;</span>
+          Cart
+        </a>
+        <a routerLink="/dashboard/wishlist" routerLinkActive="active" class="sidebar-link">
+          <span class="sidebar-icon">&#9825;</span>
+          Wishlist
+        </a>
+      </nav>
+      <button class="sidebar-logout" (click)="logout()">Log Out</button>
+    </aside>
+
+    <!-- ══ ACTIVE PANEL (swaps per route, sidebar/header stay put) ══ -->
+    <section class="dashboard-panel">
+      <router-outlet></router-outlet>
+    </section>
+
+  </div>
+
+</div>

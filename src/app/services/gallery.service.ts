@@ -58,7 +58,7 @@ export class GalleryService {
     },
     {
       id: 10,
-      title: 'Pink Elgore',
+      title: 'Pink Elegance',
       imageUrl: 'assets/images/10 B.jpeg'
     }
   ]);

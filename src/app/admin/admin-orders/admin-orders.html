@@ -1,20 +1,70 @@
 <div class="admin-orders">
 
+  <!-- Header -->
   <div class="ao-header">
     <div>
       <h2 class="ao-title">Order Management</h2>
       <p class="ao-sub">{{ orders.length }} total orders</p>
     </div>
-    <div class="ao-filters">
-      <button
-        class="filter-btn"
-        *ngFor="let f of filters"
-        [class.active]="activeFilter === f"
-        (click)="setFilter(f)"
-      >
-        {{ f | titlecase }}
-        <span class="filter-count">{{ getCount(f) }}</span>
-      </button>
+  </div>
+
+  <!-- Summary Bar -->
+  <div class="ao-summary">
+    <div class="summary-card">
+      <span class="summary-value">{{ summary.total }}</span>
+      <span class="summary-label">Total Orders</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-value">₹{{ summary.totalRevenue | number:'1.0-0' }}</span>
+      <span class="summary-label">Total Revenue</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-value">{{ summary.shipped }}</span>
+      <span class="summary-label">Shipped/Delivered</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-value">{{ summary.pending }}</span>
+      <span class="summary-label">Pending</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-value">{{ summary.cancelled }}</span>
+      <span class="summary-label">Cancelled</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="ao-filters-bar">
+    <div class="filter-group">
+      <label>Brand</label>
+      <div class="brand-chips">
+        <button *ngFor="let b of brands"
+          class="chip-btn"
+          [class.active]="brandFilter === b"
+          (click)="setBrandFilter(b)">
+          {{ b === 'all' ? 'All' : (b | titlecase) }}
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Status</label>
+      <div class="status-chips">
+        <button *ngFor="let s of statuses"
+          class="chip-btn"
+          [class.active]="statusFilter === s"
+          (click)="setStatusFilter(s)">
+          {{ s === 'all' ? 'All' : (s | titlecase) }}
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group filter-row">
+      <input type="text" class="filter-input" placeholder="Search name, email, phone, order ID..."
+        [(ngModel)]="searchQuery" (keyup.enter)="onSearch()">
+      <input type="date" class="filter-input date-input" [(ngModel)]="startDate" (change)="onSearch()">
+      <span class="date-sep">to</span>
+      <input type="date" class="filter-input date-input" [(ngModel)]="endDate" (change)="onSearch()">
+      <button class="clear-btn" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
@@ -31,22 +81,28 @@
       <thead>
         <tr>
           <th>Order ID</th>
+          <th>Brand</th>
           <th>Customer</th>
           <th>Contact</th>
-          <th>Products Purchased</th>
+          <th>Products</th>
           <th>Total</th>
+          <th>Refund/Penalty</th>
           <th>Date</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let order of filteredOrders" class="ao-row">
+        <tr *ngFor="let order of pagedOrders" class="ao-row">
 
-          <!-- Order ID -->
           <td><span class="order-id">#{{ order.id }}</span></td>
 
-          <!-- Customer name + email (which account) -->
+          <td>
+            <span class="brand-pill" [ngClass]="order.items?.[0]?.brand || 'zulu'">
+              {{ (order.items?.[0]?.brand || 'zulu') | titlecase }}
+            </span>
+          </td>
+
           <td>
             <div class="customer-cell">
               <span class="customer-name">{{ order.user_name }}</span>
@@ -54,44 +110,46 @@
             </div>
           </td>
 
-          <!-- Phone -->
           <td><span class="phone">{{ order.phone }}</span></td>
 
-          <!-- Products with qty + price per item -->
           <td>
             <div class="items-cell">
               <div class="item-row" *ngFor="let item of parseItems(order.items)">
                 <span class="item-pill">
                   <span class="item-name-text">{{ item.product_name }}</span>
+                  <span class="item-code" *ngIf="item.product_code">{{ item.product_code }}</span>
                   <span class="item-meta">×{{ item.quantity }} · ₹{{ item.price | number }}</span>
+                  <span class="item-brand-tag" *ngIf="item.brand">{{ item.brand }}</span>
                 </span>
               </div>
             </div>
           </td>
 
-          <!-- Total -->
           <td><span class="amount">₹{{ order.total_amount | number }}</span></td>
 
-          <!-- Date -->
+          <td>
+            <div class="refund-cell">
+              <span *ngIf="order.refund_amount" class="refund-amt">-₹{{ order.refund_amount | number }}</span>
+              <span *ngIf="order.penalty_amount" class="penalty-amt">Fee: ₹{{ order.penalty_amount | number }}</span>
+              <span *ngIf="!order.refund_amount && !order.penalty_amount" class="no-refund">—</span>
+            </div>
+          </td>
+
           <td>
             <span class="date">{{ order.created_at | date:'dd MMM yy' }}</span>
             <span class="date-time">{{ order.created_at | date:'h:mm a' }}</span>
           </td>
 
-          <!-- Status badge -->
           <td>
-            <span class="status-pill" [ngClass]="order.status">
+            <span class="status-pill" [ngClass]="getStatusClass(order.status)">
               {{ order.status | titlecase }}
             </span>
           </td>
 
-          <!-- Change status -->
           <td>
-            <select
-              class="status-select"
+            <select class="status-select"
               [value]="order.status"
-              (change)="updateStatus(order, $event)"
-            >
+              (change)="updateStatus(order, $event)">
               <option value="pending">Pending</option>
               <option value="confirmed">Confirmed</option>
               <option value="shipped">Shipped</option>
@@ -102,11 +160,18 @@
 
         </tr>
 
-        <tr *ngIf="filteredOrders.length === 0">
-          <td colspan="8" class="empty-row">No orders found for this filter.</td>
+        <tr *ngIf="pagedOrders.length === 0">
+          <td colspan="10" class="empty-row">No orders found.</td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div class="ao-pagination" *ngIf="totalPages > 1">
+      <button class="page-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+    </div>
   </div>
 
 </div>

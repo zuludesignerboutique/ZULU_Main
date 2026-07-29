@@ -13,7 +13,12 @@ export class ProductService {
   constructor(private http: HttpClient) {}
 
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.apiUrl);
+    // The `products` table is unified across brands (brand/product_type
+    // columns). Without a brand filter, the backend returns everything —
+    // Pooboo apparel/fabrics/accessories included. Scope this to ZULU.
+    return this.http.get<Product[]>(this.apiUrl, {
+      params: { brand: 'zulu' }
+    });
   }
 
   getProductById(id: number): Observable<Product> {

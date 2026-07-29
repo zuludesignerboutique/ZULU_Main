@@ -2,11 +2,13 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PoobooCart, PoobooCartItem } from '../../services/pooboo-cart';
+import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';
+import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
 
 @Component({
   selector: 'app-pooboo-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, PoobooHeader, PoobooFooter],
   templateUrl: './cart.html',
   styleUrl: './cart.scss',
 })

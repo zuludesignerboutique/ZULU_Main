@@ -35,8 +35,8 @@ export class Checkout implements OnInit, AfterViewInit {
   selectedAddressId: string | null = null;
   selectedPhoneId: string | null = null;
 
-  imageBase  = 'http://localhost:4000/uploads/';
-  private api = 'http://localhost:4000';
+  imageBase  = '/uploads/';
+  private api = '';
 
   constructor(
     private fb: FormBuilder,
@@ -102,7 +102,7 @@ export class Checkout implements OnInit, AfterViewInit {
 
   // ── Saved profile (from User Dashboard) ─────────
   private loadSavedProfile(): void {
-    this.http.get<any>(`${this.api}/api/users/me`).subscribe({
+    this.http.get<any>('/api/users/me').subscribe({
       next: (data) => {
         // Prefill name — user can still overwrite it
         if (data.name) this.checkoutForm.patchValue({ name: data.name });
@@ -220,17 +220,20 @@ export class Checkout implements OnInit, AfterViewInit {
     const fullAddress = `${address}, ${city}, ${state} - ${pincode}`;
 
     // STEP 1: Save order to DB — ✅ include size per item
-    this.http.post<{ orderId: number }>(`${this.api}/api/orders`, {
+    this.http.post<{ orderId: number }>('/api/orders', {
       user_name:    name,
       email,
       phone,
       address:      fullAddress,
       total_amount: this.grandTotal,
       items: this.cartItems.map(item => ({
-        product_id: item.id,
-        quantity:   item.qty || 1,
-        price:      item.price,
-        size:       item.size || null   // ✅ size sent to backend
+        product_id:   item.id,
+        quantity:     item.qty || 1,
+        price:        item.price,
+        size:         item.size || null,
+        brand:        item.brand || 'zulu',
+        product_type: item.product_type || 'apparel',
+        product_code: item.product_code || ''
       }))
     }).subscribe({
       next: (res) => {
@@ -295,7 +298,7 @@ export class Checkout implements OnInit, AfterViewInit {
 
   private verifyPayment(orderId: number, response: any) {
     // STEP 5: Verify signature
-    this.http.post<any>(`${this.api}/api/razorpay/verify-payment`, {
+    this.http.post<any>('/api/razorpay/verify-payment', {
       razorpay_order_id:   response.razorpay_order_id,
       razorpay_payment_id: response.razorpay_payment_id,
       razorpay_signature:  response.razorpay_signature,

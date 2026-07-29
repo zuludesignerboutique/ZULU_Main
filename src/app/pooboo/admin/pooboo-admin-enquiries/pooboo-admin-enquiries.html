@@ -1,1 +1,55 @@
-<p>pooboo-admin-enquiries works!</p>
+<div class="enquiries-page">
+  <div class="page-header">
+    <h2>Customer Enquiries</h2>
+    <div class="filter-bar">
+      <select [(ngModel)]="filterStatus" (change)="loadEnquiries()">
+        <option value="">All Statuses</option>
+        <option value="new">New</option>
+        <option value="contacted">Contacted</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="state-msg">Loading enquiries...</div>
+
+  <div *ngIf="!isLoading && enquiries.length === 0" class="state-msg">
+    No enquiries found.
+  </div>
+
+  <div *ngIf="!isLoading && enquiries.length > 0" class="table-wrap">
+    <table class="enquiries-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Product</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of enquiries">
+          <td>{{ e.parent_name || e.name }}</td>
+          <td>{{ e.phone }}</td>
+          <td>{{ e.email }}</td>
+          <td>{{ e.product_link || '&mdash;' }}</td>
+          <td><span class="badge" [class]="e.status">{{ e.status }}</span></td>
+          <td>{{ e.created_at | date:'shortDate' }}</td>
+          <td class="actions">
+            <select (change)="updateStatus(e.id, $any($event.target).value)" [value]="e.status">
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <button class="btn-delete" (click)="deleteEnquiry(e.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

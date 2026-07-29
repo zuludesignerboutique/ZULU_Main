@@ -22,6 +22,7 @@ import { OrderSuccessComponent } from './pages/order-success/order-success';
 import { OrderHistoryComponent } from './pages/order-history/order-history';
 import { adminGuard } from './admin/admin-guard';
 import { UserDashboard } from './pages/user-dashboard/user-dashboard';
+import { DashboardShell } from './pages/dashboard-shell/dashboard-shell';
 
 export const routes: Routes = [
 
@@ -47,7 +48,17 @@ export const routes: Routes = [
   { path: 'checkout',      component: Checkout,              canActivate: [authGuard] },
   { path: 'order-history', component: OrderHistoryComponent, canActivate: [authGuard] },
   { path: 'order-success', component: OrderSuccessComponent },
-   {path: 'dashboard', component: UserDashboard},
+  {
+    path: 'dashboard',
+    component: DashboardShell,
+    canActivate: [authGuard],
+    children: [
+      { path: '',              component: UserDashboard },
+      { path: 'cart',          component: CartComponent },
+      { path: 'wishlist',      component: Wishlist },
+      { path: 'order-history', component: OrderHistoryComponent },
+    ]
+  },
   {
     path: 'product/:id',
     loadComponent: () =>
@@ -85,6 +96,16 @@ export const routes: Routes = [
         path: 'orders',
         loadComponent: () =>
           import('./admin/admin-orders/admin-orders').then(m => m.AdminOrders)
+      },
+      {
+        path: 'stock',
+        loadComponent: () =>
+          import('./admin/admin-stock/admin-stock').then(m => m.AdminStock)
+      },
+      {
+        path: 'transactions',
+        loadComponent: () =>
+          import('./admin/admin-transactions/admin-transactions').then(m => m.AdminTransactions)
       },
       // ── POOBOO admin ───────────────────────────
       {

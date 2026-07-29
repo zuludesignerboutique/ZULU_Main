@@ -15,7 +15,7 @@ import { PoobooFabric } from '../../core/models/pooboo-fabric.model';
 })
 export class FabricDetail implements OnInit {
 
-  private api = 'http://localhost:4000';
+  private api = '';
 
   fabricTypes = [
     { label: 'Cotton',    value: 'cotton',    emoji: '🌿' },

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PoobooReview, PoobooReviewPayload } from '../core/models/pooboo-review.model';
 
@@ -30,11 +30,7 @@ export class PoobooReviewService {
     formData.append('body', payload.body);
     if (payload.photo) formData.append('photo', payload.photo);
 
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders(
-      token ? { Authorization: `Bearer ${token}` } : {}
-    );
-    return this.http.post<PoobooReview>(this.apiUrl, formData, { headers });
+    return this.http.post<PoobooReview>(this.apiUrl, formData);
   }
 
   /** Admin: get ALL reviews including hidden */

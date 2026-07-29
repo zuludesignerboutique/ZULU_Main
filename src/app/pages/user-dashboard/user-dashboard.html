@@ -1,144 +1,101 @@
-<div class="dashboard-page">
-
-  <!-- HEADER -->
-  <div class="dashboard-header">
-    <div class="header-eyebrow">My Account</div>
-    <h1 class="dashboard-title">{{ userName ? userName + '\u2019s Dashboard' : 'My Dashboard' }}</h1>
-    <p class="dashboard-sub">Manage your details, orders, cart and wishlist in one place</p>
-  </div>
-
-  <div class="dashboard-layout">
-
-    <!-- ══ SIDEBAR ══ -->
-    <aside class="dashboard-sidebar">
-      <nav class="sidebar-nav">
-        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="sidebar-link">
-          <span class="sidebar-icon">&#9670;</span>
-          Profile Details
-        </a>
-        <a routerLink="/order-history" class="sidebar-link">
-          <span class="sidebar-icon">&#9678;</span>
-          Order History
-        </a>
-        <a routerLink="/cart" class="sidebar-link">
-          <span class="sidebar-icon">&#128722;</span>
-          Cart
-        </a>
-        <a routerLink="/wishlist" class="sidebar-link">
-          <span class="sidebar-icon">&#9825;</span>
-          Wishlist
-        </a>
-      </nav>
-      <button class="sidebar-logout" (click)="logout()">Log Out</button>
-    </aside>
-
-    <!-- ══ PROFILE PANEL ══ -->
-    <section class="dashboard-panel">
-
-      <div class="panel-loading" *ngIf="isLoading">
-        <span class="spinner-dot"></span>
-        <span class="spinner-dot"></span>
-        <span class="spinner-dot"></span>
-      </div>
-
-      <div class="panel-error" *ngIf="!isLoading && loadError">
-        <p>{{ loadError }}</p>
-        <button class="btn-retry" (click)="loadProfile()">Try Again</button>
-      </div>
-
-      <form
-        class="profile-form"
-        *ngIf="!isLoading && !loadError"
-        [formGroup]="profileForm"
-        (ngSubmit)="saveProfile()"
-      >
-        <h2 class="panel-title">Profile Details</h2>
-
-        <div class="fields-grid">
-
-          <div class="field-group full">
-            <label class="field-label">Full Name</label>
-            <div class="field-wrap" [class.error]="isInvalid('name')" [class.valid]="isValid('name')">
-              <input type="text" class="field-input" placeholder="Your full name" formControlName="name" />
-            </div>
-            <p class="field-error" *ngIf="isInvalid('name')">Name is required</p>
-          </div>
-
-          <div class="field-group full">
-            <label class="field-label">Email Address</label>
-            <div class="field-wrap readonly">
-              <input type="email" class="field-input" formControlName="email" />
-            </div>
-            <p class="field-hint">Email can't be changed here \u2014 contact support if you need to update it.</p>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Primary Phone Number</label>
-            <div class="field-wrap" [class.error]="isInvalid('phone1')" [class.valid]="isValid('phone1')">
-              <input type="tel" class="field-input" placeholder="10-digit mobile number" formControlName="phone1" maxlength="10" />
-            </div>
-            <p class="field-error" *ngIf="isInvalid('phone1')">Enter a valid 10-digit number</p>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Secondary Phone Number <span class="optional-tag">Optional</span></label>
-            <div class="field-wrap" [class.error]="isInvalid('phone2')" [class.valid]="isValid('phone2')">
-              <input type="tel" class="field-input" placeholder="10-digit mobile number" formControlName="phone2" maxlength="10" />
-            </div>
-            <p class="field-error" *ngIf="isInvalid('phone2')">Enter a valid 10-digit number</p>
-          </div>
-
-          <div class="field-group full">
-            <label class="field-label">Address 1 (Home)</label>
-            <div class="field-wrap" [class.error]="isInvalid('address1')" [class.valid]="isValid('address1')">
-              <input type="text" class="field-input" placeholder="House no., street, area" formControlName="address1" />
-            </div>
-            <p class="field-error" *ngIf="isInvalid('address1')">Address is required</p>
-          </div>
-
-          <div class="field-group full">
-            <label class="field-label">Address 2 (Office) <span class="optional-tag">Optional</span></label>
-            <div class="field-wrap">
-              <input type="text" class="field-input" placeholder="House no., street, area" formControlName="address2" />
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">District</label>
-            <div class="field-wrap" [class.error]="isInvalid('district')" [class.valid]="isValid('district')">
-              <input type="text" class="field-input" placeholder="District" formControlName="district" />
-            </div>
-            <p class="field-error" *ngIf="isInvalid('district')">District is required</p>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">State</label>
-            <div class="field-wrap" [class.error]="isInvalid('state')" [class.valid]="isValid('state')">
-              <input type="text" class="field-input" placeholder="State" formControlName="state" />
-            </div>
-            <p class="field-error" *ngIf="isInvalid('state')">State is required</p>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Pincode</label>
-            <div class="field-wrap" [class.error]="isInvalid('pincode')" [class.valid]="isValid('pincode')">
-              <input type="text" class="field-input" placeholder="6-digit pincode" formControlName="pincode" maxlength="6" />
-            </div>
-            <p class="field-error" *ngIf="isInvalid('pincode')">Enter a valid 6-digit pincode</p>
-          </div>
-
-        </div>
-
-        <p class="panel-error-msg" *ngIf="saveError">\u26a0 {{ saveError }}</p>
-        <p class="panel-success-msg" *ngIf="saveSuccess">\u2713 Profile updated successfully</p>
-
-        <button type="submit" class="btn-save" [disabled]="isSaving">
-          {{ isSaving ? 'Saving\u2026' : 'Save Changes' }}
-        </button>
-      </form>
-
-    </section>
-
-  </div>
-
+<div class="panel-loading" *ngIf="isLoading">
+  <span class="spinner-dot"></span>
+  <span class="spinner-dot"></span>
+  <span class="spinner-dot"></span>
 </div>
+
+<div class="panel-error" *ngIf="!isLoading && loadError">
+  <p>{{ loadError }}</p>
+  <button class="btn-retry" (click)="loadProfile()">Try Again</button>
+</div>
+
+<form
+  class="profile-form"
+  *ngIf="!isLoading && !loadError"
+  [formGroup]="profileForm"
+  (ngSubmit)="saveProfile()"
+>
+  <h2 class="panel-title">Profile Details</h2>
+
+  <div class="fields-grid">
+
+    <div class="field-group full">
+      <label class="field-label">Full Name</label>
+      <div class="field-wrap" [class.error]="isInvalid('name')" [class.valid]="isValid('name')">
+        <input type="text" class="field-input" placeholder="Your full name" formControlName="name" />
+      </div>
+      <p class="field-error" *ngIf="isInvalid('name')">Name is required</p>
+    </div>
+
+    <div class="field-group full">
+      <label class="field-label">Email Address</label>
+      <div class="field-wrap readonly">
+        <input type="email" class="field-input" formControlName="email" />
+      </div>
+      <p class="field-hint">Email can't be changed here \u2014 contact support if you need to update it.</p>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Primary Phone Number</label>
+      <div class="field-wrap" [class.error]="isInvalid('phone1')" [class.valid]="isValid('phone1')">
+        <input type="tel" class="field-input" placeholder="10-digit mobile number" formControlName="phone1" maxlength="10" />
+      </div>
+      <p class="field-error" *ngIf="isInvalid('phone1')">Enter a valid 10-digit number</p>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Secondary Phone Number <span class="optional-tag">Optional</span></label>
+      <div class="field-wrap" [class.error]="isInvalid('phone2')" [class.valid]="isValid('phone2')">
+        <input type="tel" class="field-input" placeholder="10-digit mobile number" formControlName="phone2" maxlength="10" />
+      </div>
+      <p class="field-error" *ngIf="isInvalid('phone2')">Enter a valid 10-digit number</p>
+    </div>
+
+    <div class="field-group full">
+      <label class="field-label">Address 1 (Home)</label>
+      <div class="field-wrap" [class.error]="isInvalid('address1')" [class.valid]="isValid('address1')">
+        <input type="text" class="field-input" placeholder="House no., street, area" formControlName="address1" />
+      </div>
+      <p class="field-error" *ngIf="isInvalid('address1')">Address is required</p>
+    </div>
+
+    <div class="field-group full">
+      <label class="field-label">Address 2 (Office) <span class="optional-tag">Optional</span></label>
+      <div class="field-wrap">
+        <input type="text" class="field-input" placeholder="House no., street, area" formControlName="address2" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">District</label>
+      <div class="field-wrap" [class.error]="isInvalid('district')" [class.valid]="isValid('district')">
+        <input type="text" class="field-input" placeholder="District" formControlName="district" />
+      </div>
+      <p class="field-error" *ngIf="isInvalid('district')">District is required</p>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">State</label>
+      <div class="field-wrap" [class.error]="isInvalid('state')" [class.valid]="isValid('state')">
+        <input type="text" class="field-input" placeholder="State" formControlName="state" />
+      </div>
+      <p class="field-error" *ngIf="isInvalid('state')">State is required</p>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Pincode</label>
+      <div class="field-wrap" [class.error]="isInvalid('pincode')" [class.valid]="isValid('pincode')">
+        <input type="text" class="field-input" placeholder="6-digit pincode" formControlName="pincode" maxlength="6" />
+      </div>
+      <p class="field-error" *ngIf="isInvalid('pincode')">Enter a valid 6-digit pincode</p>
+    </div>
+
+  </div>
+
+  <p class="panel-error-msg" *ngIf="saveError">\u26a0 {{ saveError }}</p>
+  <p class="panel-success-msg" *ngIf="saveSuccess">\u2713 Profile updated successfully</p>
+
+  <button type="submit" class="btn-save" [disabled]="isSaving">
+    {{ isSaving ? 'Saving\u2026' : 'Save Changes' }}
+  </button>
+</form>

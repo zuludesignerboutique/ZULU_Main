@@ -35,7 +35,7 @@ export class Contact {
     this.submitted = false;
     this.errorMsg = '';
 
-    this.http.post<{ message: string }>('http://localhost:4000/api/contact', this.form).subscribe({
+    this.http.post<{ message: string }>('/api/contact', this.form).subscribe({
       next: () => {
         this.isSending = false;
         this.submitted = true;

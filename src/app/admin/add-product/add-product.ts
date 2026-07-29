@@ -474,7 +474,7 @@ export class AddProduct implements OnInit {
       formData.append('image', this.selectedFile);
     }
 
-    this.http.post('http://localhost:4000/api/products', formData).subscribe({
+    this.http.post('/api/products', formData).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.successMsg = 'Product added successfully!';

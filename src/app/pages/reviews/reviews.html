@@ -56,7 +56,7 @@
             <!-- ✅ REVIEW IMAGE — only shown if review has one -->
             <img
               *ngIf="review.image"
-              [src]="'http://localhost:4000/uploads/' + review.image"
+              [src]="'/uploads/' + review.image"
               alt="Review photo"
               class="review-img"
             />

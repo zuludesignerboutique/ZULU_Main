@@ -16,7 +16,7 @@ export class OrderHistoryComponent implements OnInit {
   orders: any[] = [];
   isLoading = true;  // TRUE from start — shows spinner immediately, no flicker
   errorMsg = '';
-  imageBase = 'http://localhost:4000/uploads/';
+  imageBase = '/uploads/';
 
   // ✅ id of the order currently being cancelled (disables its button / shows spinner text)
   cancellingId: number | null = null;
@@ -53,7 +53,7 @@ export class OrderHistoryComponent implements OnInit {
     }
 
     this.http.get<any[]>(
-      `http://localhost:4000/api/orders/user/${encodeURIComponent(email)}`
+      `/api/orders/user/${encodeURIComponent(email)}`
     ).subscribe({
       next: (data) => {
         console.log('[OrderHistory] data:', data);
@@ -111,7 +111,7 @@ export class OrderHistoryComponent implements OnInit {
 
     // ✅ Dedicated customer-facing cancel route — server re-checks eligibility and
     // computes the authoritative refund/penalty split (server owns the money math).
-    this.http.patch<any>(`http://localhost:4000/api/orders/${order.id}/cancel`, {}).subscribe({
+    this.http.patch<any>(`/api/orders/${order.id}/cancel`, {}).subscribe({
       next: (res) => {
         order.status = 'cancelled';
         order.refund_amount = res.refundAmount;
