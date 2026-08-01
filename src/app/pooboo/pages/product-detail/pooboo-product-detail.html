@@ -64,9 +64,14 @@
         </ul>
 
         <!-- CTA -->
-        <button class="btn-enquire" (click)="goToEnquiry()">
-          Enquire Now
-        </button>
+        <div class="detail-cta-row">
+          <button class="btn-add-cart" (click)="addToCart()">
+            {{ addedToCart ? 'Added ✓' : '🛒 Add to Cart' }}
+          </button>
+          <button class="btn-enquire" (click)="goToEnquiry()">
+            Enquire Now
+          </button>
+        </div>
 
       </div>
     </div>

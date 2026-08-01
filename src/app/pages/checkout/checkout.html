@@ -3,7 +3,7 @@
   <!-- HEADER -->
   <div class="checkout-header">
     <div class="header-inner">
-      <a routerLink="/cart" class="back-link">← Back to Cart</a>
+      <a routerLink="/dashboard/cart" class="back-link">← Back to Cart</a>
       <span class="header-eyebrow">Secure Checkout</span>
     </div>
     <div class="progress-bar">
@@ -230,8 +230,8 @@
         </div>
         <div class="total-row">
           <span>Shipping</span>
-          <span class="free-tag" *ngIf="subtotal >= 999">FREE</span>
-          <span *ngIf="subtotal < 999">₹99</span>
+          <span class="free-tag" *ngIf="subtotal >= 2500">FREE</span>
+          <span *ngIf="subtotal < 2500">₹99</span>
         </div>
         <div class="total-row grand">
           <span>Total</span>

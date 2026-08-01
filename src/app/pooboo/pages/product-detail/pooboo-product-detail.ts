@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';
 import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
+import { CartService } from '../../../services/cart.service';
 @Component({
   selector: 'app-pooboo-product-detail',
   standalone: true,
@@ -20,12 +21,14 @@ export class PoobooProductDetail implements OnInit {
   error          = '';
   selectedSize   = '';
   selectedColour = '';
+  addedToCart    = false;
 
   constructor(
     private http  : HttpClient,
     private route : ActivatedRoute,
     private router: Router,
-    private cdr   : ChangeDetectorRef
+    private cdr   : ChangeDetectorRef,
+    private cartService: CartService
   ) {}
 
   ngOnInit() {
@@ -51,6 +54,29 @@ export class PoobooProductDetail implements OnInit {
   getImageUrl(img: string | null): string {
     if (!img) return 'assets/images/placeholder.png';
     return img.startsWith('http') ? img : `${this.api}/uploads/${img}`;
+  }
+
+  // ✅ Pooboo product tables are separate from ZULU's, so items are tagged brand: 'pooboo'
+  // to avoid id collisions once they land in the shared cart (see CartService)
+  addToCart() {
+    if (!this.product) return;
+    this.cartService.add(
+      {
+        id: this.product.id,
+        name: this.product.name,
+        description: this.product.description,
+        price: this.product.price,
+        image_url: this.product.image_url,
+        brand: 'pooboo',
+        product_type: 'apparel',
+        product_code: this.product.product_code || '',
+        colour: this.selectedColour || undefined
+      } as any,
+      this.selectedSize || undefined,
+      1
+    );
+    this.addedToCart = true;
+    setTimeout(() => (this.addedToCart = false), 2000);
   }
 
 goToEnquiry() {

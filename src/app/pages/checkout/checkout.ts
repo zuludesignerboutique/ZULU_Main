@@ -38,6 +38,12 @@ export class Checkout implements OnInit, AfterViewInit {
   imageBase  = '/uploads/';
   private api = '';
 
+  // ✅ Tracks whether a real Razorpay payment attempt happened for the current
+  // pending order, so an abandoned checkout (closed with no attempt) can be
+  // cleaned up silently while a failed attempt stays visible for the admin.
+  private paymentAttempted = false;
+  private pendingOrderId: number | null = null;
+
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
@@ -237,6 +243,8 @@ export class Checkout implements OnInit, AfterViewInit {
       }))
     }).subscribe({
       next: (res) => {
+        this.pendingOrderId = res.orderId;
+        this.paymentAttempted = false;
         // STEP 2: Open Razorpay
         this.openRazorpay(res.orderId, email, phone, name);
       },
@@ -271,6 +279,14 @@ export class Checkout implements OnInit, AfterViewInit {
             ondismiss: () => {
               this.paymentError = 'Payment was cancelled. You can try again.';
               this.isPlacing = false;
+
+              // ✅ No real payment attempt happened — clean up the pending order silently.
+              if (!this.paymentAttempted && this.pendingOrderId) {
+                this.http.delete(`${this.api}/api/orders/${this.pendingOrderId}`).subscribe({
+                  error: (e) => console.error('[Checkout] Could not remove abandoned order:', e)
+                });
+              }
+              this.pendingOrderId = null;
             }
           }
         };
@@ -278,6 +294,8 @@ export class Checkout implements OnInit, AfterViewInit {
         try {
           const rzp = new Razorpay(options);
           rzp.on('payment.failed', (response: any) => {
+            // ✅ A real attempt happened — leave this order for the admin to see.
+            this.paymentAttempted = true;
             this.isPlacing = false;
             this.paymentError = `Payment failed: ${response.error?.description || 'Unknown error'}`;
           });
@@ -299,6 +317,7 @@ export class Checkout implements OnInit, AfterViewInit {
   private verifyPayment(orderId: number, response: any) {
     // STEP 5: Verify signature
     this.http.post<any>('/api/razorpay/verify-payment', {
+      orderId,
       razorpay_order_id:   response.razorpay_order_id,
       razorpay_payment_id: response.razorpay_payment_id,
       razorpay_signature:  response.razorpay_signature,
@@ -309,6 +328,7 @@ export class Checkout implements OnInit, AfterViewInit {
           this.paymentError = 'Payment verification failed. Please contact support.';
           return;
         }
+        this.pendingOrderId = null;
         // STEP 6: Remove only the paid-for items → keep whatever was left unchecked in the cart
         this.cart.removeItems(this.cartItems);
         this.cart.clearCheckoutItems();

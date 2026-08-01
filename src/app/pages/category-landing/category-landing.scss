@@ -193,16 +193,32 @@ body {
   position: absolute;
   inset: 0;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
+// Brand-tint gradients now use rgba (not opaque hex) so the photo underneath
+// still shows through — the gradient just washes it in the brand color and
+// keeps the card-content text legible.
 .zulu .card-bg {
-  background: radial-gradient(ellipse at 70% 15%, rgba(91, 63, 196, 0.18) 0%, transparent 55%), linear-gradient(155deg, $zulu-from 0%, $zulu-to 100%);
+  background-image:
+    radial-gradient(ellipse at 70% 15%, rgba(126, 127, 123, 0) 0%, transparent 100%),
+    linear-gradient(155deg, rgba(234, 228, 251, 0) 0%, rgba(212, 205, 245, 0) 0%),
+    url('/assets/images/zulu-model2.jpg');
+    // background-size: contain;
 }
 .pooboo .card-bg {
-  background: radial-gradient(ellipse at 30% 15%, rgba(214, 58, 138, 0.15) 0%, transparent 55%), linear-gradient(155deg, $pooboo-from 0%, $pooboo-to 100%);
+  background-image:
+    radial-gradient(ellipse at 30% 15%, rgba(214, 58, 138, 0) 0%, transparent 100%),
+    linear-gradient(155deg, rgba(253, 232, 242, 0) 0%, rgba(251, 208, 232, 0) 100%),
+    url('/assets/images/pooboo-model.jpeg');
 }
 .aurum .card-bg {
-  background: radial-gradient(ellipse at 60% 15%, rgba(168, 132, 58, 0.18) 0%, transparent 55%), linear-gradient(155deg, $aurum-from 0%, $aurum-to 100%);
+  background-image:
+    radial-gradient(ellipse at 60% 15%, rgba(168, 132, 58, 0.18) 0%, transparent 55%),
+    linear-gradient(155deg, rgba(253, 243, 224, 0.6) 0%, rgba(248, 228, 190, 0.6) 100%),
+    url('/assets/images/cards/aurum-card-bg.jpg');
 }
 
 .card-shimmer {
@@ -413,6 +429,21 @@ body {
 .zulu-frame    { box-shadow: 0 24px 60px rgba(91,63,196,0.13), 0 6px 18px rgba(0,0,0,0.05);   .frame-accent { border-color: $zulu-accent; } }
 .pooboo-frame  { box-shadow: 0 24px 60px rgba(214,58,138,0.13), 0 6px 18px rgba(0,0,0,0.05); .frame-accent { border-color: $pooboo-accent; } }
 .aurum-frame   { box-shadow: 0 24px 60px rgba(168,132,58,0.13), 0 6px 18px rgba(0,0,0,0.05); .frame-accent { border-color: $aurum-accent; } }
+
+// Zulu and Pooboo story images are logo/wordmark graphics, not photos —
+// "cover" was cropping them off-center because the logo isn't centered
+// inside its own source canvas. "contain" + fixed padding shows the full
+// logo with a genuinely equal gap on all four sides, whatever the source
+// image's shape happens to be. Aurum keeps "cover" since its story image
+// is a real photo, not a logo.
+.zulu-frame .story-img,
+.pooboo-frame .story-img {
+  object-fit: contain;
+  object-position: center;
+  background: $bg-surface;
+  padding: 32px;
+  box-sizing: border-box;
+}
 
 // ─────────────────────────────────────────────
 //  KEYFRAMES

@@ -276,13 +276,21 @@ $soft-bg: #FFF8F5;
     &.low { color: $coral; }
   }
 
-  // ── CTA button ────────────────────────────────
+  // ── CTA row ───────────────────────────────────
+  .detail-cta-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+
+    @media (max-width: 420px) {
+      flex-direction: column;
+    }
+  }
+
+  .btn-add-cart,
   .btn-enquire {
-    width: 100%;
+    flex: 1;
     padding: 18px;
-    background: $coral;
-    color: $white;
-    border: none;
     border-radius: 50px;
     font-family: 'Nunito', sans-serif;
     font-size: 16px;
@@ -290,6 +298,29 @@ $soft-bg: #FFF8F5;
     letter-spacing: 0.5px;
     cursor: pointer;
     transition: all 0.25s;
+  }
+
+  // Secondary action — outlined, echoes .btn-back / .chip treatment
+  .btn-add-cart {
+    background: $white;
+    color: $coral;
+    border: 2px solid $coral;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+    &:hover {
+      background: rgba($coral, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba($coral, 0.15);
+    }
+
+    &:active { transform: translateY(0); }
+  }
+
+  // Primary action
+  .btn-enquire {
+    background: $coral;
+    color: $white;
+    border: none;
     box-shadow: 0 8px 24px rgba($coral, 0.35);
 
     &:hover {

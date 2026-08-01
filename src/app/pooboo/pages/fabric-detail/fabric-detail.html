@@ -38,9 +38,14 @@
           <li>✓ We stitch & deliver in 7–10 days</li>
         </ul>
 
-        <button class="btn-enquire" (click)="goToEnquiry()">
-          Enquire / Book Custom Stitch
-        </button>
+        <div class="detail-cta-row">
+          <button class="btn-add-cart" (click)="addToCart()">
+            {{ addedToCart ? 'Added ✓' : '🛒 Add to Cart' }}
+          </button>
+          <button class="btn-enquire" (click)="goToEnquiry()">
+            Enquire / Book Custom Stitch
+          </button>
+        </div>
 
       </div>
     </div>

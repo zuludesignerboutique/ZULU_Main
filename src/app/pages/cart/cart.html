@@ -35,6 +35,8 @@
     </div>
     <div class="cart-info">
       <h4>{{ item.name }}</h4>
+      <!-- ✅ small brand tag so Pooboo items are visually distinguishable in a shared cart -->
+      <span class="cart-brand-tag" *ngIf="item.brand === 'pooboo'">Pooboo</span>
       <p class="cart-desc">{{ item.description }}</p>
 
       <!-- ✅ Show selected size -->
@@ -45,14 +47,14 @@
 
       <p class="cart-price">{{ item.price * (item.qty || 1) | currency:'INR' }}</p>
 
-      <!-- ✅ Quantity control — pass size so the right row updates -->
+      <!-- ✅ Quantity control — pass size + brand so the right row updates -->
       <div class="qty-control">
-        <button class="qty-btn" (click)="updateQty(item.id, -1, item.size)">−</button>
+        <button class="qty-btn" (click)="updateQty(item.id, -1, item.size, item.brand)">−</button>
         <span class="qty-value">{{ item.qty || 1 }}</span>
-        <button class="qty-btn" (click)="updateQty(item.id, +1, item.size)">+</button>
+        <button class="qty-btn" (click)="updateQty(item.id, +1, item.size, item.brand)">+</button>
       </div>
 
-      <button class="btn-remove" (click)="removeFromCart(item.id, item.size)">Remove</button>
+      <button class="btn-remove" (click)="removeFromCart(item.id, item.size, item.brand)">Remove</button>
     </div>
   </div>
 

@@ -5,6 +5,7 @@ import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';
 import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
 import { PoobooFabricService } from '../../services/pooboo-fabric.service';
 import { PoobooFabric } from '../../core/models/pooboo-fabric.model';
+import { CartService } from '../../../services/cart.service';
 
 @Component({
   selector: 'app-pooboo-fabric-detail',
@@ -30,12 +31,14 @@ export class FabricDetail implements OnInit {
   product: PoobooFabric | null = null;
   loading = true;
   error   = '';
+  addedToCart = false;
 
   constructor(
     private fabricService: PoobooFabricService,
     private route : ActivatedRoute,
     private router: Router,
-    private cdr   : ChangeDetectorRef
+    private cdr   : ChangeDetectorRef,
+    private cartService: CartService
   ) {}
 
   ngOnInit() {
@@ -70,6 +73,29 @@ export class FabricDetail implements OnInit {
   getImageUrl(img: string | null): string {
     if (!img) return 'assets/images/placeholder.png';
     return img.startsWith('http') ? img : `${this.api}/uploads/${img}`;
+  }
+
+  // ✅ price_per_meter maps into the cart's `price` field. No size is passed —
+  // there's no meter-quantity selector on this page yet, so qty defaults to 1 "unit".
+  // brand: 'pooboo' keeps this separate from any ZULU product sharing the same numeric id.
+  addToCart() {
+    if (!this.product) return;
+    this.cartService.add(
+      {
+        id: this.product.id,
+        name: this.product.name,
+        description: this.product.description,
+        price: this.product.price_per_meter,
+        image_url: this.product.image_url,
+        brand: 'pooboo',
+        product_type: 'fabric',
+        product_code: this.product.product_code || ''
+      } as any,
+      undefined,
+      1
+    );
+    this.addedToCart = true;
+    setTimeout(() => (this.addedToCart = false), 2000);
   }
 
   goToEnquiry() {

@@ -25,9 +25,19 @@ export class CartService {
     localStorage.setItem(this.KEY, JSON.stringify(cart));
   }
 
+  // ✅ normalize brand so 'zulu' items (which historically had no brand) still match correctly
+  private normBrand(brand?: string): string {
+    return brand || 'zulu';
+  }
+
   add(product: Product, size?: string, initialQty: number = 1) {
     const cart = this.load();
-    const existing = cart.find(p => p.id === product.id && p.size === size);
+    const brand = this.normBrand((product as any).brand);
+    // ✅ id + size is NOT enough — ZULU and Pooboo tables both auto-increment their own ids,
+    // so a Pooboo fabric #5 and a ZULU product #5 must be treated as different cart rows
+    const existing = cart.find(
+      p => p.id === product.id && p.size === size && this.normBrand(p.brand) === brand
+    );
     if (existing) {
       existing.qty = (existing.qty || 1) + initialQty;
     } else {
@@ -35,7 +45,7 @@ export class CartService {
         ...product,
         qty: initialQty,
         size,
-        brand: product.brand || 'zulu',
+        brand,
         product_type: product.product_type || 'apparel',
         product_code: product.product_code || ''
       });
@@ -43,11 +53,12 @@ export class CartService {
     this.save(cart);
   }
 
-  updateQty(id: number, qty: number, size?: string) {
+  updateQty(id: number, qty: number, size?: string, brand?: string) {
     const items = this.load();
-    const item = size !== undefined
-      ? items.find(i => i.id === id && i.size === size)
-      : items.find(i => i.id === id);
+    const b = this.normBrand(brand);
+    const item = items.find(
+      i => i.id === id && i.size === size && this.normBrand(i.brand) === b
+    );
     if (item) {
       item.qty = qty;
       this.save(items);
@@ -58,11 +69,12 @@ export class CartService {
     return this.load();
   }
 
-  remove(id: number, size?: string) {
+  remove(id: number, size?: string, brand?: string) {
     const items = this.load();
-    const filtered = size !== undefined
-      ? items.filter(p => !(p.id === id && p.size === size))
-      : items.filter(p => p.id !== id);
+    const b = this.normBrand(brand);
+    const filtered = items.filter(
+      p => !(p.id === id && p.size === size && this.normBrand(p.brand) === b)
+    );
     this.save(filtered);
   }
 
@@ -90,9 +102,11 @@ export class CartService {
     sessionStorage.removeItem(this.CHECKOUT_KEY);
   }
 
-  removeItems(items: { id: number; size?: string }[]) {
-    const keys = new Set(items.map(i => `${i.id}_${i.size ?? ''}`));
-    const remaining = this.load().filter(p => !keys.has(`${p.id}_${p.size ?? ''}`));
+  removeItems(items: { id: number; size?: string; brand?: string }[]) {
+    const keys = new Set(items.map(i => `${i.id}_${this.normBrand(i.brand)}_${i.size ?? ''}`));
+    const remaining = this.load().filter(
+      p => !keys.has(`${p.id}_${this.normBrand(p.brand)}_${p.size ?? ''}`)
+    );
     this.save(remaining);
   }
 }

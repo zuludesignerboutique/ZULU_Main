@@ -30,9 +30,14 @@
 
         <p class="detail-desc" *ngIf="product.description">{{ product.description }}</p>
 
-        <button class="btn-enquire" (click)="goToEnquiry()" [disabled]="isOutOfStock()">
-          {{ isOutOfStock() ? 'Out of Stock' : 'Enquire Now' }}
-        </button>
+        <div class="detail-cta-row">
+          <button class="btn-add-cart" (click)="addToCart()" [disabled]="isOutOfStock()">
+            {{ addedToCart ? 'Added ✓' : '🛒 Add to Cart' }}
+          </button>
+          <button class="btn-enquire" (click)="goToEnquiry()" [disabled]="isOutOfStock()">
+            {{ isOutOfStock() ? 'Out of Stock' : 'Enquire Now' }}
+          </button>
+        </div>
 
       </div>
     </div>
