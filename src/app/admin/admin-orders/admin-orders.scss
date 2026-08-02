@@ -114,6 +114,26 @@ $border: rgba(0,0,0,0.07);
     border-color: $ink;
     color: $ink;
   }
+
+  &.chip-cancellation.active {
+    background: #b9791c;
+    border-color: #b9791c;
+  }
+
+  &.chip-cancellation:hover:not(.active) {
+    border-color: #b9791c;
+    color: #b9791c;
+  }
+}
+
+// ── HIGHLIGHTED ROW (jumped to from a notification) ────
+@keyframes rowPulse {
+  0%, 100% { background: rgba(230,162,60,0.16); }
+  50%      { background: rgba(230,162,60,0.32); }
+}
+
+.row-highlighted {
+  animation: rowPulse 1s ease-in-out 3;
 }
 
 .filter-input {
@@ -386,6 +406,7 @@ $border: rgba(0,0,0,0.07);
   &.status-shipped   { background:rgba(155,89,182,0.12);  color:#8e44ad; }
   &.status-delivered { background:rgba(39,174,96,0.12);   color:#27ae60; }
   &.status-cancelled { background:rgba(192,57,43,0.10);   color:#c0392b; }
+  &.status-cancellation-requested { background:rgba(230,162,60,0.14); color:#b9791c; }
 }
 
 // ── STATUS DROPDOWN ───────────────────────────────

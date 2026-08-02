@@ -1,6 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { CartService } from '../../services/cart.service';
 import { WishlistService } from '../../services/wishlist.service';
 import { Product } from '../../core/models/product.model';
@@ -13,11 +14,16 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './product-card.html',
   styleUrls: ['./product-card.scss'],
 })
-export class ProductCardComponent {
+export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
 
   // ✅ Products from DB use filename only; assets use full path
   private readonly imageBase = '/uploads/';
+
+  wishlisted = false;
+  justToggled = false; // briefly true right after a click, drives the pop animation
+  private wishlistSub?: Subscription;
+  private popTimeout?: any;
 
   constructor(
     private cartService: CartService,
@@ -25,6 +31,22 @@ export class ProductCardComponent {
     private auth: AuthService,
     private router: Router
   ) {}
+
+  ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      this.wishlistService.ensureLoaded();
+    }
+    this.wishlistSub = this.wishlistService.items$.subscribe(() => {
+      if (this.product) {
+        this.wishlisted = this.wishlistService.isWishlisted('zulu_product', this.product.id);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.wishlistSub?.unsubscribe();
+    if (this.popTimeout) clearTimeout(this.popTimeout);
+  }
 
   // ✅ Smart image resolver — handles both DB filenames and asset paths
   getImageUrl(imageUrl: string): string {
@@ -52,11 +74,28 @@ export class ProductCardComponent {
     this.cartService.add(product);
   }
 
-  addToWishlist(product: Product) {
+  toggleWishlist(product: Product) {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/wishlist' } });
       return;
     }
-    this.wishlistService.toggle(product);
+
+    // Trigger the pop animation immediately (optimistic — feels instant even
+    // while the request is in flight)
+    this.justToggled = true;
+    if (this.popTimeout) clearTimeout(this.popTimeout);
+    this.popTimeout = setTimeout(() => { this.justToggled = false; }, 550);
+
+    this.wishlistService.toggle({
+      item_type: 'zulu_product',
+      item_id: product.id,
+      brand: 'zulu',
+      product_name: product.name,
+      product_code: (product as any).product_code || '',
+      image_url: product.image_url,
+      price: product.price
+    }, (nowWishlisted) => {
+      this.wishlisted = nowWishlisted;
+    });
   }
 }

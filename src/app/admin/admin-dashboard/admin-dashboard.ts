@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
@@ -82,9 +82,53 @@ export class AdminDashboard implements OnInit {
     });
   }
 
+  // ✅ Users Wishlist — lazy: only fetched when the quick action is clicked,
+  // not on every dashboard load / brand switch
+  showWishlistPanel = false;
+  wishlistItems: any[] = [];
+  isLoadingWishlist = false;
+
+  @ViewChild('wishlistPanel') wishlistPanelRef?: ElementRef<HTMLElement>;
+
+  toggleWishlistPanel() {
+    this.showWishlistPanel = !this.showWishlistPanel;
+    if (this.showWishlistPanel) {
+      this.loadWishlist();
+      // Wait a tick for *ngIf to render the panel, then scroll it into view
+      setTimeout(() => {
+        this.wishlistPanelRef?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  }
+
+  loadWishlist() {
+    this.isLoadingWishlist = true;
+    this.http.get<any[]>(`${this.api}/api/admin/wishlist`).subscribe({
+      next: (data) => {
+        this.ngZone.run(() => {
+          let items = data;
+          if (this.brandFilter !== 'all') {
+            items = items.filter((w: any) => w.brand === this.brandFilter);
+          }
+          this.wishlistItems = items;
+          this.isLoadingWishlist = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        console.error('Dashboard: Failed to load wishlist data', err);
+        this.ngZone.run(() => {
+          this.isLoadingWishlist = false;
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
   setBrandFilter(b: string) {
     this.brandFilter = b;
     this.loadData();
+    if (this.showWishlistPanel) this.loadWishlist();
   }
 
   getStatusClass(status: string): string {

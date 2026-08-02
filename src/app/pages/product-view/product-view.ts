@@ -65,6 +65,13 @@ export class ProductView implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      this.wishlistService.ensureLoaded();
+    }
+    this.wishlistService.items$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.loadWishlistState());
+
     const id = this.route.snapshot.params['id'];
 
     const historyStateProduct = isPlatformBrowser(this.platformId)
@@ -176,12 +183,28 @@ export class ProductView implements OnInit, OnDestroy {
 
   private loadWishlistState() {
     if (!this.product) return;
-    this.isWishlisted = this.wishlistService.isWishlisted(this.product.id);
+    this.isWishlisted = this.wishlistService.isWishlisted('zulu_product', this.product.id);
   }
 
   toggleWishlist() {
     if (!this.product) return;
-    this.isWishlisted = this.wishlistService.toggle(this.product);
+
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
+      return;
+    }
+
+    this.wishlistService.toggle({
+      item_type: 'zulu_product',
+      item_id: this.product.id,
+      brand: 'zulu',
+      product_name: this.product.name,
+      product_code: this.product.product_code || '',
+      image_url: this.product.image_url,
+      price: this.product.price
+    }, (nowWishlisted) => {
+      this.isWishlisted = nowWishlisted;
+    });
   }
 
   // ── Cart + Popup ─────────────────────────────────

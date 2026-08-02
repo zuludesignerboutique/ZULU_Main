@@ -52,8 +52,9 @@
         <button *ngFor="let s of statuses"
           class="chip-btn"
           [class.active]="statusFilter === s"
+          [class.chip-cancellation]="s === 'cancellation_requested'"
           (click)="setStatusFilter(s)">
-          {{ s === 'all' ? 'All' : (s | titlecase) }}
+          {{ s === 'all' ? 'All' : getStatusLabel(s) }}
         </button>
       </div>
     </div>
@@ -93,7 +94,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let order of pagedOrders" class="ao-row">
+        <tr *ngFor="let order of pagedOrders" class="ao-row"
+            [id]="'order-row-' + order.id"
+            [class.row-highlighted]="highlightedOrderId === order.id">
 
           <td><span class="order-id">#{{ order.id }}</span></td>
 
@@ -142,7 +145,7 @@
 
           <td>
             <span class="status-pill" [ngClass]="getStatusClass(order.status)">
-              {{ order.status | titlecase }}
+              {{ getStatusLabel(order.status) }}
             </span>
           </td>
 
@@ -155,6 +158,7 @@
               <option value="shipped">Shipped</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
+              <option value="cancellation_requested" disabled>Cancellation Requested</option>
             </select>
           </td>
 

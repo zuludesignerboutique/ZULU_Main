@@ -1,23 +1,27 @@
 <div class="container my-5">
   <h2 class="wishlist-title">Your Wishlist</h2>
 
-  <p class="empty" *ngIf="!wishlist.length">
+  <div class="loading-state" *ngIf="isLoading">Loading your wishlist…</div>
+
+  <p class="empty" *ngIf="!isLoading && !wishlist.length">
     Your wishlist is empty ✨
   </p>
 
   <div class="wishlist-card" *ngFor="let item of wishlist">
     <div class="wishlist-img">
-      <img [src]="'/uploads/' + item.image_url" [alt]="item.name" />
+      <img [src]="item.image_url ? '/uploads/' + item.image_url : 'assets/images/placeholder.jpg'" [alt]="item.product_name" />
     </div>
 
     <div class="wishlist-info">
-      <h4>{{ item.name }}</h4>
-      <p class="wishlist-desc">{{ item.description }}</p>
-      <p class="wishlist-price">{{ item.price | currency:'INR' }}</p>
+      <span class="wishlist-type-badge">{{ getTypeLabel(item) }}</span>
+      <h4>{{ item.product_name }}</h4>
+      <p class="wishlist-code" *ngIf="item.product_code">Code: {{ item.product_code }}</p>
+      <p class="wishlist-price" *ngIf="item.price">₹{{ item.price | number }}</p>
 
-      <button class="btn-remove" (click)="remove(item.id)">
-        Remove
-      </button>
+      <div class="wishlist-actions">
+        <a class="btn-view" [routerLink]="getViewLink(item)">View Item</a>
+        <button class="btn-remove" (click)="remove(item)">Remove</button>
+      </div>
     </div>
   </div>
 </div>

@@ -36,17 +36,17 @@
       <!-- Header row -->
       <div class="order-card-header">
         <div class="order-meta">
-          <span class="order-id">Order #{{ order.id }}</span>
+          <span class="order-id">{{ getOrderTitle(order) }}</span>
           <span class="order-date">{{ order.created_at | date:'dd MMM yyyy, h:mm a' }}</span>
         </div>
         <span class="status-badge" [ngClass]="order.status">
           <span class="status-dot"></span>
-          {{ order.status | titlecase }}
+          {{ getStatusLabel(order.status) }}
         </span>
       </div>
 
       <!-- Status timeline -->
-      <div class="status-timeline" *ngIf="order.status !== 'cancelled'">
+      <div class="status-timeline" *ngIf="order.status !== 'cancelled' && order.status !== 'cancellation_requested'">
         <ng-container *ngFor="let step of statusSteps; let last = last">
           <div class="tl-step"
                [class.done]="isStepDone(order.status, step.key)"
@@ -81,10 +81,26 @@
         </button>
       </div>
 
+      <!-- Cancellation request pending admin approval -->
+      <div class="pending-cancel-banner" *ngIf="order.status === 'cancellation_requested'">
+        <span class="pc-dot"></span>
+        <span class="pc-text">Cancellation Requested</span>
+        <p class="pc-note">
+          Awaiting admin approval
+          <ng-container *ngIf="order.refund_amount !== undefined">
+            &nbsp;· ₹{{ order.refund_amount | number }} refund
+            <ng-container *ngIf="order.penalty_amount > 0">
+              (25% fee of ₹{{ order.penalty_amount | number }} applies)
+            </ng-container>
+            once approved
+          </ng-container>
+        </p>
+      </div>
+
       <div class="cancelled-banner" *ngIf="order.status === 'cancelled'">
         ✕ This order was cancelled
         <ng-container *ngIf="order.refund_amount !== undefined">
-          &nbsp;· ₹{{ order.refund_amount | number }} refunded
+          &nbsp;· ₹{{ order.refund_amount | number }} refund soon
         </ng-container>
       </div>
 

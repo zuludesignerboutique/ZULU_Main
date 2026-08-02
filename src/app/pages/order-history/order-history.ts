@@ -78,14 +78,34 @@ export class OrderHistoryComponent implements OnInit {
     return Array.isArray(items) ? items : [];
   }
 
+  // ✅ Card heading — product name(s) instead of "Order #4".
+  // Single item: just the product name. Multiple items: first product name + "+N more".
+  getOrderTitle(order: any): string {
+    const items = this.parseItems(order.items);
+    if (!items.length) return `Order #${order.id}`;
+
+    const label = (item: any) => item.product_name || item.product_code || 'Product';
+    const first = label(items[0]);
+
+    return items.length > 1 ? `${first} +${items.length - 1} more` : first;
+  }
+
   isStepDone(currentStatus: string, stepKey: string): boolean {
     const order = ['pending', 'confirmed', 'shipped', 'delivered'];
     return order.indexOf(stepKey) <= order.indexOf(currentStatus);
   }
 
-  // ✅ Cancel only allowed up through "confirmed" — once shipped/delivered/cancelled, no button shows
+  // ✅ Cancel only allowed up through "confirmed" — once shipped/delivered/cancelled/
+  // cancellation_requested, no button shows
   isCancellable(status: string): boolean {
     return status === 'pending' || status === 'confirmed';
+  }
+
+  // ✅ Friendly label for the status badge / banners — everything else falls back
+  // to the titlecase pipe in the template
+  getStatusLabel(status: string): string {
+    if (status === 'cancellation_requested') return 'Cancellation Requested';
+    return status.charAt(0).toUpperCase() + status.slice(1);
   }
 
   // ✅ No penalty while still "pending"; 25% penalty once the order has moved to "confirmed"
@@ -99,21 +119,24 @@ export class OrderHistoryComponent implements OnInit {
     const refundAmount = Math.round(order.total_amount * refundPercent / 100);
     const penaltyAmount = order.total_amount - refundAmount;
 
+    // ✅ This now sends a cancellation REQUEST — it goes to the admin for approval,
+    // it doesn't cancel the order outright.
     const message = penaltyPercent === 0
-      ? `Cancel Order #${order.id}?\n\nYou'll receive a full refund of ₹${refundAmount}.`
-      : `Cancel Order #${order.id}?\n\nThis order has already been confirmed, so a 25% cancellation fee (₹${penaltyAmount}) applies. You'll be refunded ₹${refundAmount} of ₹${order.total_amount}.`;
+      ? `Request cancellation for Order #${order.id}?\n\nOnce approved by our team, you'll receive a full refund of ₹${refundAmount}.`
+      : `Request cancellation for Order #${order.id}?\n\nThis order has already been confirmed, so a 25% cancellation fee (₹${penaltyAmount}) will apply once approved. You'd be refunded ₹${refundAmount} of ₹${order.total_amount}.`;
 
-    // ✅ Popup confirmation before cancelling
+    // ✅ Popup confirmation before requesting
     const confirmed = window.confirm(message);
     if (!confirmed) return;
 
     this.cancellingId = order.id;
 
-    // ✅ Dedicated customer-facing cancel route — server re-checks eligibility and
-    // computes the authoritative refund/penalty split (server owns the money math).
+    // ✅ Dedicated customer-facing cancel-request route — server re-checks eligibility
+    // and computes the authoritative refund/penalty split (server owns the money math).
+    // The order moves to 'cancellation_requested' and waits for admin approval.
     this.http.patch<any>(`/api/orders/${order.id}/cancel`, {}).subscribe({
       next: (res) => {
-        order.status = 'cancelled';
+        order.status = 'cancellation_requested';
         order.refund_amount = res.refundAmount;
         order.penalty_amount = res.penaltyAmount;
         this.cancellingId = null;
@@ -121,7 +144,7 @@ export class OrderHistoryComponent implements OnInit {
       },
       error: (err) => {
         console.error('[OrderHistory] cancel error:', err.status, err.error);
-        alert('Could not cancel the order. Please try again.');
+        alert('Could not request cancellation. Please try again.');
         this.cancellingId = null;
         this.cdr.detectChanges();
       }

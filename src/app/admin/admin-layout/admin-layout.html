@@ -96,7 +96,62 @@
   <main class="admin-content">
     <div class="admin-topbar">
       <span class="topbar-title">Admin Panel</span>
-      <button class="logout-btn" (click)="logout()">Logout</button>
+
+      <div class="topbar-actions">
+
+        <!-- Cancellation notification bell -->
+        <div class="notif-wrap">
+          <button class="notif-bell" (click)="toggleNotif()" [class.has-alerts]="cancellationRequests.length">
+            ✉
+            <span class="notif-badge" *ngIf="cancellationRequests.length">{{ cancellationRequests.length }}</span>
+          </button>
+
+          <div class="notif-backdrop" *ngIf="notifOpen" (click)="closeNotif()"></div>
+
+          <div class="notif-panel" *ngIf="notifOpen">
+            <div class="notif-panel-header">
+              Cancellation Requests
+              <span class="notif-count" *ngIf="cancellationRequests.length">{{ cancellationRequests.length }}</span>
+            </div>
+
+            <div class="notif-empty" *ngIf="!cancellationRequests.length">
+              No pending cancellation requests.
+            </div>
+
+            <div class="notif-list" *ngIf="cancellationRequests.length">
+              <div class="notif-item" *ngFor="let o of cancellationRequests">
+                <div class="notif-click-zone" (click)="goToOrder(o)">
+                  <div class="notif-item-top">
+                    <span class="notif-order-id">Order #{{ o.id }}</span>
+                    <span class="notif-amount">₹{{ o.total_amount | number }}</span>
+                  </div>
+                  <div class="notif-customer">{{ o.user_name }} · {{ o.email }}</div>
+                  <div class="notif-refund">
+                    Refund ₹{{ o.refund_amount | number }}
+                    <ng-container *ngIf="o.penalty_amount > 0">
+                      &nbsp;· 25% fee ₹{{ o.penalty_amount | number }}
+                    </ng-container>
+                  </div>
+                </div>
+                <div class="notif-actions">
+                  <button
+                    class="notif-btn approve"
+                    [disabled]="actingId === o.id"
+                    (click)="approveCancel(o)"
+                  >{{ actingId === o.id ? 'Working…' : 'Approve' }}</button>
+                  <button
+                    class="notif-btn reject"
+                    [disabled]="actingId === o.id"
+                    (click)="rejectCancel(o)"
+                  >Reject</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="logout-btn" (click)="logout()">Logout</button>
+      </div>
     </div>
     <div class="admin-body">
       <router-outlet></router-outlet>

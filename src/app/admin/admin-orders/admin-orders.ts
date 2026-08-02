@@ -1,7 +1,8 @@
-import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-orders',
@@ -23,17 +24,34 @@ export class AdminOrders implements OnInit {
   endDate = '';
 
   brands = ['all', 'zulu', 'pooboo'];
-  statuses = ['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+  statuses = ['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'cancellation_requested'];
 
   currentPage = 1;
   pageSize = 20;
   totalPages = 1;
 
+  // ✅ id of the order to jump to / highlight, arrives via ?highlight=<id> from the
+  // admin-layout notification bell
+  private highlightId: string | null = null;
+  highlightedOrderId: number | null = null;
+
   private api = '';
 
-  constructor(private http: HttpClient, private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private http: HttpClient,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
+    private elRef: ElementRef
+  ) {}
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['highlight']) {
+        this.highlightId = params['highlight'];
+      }
+    });
     this.loadOrders();
   }
 
@@ -54,6 +72,10 @@ export class AdminOrders implements OnInit {
           this.applyFilters();
           this.isLoading = false;
           this.cdr.detectChanges();
+
+          if (this.highlightId) {
+            this.jumpToHighlighted();
+          }
         });
       },
       error: () => {
@@ -63,6 +85,48 @@ export class AdminOrders implements OnInit {
         });
       }
     });
+  }
+
+  // ✅ Finds which page the highlighted order lands on, flips to it, then scrolls
+  // the row into view and pulses it for a few seconds
+  private jumpToHighlighted() {
+    const targetId = this.highlightId;
+    if (!targetId) return;
+
+    const index = this.filteredOrders.findIndex(o => String(o.id) === String(targetId));
+    if (index === -1) {
+      // Order isn't in the currently filtered set (e.g. status filter excludes it) —
+      // reset filters so it's visible, then retry once.
+      if (this.statusFilter !== 'all') {
+        this.statusFilter = 'all';
+        this.applyFilters();
+      }
+      const retryIndex = this.filteredOrders.findIndex(o => String(o.id) === String(targetId));
+      if (retryIndex === -1) return;
+      this.currentPage = Math.floor(retryIndex / this.pageSize) + 1;
+    } else {
+      this.currentPage = Math.floor(index / this.pageSize) + 1;
+    }
+
+    this.highlightedOrderId = Number(targetId);
+    this.cdr.detectChanges();
+
+    setTimeout(() => {
+      const row = this.elRef.nativeElement.querySelector(`#order-row-${targetId}`);
+      if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+
+    // Clear the highlight pulse after a few seconds, and drop the query param
+    // so refreshing the page doesn't re-trigger it
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.highlightedOrderId = null;
+        this.cdr.detectChanges();
+      });
+    }, 4000);
+
+    this.highlightId = null;
+    this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
   }
 
   applyFilters() {
@@ -149,8 +213,16 @@ export class AdminOrders implements OnInit {
       confirmed: 'status-confirmed',
       shipped: 'status-shipped',
       delivered: 'status-delivered',
-      cancelled: 'status-cancelled'
+      cancelled: 'status-cancelled',
+      cancellation_requested: 'status-cancellation-requested'
     };
     return map[status] || '';
+  }
+
+  // ✅ Friendly label for status pills / chips — 'cancellation_requested' doesn't
+  // read well through the titlecase pipe (underscore stays literal)
+  getStatusLabel(status: string): string {
+    if (status === 'cancellation_requested') return 'Cancellation Requested';
+    return status.charAt(0).toUpperCase() + status.slice(1);
   }
 }

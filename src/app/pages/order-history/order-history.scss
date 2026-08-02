@@ -191,6 +191,7 @@ $border:  rgba(0,0,0,0.07);
   &.shipped   { background: rgba(155,89,182,0.12);  color: #8e44ad; }
   &.delivered { background: rgba(39,174,96,0.12);   color: #27ae60; }
   &.cancelled { background: rgba(192,57,43,0.10);   color: #c0392b; }
+  &.cancellation_requested { background: rgba(230,162,60,0.14); color: #b9791c; }
 }
 
 // ── TIMELINE ─────────────────────────────────────
@@ -317,6 +318,41 @@ $border:  rgba(0,0,0,0.07);
   letter-spacing: 0.1em;
   color: #c0392b;
   text-transform: uppercase;
+}
+
+// ── PENDING CANCELLATION APPROVAL ─────────────────
+.pending-cancel-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: rgba(230,162,60,0.07);
+  border-bottom: 1px solid rgba(230,162,60,0.15);
+  flex-wrap: wrap;
+
+  .pc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #e6a23c;
+    animation: pulse-dot 1.4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .pc-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #b9791c;
+    text-transform: uppercase;
+  }
+
+  .pc-note {
+    font-size: 12px;
+    color: $muted;
+    margin: 0;
+    line-height: 1.5;
+  }
 }
 
 // ── ITEMS ─────────────────────────────────────────

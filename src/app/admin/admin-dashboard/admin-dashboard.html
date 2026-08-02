@@ -62,6 +62,42 @@
       <a routerLink="/admin/orders" class="action-btn">◑ View Orders</a>
       <a routerLink="/admin/stock" class="action-btn">▤ Stock Dashboard</a>
       <a routerLink="/admin/transactions" class="action-btn">₹ Transactions</a>
+      <button class="action-btn" [class.active]="showWishlistPanel" (click)="toggleWishlistPanel()">
+        ♥ Users Wishlist
+      </button>
+    </div>
+  </div>
+
+  <!-- Users Wishlist (opens right here from the Quick Actions button above,
+       so it's visible without scrolling past Recent Orders) -->
+  <div class="dash-wishlist" *ngIf="showWishlistPanel" #wishlistPanel>
+    <div class="wishlist-panel-header">
+      <h3 class="section-title">Users Wishlist</h3>
+      <button class="panel-close-btn" (click)="toggleWishlistPanel()">✕ Close</button>
+    </div>
+    <div class="wishlist-table-wrap">
+      <div class="wishlist-loading" *ngIf="isLoadingWishlist">Loading…</div>
+      <table class="wishlist-table" *ngIf="!isLoadingWishlist && wishlistItems.length">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Code</th>
+            <th>User</th>
+            <th>Email</th>
+            <th>Saved</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let w of wishlistItems">
+            <td><span class="wl-product-name">{{ w.product_name }}</span></td>
+            <td><span class="wl-code">{{ w.product_code || '—' }}</span></td>
+            <td><span class="wl-user-name">{{ w.user_name }}</span></td>
+            <td><span class="wl-user-email">{{ w.user_email }}</span></td>
+            <td><span class="date">{{ w.created_at | date:'dd MMM' }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="no-recent" *ngIf="!isLoadingWishlist && !wishlistItems.length">No wishlist activity yet.</div>
     </div>
   </div>
 
