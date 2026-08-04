@@ -26,10 +26,21 @@
     </div>
 
     <!-- Products -->
-    <div class="pb-sub-grid" *ngIf="!isLoading && products.length > 0">
-<a [routerLink]="['/pooboo/accessories/hair-clips', p.id]" class="pb-sub-card" *ngFor="let p of products">        <div class="pb-sub-img-wrap">
+    <div class="pb-sub-grid" *ngIf="!isLoading && products.length > 0">      <a [routerLink]="['/pooboo/accessories/hair-clips', p.id]" class="pb-sub-card" *ngFor="let p of products">
+        <div class="pb-sub-img-wrap">
           <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="pb-sub-img" loading="lazy" />
           <span class="pb-sub-oos" *ngIf="isOutOfStock(p)">Out of Stock</span>
+          <button
+            class="pb-wishlist-heart"
+            [class.active]="isWishlisted(p.id)"
+            [class.pop]="justToggledId === p.id"
+            [attr.aria-label]="isWishlisted(p.id) ? 'Remove from wishlist' : 'Add to wishlist'"
+            (click)="toggleWishlist($event, p)"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M12 21s-6.7-4.35-9.33-8.2C.86 10.1 1.2 6.6 4 4.9 6.2 3.6 8.9 4.3 10.4 6.4L12 8.5l1.6-2.1C15.1 4.3 17.8 3.6 20 4.9c2.8 1.7 3.14 5.2 1.33 7.9C18.7 16.65 12 21 12 21Z"/>
+            </svg>
+          </button>
         </div>
         <div class="pb-sub-info">
           <p class="pb-sub-colour" *ngIf="p.colour">{{ p.colour }}</p>

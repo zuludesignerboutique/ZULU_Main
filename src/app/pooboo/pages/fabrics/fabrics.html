@@ -63,7 +63,7 @@
     @if (!isLoading && products.length > 0) {
       <div class="pb-product-grid">
         @for (product of products; track product.id) {
-<a [routerLink]="['/pooboo/fabrics', product.id]" class="pb-product-card">
+          <a [routerLink]="['/pooboo/fabrics', product.id]" class="pb-product-card">
             <div class="pb-product-img-wrap">
               <img
                 [src]="getImageUrl(product.image_url)"
@@ -72,6 +72,18 @@
                 loading="lazy"/>
 
               <span class="pb-badge-custom">✂️ Custom Stitch</span>
+
+              <button
+                class="pb-wishlist-heart"
+                [class.active]="isWishlisted(product.id)"
+                [class.pop]="justToggledId === product.id"
+                [attr.aria-label]="isWishlisted(product.id) ? 'Remove from wishlist' : 'Add to wishlist'"
+                (click)="toggleWishlist($event, product)"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path d="M12 21s-6.7-4.35-9.33-8.2C.86 10.1 1.2 6.6 4 4.9 6.2 3.6 8.9 4.3 10.4 6.4L12 8.5l1.6-2.1C15.1 4.3 17.8 3.6 20 4.9c2.8 1.7 3.14 5.2 1.33 7.9C18.7 16.65 12 21 12 21Z"/>
+                </svg>
+              </button>
 
               <div class="pb-product-overlay">
                 <span class="pb-quick-view">Enquire Now</span>

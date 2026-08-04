@@ -1,10 +1,13 @@
 import { FormsModule } from '@angular/forms';
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';
 import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
+import { WishlistService } from '../../../services/wishlist.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-pooboo-products',
@@ -13,7 +16,7 @@ import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
   templateUrl: './pooboo-products.html',
   styleUrl: './pooboo-products.scss'
 })
-export class PoobooProducts implements OnInit {
+export class PoobooProducts implements OnInit, OnDestroy {
 
   private api = '';
 
@@ -31,14 +34,28 @@ export class PoobooProducts implements OnInit {
                 '3-5 years', '5-7 years', '7-10 years', '10-12 years'];
   genders    = ['unisex', 'boy', 'girl'];
 
+  // ✅ Wishlist
+  justToggledId: number | null = null;
+  private wishlistSub?: Subscription;
+  private popTimeout: any;
+
   constructor(
     private http: HttpClient,
     private router: Router,
     private cdr: ChangeDetectorRef,  // 👈 add this
-    private ngZone: NgZone           // 👈 add this
+    private ngZone: NgZone,          // 👈 add this
+    private wishlistService: WishlistService,
+    private auth: AuthService
   ) {}
 
   ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      this.wishlistService.ensureLoaded();
+    }
+    this.wishlistSub = this.wishlistService.items$.subscribe(() => {
+      this.ngZone.run(() => this.cdr.detectChanges());
+    });
+
     this.http.get<any[]>(`${this.api}/api/pooboo/products`).subscribe({
       next: (data) => {
         this.ngZone.run(() => {         // 👈 wrap in ngZone.run()
@@ -84,5 +101,39 @@ export class PoobooProducts implements OnInit {
 
   goToProduct(id: number) {
     this.router.navigate(['/pooboo/products', id]);
+  }
+
+  ngOnDestroy() {
+    this.wishlistSub?.unsubscribe();
+    if (this.popTimeout) clearTimeout(this.popTimeout);
+  }
+
+  // ── Wishlist ─────────────────────────────────────
+
+  isWishlisted(id: number): boolean {
+    return this.wishlistService.isWishlisted('pooboo_product', id);
+  }
+
+  toggleWishlist(event: Event, product: any) {
+    event.stopPropagation();
+
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
+      return;
+    }
+
+    this.justToggledId = product.id;
+    if (this.popTimeout) clearTimeout(this.popTimeout);
+    this.popTimeout = setTimeout(() => { this.justToggledId = null; }, 550);
+
+    this.wishlistService.toggle({
+      item_type: 'pooboo_product',
+      item_id: product.id,
+      brand: 'pooboo',
+      product_name: product.name,
+      product_code: product.product_code || '',
+      image_url: product.image_url,
+      price: product.price
+    });
   }
 }
