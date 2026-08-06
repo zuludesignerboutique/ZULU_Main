@@ -244,8 +244,14 @@ $border:        rgba(255,255,255,0.07);
 .notif-item {
   padding: 14px 18px;
   border-bottom: 1px solid rgba(0,0,0,0.05);
+  cursor: pointer;
+   * {
+    cursor: pointer;
+  }
+  transition: background 0.15s ease;
 
   &:last-child { border-bottom: none; }
+  &:hover { background: rgba(200,169,110,0.08); }
 }
 
 .notif-click-zone {
@@ -290,6 +296,15 @@ $border:        rgba(255,255,255,0.07);
   border-radius: 6px;
   padding: 5px 8px;
   margin-bottom: 10px;
+}
+
+.notif-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: $gold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .notif-actions {

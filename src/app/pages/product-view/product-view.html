@@ -20,15 +20,32 @@
     <div class="image-panel">
 
       <div class="image-frame">
-        <img
-          *ngIf="product?.image_url; else imagePlaceholder"
-          [src]="imageBase + product.image_url"
-          [alt]="product?.name"
-          loading="eager"
-        >
+        <ng-container *ngFor="let imgUrl of [mainImageUrl]; trackBy: trackImage">
+          <img
+            *ngIf="imgUrl; else imagePlaceholder"
+            [src]="imageSrc(imgUrl)"
+            [alt]="product?.name"
+            loading="eager"
+            class="gallery-main-img"
+          >
+        </ng-container>
         <ng-template #imagePlaceholder>
           <div class="image-placeholder">◈</div>
         </ng-template>
+      </div>
+
+      <!-- ══ GALLERY THUMBNAILS ══ -->
+      <div class="gallery-thumbs" *ngIf="galleryImages.length > 1">
+        <button
+          class="gallery-thumb"
+          *ngFor="let img of galleryImages"
+          [class.active]="isActiveImage(img)"
+          (click)="selectImage(img)"
+          [attr.aria-label]="img.label || ('View image ' + (galleryImages.indexOf(img) + 1))"
+        >
+          <img [src]="imageSrc(img.image_url)" [alt]="img.label || product?.name" loading="lazy" />
+          <span class="gallery-thumb-label" *ngIf="img.label">{{ img.label }}</span>
+        </button>
       </div>
 
       <div class="panel-index">

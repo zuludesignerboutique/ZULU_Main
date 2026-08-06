@@ -17,75 +17,42 @@
         <span class="sidebar-icon">▦</span> Dashboard
       </a>
 
-      <!-- ── ZULU ── -->
       <div class="sidebar-section-label">ZULU</div>
 
-      <a routerLink="/admin/products"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/products" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">◫</span> Products
       </a>
-
-      <a routerLink="/admin/add-product"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/add-product" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">＋</span> Add Product
       </a>
-
-      <a routerLink="/admin/orders"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/orders" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">◑</span> Orders
       </a>
-
-      <a routerLink="/admin/stock"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/stock" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">▤</span> Stock
       </a>
-
-      <a routerLink="/admin/transactions"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/transactions" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">₹</span> Transactions
       </a>
 
-      <!-- ── POOBOO ── -->
       <div class="sidebar-section-label">POOBOO</div>
 
-      <a routerLink="/admin/pooboo/products"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/pooboo/products" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">◫</span> Products
       </a>
-
-      <a routerLink="/admin/pooboo/add-product"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/pooboo/add-product" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">＋</span> Add Product
       </a>
-
-      <a routerLink="/admin/pooboo/fabrics"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/pooboo/fabrics" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">🧵</span> Fabrics
       </a>
-
-      <a routerLink="/admin/pooboo/accessories"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/pooboo/accessories" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">🎀</span> Accessories
       </a>
-
-      <a routerLink="/admin/pooboo/enquiries"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/pooboo/enquiries" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">✉</span> Enquiries
       </a>
-
-      <a routerLink="/admin/pooboo/reviews"
-         routerLinkActive="active"
-         class="sidebar-link">
+      <a routerLink="/admin/pooboo/reviews" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">★</span> Reviews
       </a>
 
@@ -119,32 +86,19 @@
             </div>
 
             <div class="notif-list" *ngIf="cancellationRequests.length">
-              <div class="notif-item" *ngFor="let o of cancellationRequests">
-                <div class="notif-click-zone" (click)="goToOrder(o)">
-                  <div class="notif-item-top">
-                    <span class="notif-order-id">Order #{{ o.id }}</span>
-                    <span class="notif-amount">₹{{ o.total_amount | number }}</span>
-                  </div>
-                  <div class="notif-customer">{{ o.user_name }} · {{ o.email }}</div>
-                  <div class="notif-refund">
-                    Refund ₹{{ o.refund_amount | number }}
-                    <ng-container *ngIf="o.penalty_amount > 0">
-                      &nbsp;· 25% fee ₹{{ o.penalty_amount | number }}
-                    </ng-container>
-                  </div>
+              <div class="notif-item" *ngFor="let o of cancellationRequests" (click)="goToOrder(o)">
+                <div class="notif-item-top">
+                  <span class="notif-order-id">Order #{{ o.id }}</span>
+                  <span class="notif-amount">₹{{ o.total_amount | number }}</span>
                 </div>
-                <div class="notif-actions">
-                  <button
-                    class="notif-btn approve"
-                    [disabled]="actingId === o.id"
-                    (click)="approveCancel(o)"
-                  >{{ actingId === o.id ? 'Working…' : 'Approve' }}</button>
-                  <button
-                    class="notif-btn reject"
-                    [disabled]="actingId === o.id"
-                    (click)="rejectCancel(o)"
-                  >Reject</button>
+                <div class="notif-customer">{{ o.user_name }} · {{ o.email }}</div>
+                <div class="notif-refund">
+                  Refund ₹{{ o.refund_amount | number }}
+                  <ng-container *ngIf="o.penalty_amount > 0">
+                    &nbsp;· 25% fee ₹{{ o.penalty_amount | number }}
+                  </ng-container>
                 </div>
+                <div class="notif-hint">Click to review in Orders →</div>
               </div>
             </div>
           </div>

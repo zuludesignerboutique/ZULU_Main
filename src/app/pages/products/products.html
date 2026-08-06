@@ -7,6 +7,12 @@
     <div class="section-rule"></div>
   </div>
 
+  <!-- SEARCH + SORT -->
+  <app-product-toolbar
+    (searchChange)="onSearchChange($event)"
+    (sortChange)="onSortChange($event)"
+  ></app-product-toolbar>
+
   <!-- LOADING -->
   @if (isLoading) {
     <div class="products-grid">
@@ -35,7 +41,7 @@
   @if (!isLoading && !error && products.length === 0) {
     <div class="empty-state">
       <span class="empty-icon">◈</span>
-      <p>No products available right now.</p>
+      <p>{{ hasActiveSearch ? 'No products match your search.' : 'No products available right now.' }}</p>
     </div>
   }
 

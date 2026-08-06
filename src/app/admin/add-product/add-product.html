@@ -110,22 +110,35 @@
           </div>
         </div>
 
-        <!-- Section 4: Image -->
+        <!-- Section 4: Images -->
         <div class="form-section">
-          <div class="fs-label">04 · Product Image</div>
+          <div class="fs-label">04 · Product Images <span class="hint">— up to {{ maxImages }}</span></div>
 
-          <div class="image-upload-area" (click)="fileInput.click()" [class.has-preview]="imagePreview">
-            <input #fileInput type="file" accept="image/*" (change)="onFileChange($event)" hidden />
-
-            <div class="upload-placeholder" *ngIf="!imagePreview">
-              <span class="upload-icon">📷</span>
-              <p>Click to upload product image</p>
-              <small>JPG, PNG, WEBP up to 5MB</small>
+          <div class="image-grid">
+            <div class="image-tile" *ngFor="let img of selectedImages; let i = index">
+              <div class="image-tile-preview">
+                <img [src]="img.preview" alt="Preview {{ i + 1 }}" />
+                <span class="image-tile-index">0{{ i + 1 }}</span>
+                <button type="button" class="remove-img" (click)="removeImage(i)" title="Remove image">✕</button>
+              </div>
+              <select class="image-label" [(ngModel)]="img.label" name="imageLabel-{{i}}">
+                <option value="">No label</option>
+                <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+              </select>
             </div>
 
-            <img *ngIf="imagePreview" [src]="imagePreview" class="image-preview" alt="Preview" />
-            <button type="button" class="remove-img" *ngIf="imagePreview" (click)="removeImage($event)">✕</button>
+            <div class="image-add-tile" *ngIf="selectedImages.length < maxImages" (click)="fileInput.click()">
+              <input #fileInput type="file" accept="image/*" multiple (change)="onFilesChange($event)" hidden />
+              <span class="upload-icon">📷</span>
+              <p>Add image</p>
+              <small>{{ selectedImages.length }}/{{ maxImages }}</small>
+            </div>
           </div>
+
+          <p class="image-hint">
+            Add up to {{ maxImages }} images (Front, Back, Side, Full view). The first image is used as the
+            listing thumbnail. JPG, PNG, WEBP up to 5MB.
+          </p>
         </div>
 
         <!-- Submit -->

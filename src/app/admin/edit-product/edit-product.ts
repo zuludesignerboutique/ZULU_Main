@@ -3,6 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { ProductService } from '../../services/product.service';
+
+// A file picked by the admin that hasn't been saved to the server yet.
+interface NewImage {
+  file: File;
+  preview: string;
+  label: string;
+}
 
 @Component({
   selector: 'app-edit-product',
@@ -14,9 +22,20 @@ import { CommonModule } from '@angular/common';
 export class EditProduct implements OnInit {
 
   product: any = {};
-  selectedFile!: File;
-  imagePreview: string | null = null;   // ← new: for upload area preview
   isSaving: boolean = false;
+
+  readonly maxImages = 4;
+  readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+
+  // Gallery rows already saved in the DB (from product.images)
+  existingImages: any[] = [];
+  // Files selected but not yet uploaded
+  newImages: NewImage[] = [];
+
+  // Image operation state
+  imageBusy = false;
+  imageMsg = '';
+  imageMsgError = false;
 
   imageBase: string = '/uploads/';
 
@@ -30,6 +49,14 @@ export class EditProduct implements OnInit {
 
   get availableSubcategories(): string[] {
     return this.categorySubMap[this.product.category] || [];
+  }
+
+  get totalImageCount(): number {
+    return this.existingImages.length + this.newImages.length;
+  }
+
+  get canAddMoreImages(): boolean {
+    return this.totalImageCount < this.maxImages;
   }
 
   // Only clears the subcategory when the user actively changes the category
@@ -47,6 +74,7 @@ export class EditProduct implements OnInit {
     private route: ActivatedRoute,
     private http: HttpClient,
     private router: Router,
+    private productService: ProductService,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef
   ) {}
@@ -71,6 +99,11 @@ export class EditProduct implements OnInit {
           } else {
             this.product.detailsRaw = this.product.details || '';
           }
+
+          // Load the saved gallery (sorted by display_order)
+          this.existingImages = Array.isArray(found.images)
+            ? [...found.images].sort((a, b) => a.display_order - b.display_order)
+            : [];
         }
 
         // ── Fix for "form fields blank until click" ──
@@ -86,24 +119,161 @@ export class EditProduct implements OnInit {
       });
   }
 
-  onFileSelect(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
-    this.selectedFile = file;
+  // ── Upload new images ────────────────────────────
+  onNewFilesChange(event: any) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
 
-    // Show preview in the upload area
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.imagePreview = e.target.result;
+    const remaining = this.maxImages - this.totalImageCount;
+    if (remaining <= 0) {
+      this.setImageMsg(`You can upload a maximum of ${this.maxImages} images per product.`, true);
+      input.value = '';
       this.ngZone.run(() => this.cdr.detectChanges());
-    };
-    reader.readAsDataURL(file);
+      return;
+    }
+
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length < files.length) {
+      this.setImageMsg(`Only ${this.maxImages} images are allowed per product. ${toAdd.length} image(s) added.`, true);
+    } else {
+      this.imageMsg = '';
+    }
+
+    toAdd.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.newImages.push({ file, preview: e.target.result, label: '' });
+        this.ngZone.run(() => this.cdr.detectChanges());
+      };
+      reader.readAsDataURL(file);
+    });
+
+    input.value = '';
+    this.ngZone.run(() => this.cdr.detectChanges());
   }
 
-  removeImage(event: Event) {
-    event.stopPropagation();
-    this.imagePreview = null;
-    this.selectedFile = null!;
+  removeNewImage(index: number) {
+    this.newImages.splice(index, 1);
+    this.imageMsg = '';
+    this.ngZone.run(() => this.cdr.detectChanges());
+  }
+
+  // Save the pending new files to the product gallery (manual "Upload new
+  // images" button — for adding images without touching other fields)
+  addPendingImages() {
+    if (!this.newImages.length || !this.product?.id) return;
+    this.imageBusy = true;
+    this.imageMsg = '';
+    this.imageMsgError = false;
+
+    this.uploadPendingImages(this.product.id).subscribe({
+      next: () => {
+        this.imageBusy = false;
+        this.newImages = [];
+        this.setImageMsg('Image(s) added successfully.', false);
+        this.reloadGallery();
+      },
+      error: (err) => {
+        this.imageBusy = false;
+        this.setImageMsg(err?.error?.error || 'Failed to add images. Please try again.', true);
+      }
+    });
+  }
+
+  // Shared upload call — used by the standalone "Upload new images" button
+  // AND automatically by Save Changes below, so picked files can never be
+  // silently discarded regardless of which action the admin clicks.
+  private uploadPendingImages(productId: number) {
+    return this.productService.addImages(
+      productId,
+      this.newImages.map(n => n.file),
+      this.newImages.map(n => n.label)
+    );
+  }
+
+  // Delete an existing gallery image
+  deleteImage(image: any) {
+    if (!this.product?.id || !image?.id) return;
+    if (!confirm('Delete this image?')) return;
+
+    this.imageBusy = true;
+    this.imageMsg = '';
+    this.imageMsgError = false;
+
+    this.productService.deleteImage(this.product.id, image.id).subscribe({
+      next: () => {
+        this.imageBusy = false;
+        this.existingImages = this.existingImages.filter(i => i.id !== image.id);
+        this.setImageMsg('Image deleted successfully.', false);
+        this.ngZone.run(() => this.cdr.detectChanges());
+      },
+      error: (err) => {
+        this.imageBusy = false;
+        this.setImageMsg(err?.error?.error || 'Failed to delete image. Please try again.', true);
+      }
+    });
+  }
+
+  // Move an existing image up/down in the gallery, then persist the new order
+  moveImage(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= this.existingImages.length) return;
+
+    const arr = [...this.existingImages];
+    [arr[index], arr[target]] = [arr[target], arr[index]];
+    this.existingImages = arr;
+    this.saveOrderAndLabels();
+  }
+
+  // Persist the current gallery order + labels
+  saveOrderAndLabels() {
+    if (!this.product?.id || !this.existingImages.length) return;
+
+    const orderedIds = this.existingImages.map(i => i.id);
+    const labels: Record<number, string> = {};
+    this.existingImages.forEach(i => { labels[i.id] = i.label || ''; });
+
+    this.imageBusy = true;
+    this.imageMsg = '';
+    this.imageMsgError = false;
+
+    this.productService.reorderImages(this.product.id, orderedIds, labels).subscribe({
+      next: () => {
+        this.imageBusy = false;
+        this.setImageMsg('Image order saved.', false);
+        // Keep the thumbnail in sync (the first gallery image is the thumbnail)
+        if (this.existingImages[0]) {
+          this.product.image_url = this.existingImages[0].image_url;
+        }
+        this.ngZone.run(() => this.cdr.detectChanges());
+      },
+      error: (err) => {
+        this.imageBusy = false;
+        this.setImageMsg(err?.error?.error || 'Failed to save image order.', true);
+      }
+    });
+  }
+
+  // Re-fetch product so the gallery reflects server state
+  private reloadGallery() {
+    this.http.get<any[]>(`/api/products`)
+      .subscribe(data => {
+        const found = data.find(p => p.id == this.product.id);
+        if (found) {
+          this.product.image_url = found.image_url;
+          this.existingImages = Array.isArray(found.images)
+            ? [...found.images].sort((a, b) => a.display_order - b.display_order)
+            : [];
+        }
+        this.ngZone.run(() => this.cdr.detectChanges());
+      });
+  }
+
+  private setImageMsg(msg: string, isError: boolean) {
+    this.imageMsg = msg;
+    this.imageMsgError = isError;
+    this.ngZone.run(() => this.cdr.detectChanges());
   }
 
   updateProduct() {
@@ -135,15 +305,35 @@ export class EditProduct implements OnInit {
       .filter(Boolean);
     formData.append('details', JSON.stringify(detailsArray));
 
-    if (this.selectedFile) {
-      formData.append('image', this.selectedFile);
-    }
-
     this.http.put(
       `/api/products/${this.product.id}`,
       formData
     ).subscribe({
       next: () => {
+        // If images were picked but never uploaded via the standalone button,
+        // upload them now instead of silently dropping them on navigate.
+        if (this.newImages.length) {
+          this.uploadPendingImages(this.product.id).subscribe({
+            next: () => {
+              this.isSaving = false;
+              this.newImages = [];
+              alert('Product and images updated successfully!');
+              this.router.navigate(['/admin/products']);
+            },
+            error: (err) => {
+              this.isSaving = false;
+              console.error('Image upload error:', err);
+              alert(
+                'Product details were saved, but the new images failed to upload: ' +
+                (err?.error?.error || 'please try "Upload new images" again before leaving this page.')
+              );
+              // Stay on the page — newImages is untouched, so nothing is lost
+              // and the admin can retry the upload immediately.
+            }
+          });
+          return;
+        }
+
         this.isSaving = false;
         alert('Product updated successfully!');
         this.router.navigate(['/admin/products']);

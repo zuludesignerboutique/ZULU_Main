@@ -94,75 +94,108 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let order of pagedOrders" class="ao-row"
-            [id]="'order-row-' + order.id"
-            [class.row-highlighted]="highlightedOrderId === order.id">
+        <ng-container *ngFor="let order of pagedOrders">
+          <tr class="ao-row"
+              [id]="'order-row-' + order.id"
+              [class.row-highlighted]="highlightedOrderId === order.id">
 
-          <td><span class="order-id">#{{ order.id }}</span></td>
+            <td><span class="order-id">#{{ order.id }}</span></td>
 
-          <td>
-            <span class="brand-pill" [ngClass]="order.items?.[0]?.brand || 'zulu'">
-              {{ (order.items?.[0]?.brand || 'zulu') | titlecase }}
-            </span>
-          </td>
+            <td>
+              <span class="brand-pill" [ngClass]="order.items?.[0]?.brand || 'zulu'">
+                {{ (order.items?.[0]?.brand || 'zulu') | titlecase }}
+              </span>
+            </td>
 
-          <td>
-            <div class="customer-cell">
-              <span class="customer-name">{{ order.user_name }}</span>
-              <span class="customer-email">{{ order.email }}</span>
-            </div>
-          </td>
-
-          <td><span class="phone">{{ order.phone }}</span></td>
-
-          <td>
-            <div class="items-cell">
-              <div class="item-row" *ngFor="let item of parseItems(order.items)">
-                <span class="item-pill">
-                  <span class="item-name-text">{{ item.product_name }}</span>
-                  <span class="item-code" *ngIf="item.product_code">{{ item.product_code }}</span>
-                  <span class="item-meta">×{{ item.quantity }} · ₹{{ item.price | number }}</span>
-                  <span class="item-brand-tag" *ngIf="item.brand">{{ item.brand }}</span>
-                </span>
+            <td>
+              <div class="customer-cell">
+                <span class="customer-name">{{ order.user_name }}</span>
+                <span class="customer-email">{{ order.email }}</span>
               </div>
-            </div>
-          </td>
+            </td>
 
-          <td><span class="amount">₹{{ order.total_amount | number }}</span></td>
+            <td><span class="phone">{{ order.phone }}</span></td>
 
-          <td>
-            <div class="refund-cell">
-              <span *ngIf="order.refund_amount" class="refund-amt">-₹{{ order.refund_amount | number }}</span>
-              <span *ngIf="order.penalty_amount" class="penalty-amt">Fee: ₹{{ order.penalty_amount | number }}</span>
-              <span *ngIf="!order.refund_amount && !order.penalty_amount" class="no-refund">—</span>
-            </div>
-          </td>
+            <td>
+              <div class="items-cell">
+                <div class="item-row" *ngFor="let item of parseItems(order.items)">
+                  <span class="item-pill">
+                    <span class="item-name-text">{{ item.product_name }}</span>
+                    <span class="item-code" *ngIf="item.product_code">{{ item.product_code }}</span>
+                    <span class="item-meta">×{{ item.quantity }} · ₹{{ item.price | number }}</span>
+                    <span class="item-brand-tag" *ngIf="item.brand">{{ item.brand }}</span>
+                  </span>
+                </div>
+              </div>
+            </td>
 
-          <td>
-            <span class="date">{{ order.created_at | date:'dd MMM yy' }}</span>
-            <span class="date-time">{{ order.created_at | date:'h:mm a' }}</span>
-          </td>
+            <td><span class="amount">₹{{ order.total_amount | number }}</span></td>
 
-          <td>
-            <span class="status-pill" [ngClass]="getStatusClass(order.status)">
-              {{ getStatusLabel(order.status) }}
-            </span>
-          </td>
+            <td>
+              <div class="refund-cell">
+                <span *ngIf="order.refund_amount" class="refund-amt">-₹{{ order.refund_amount | number }}</span>
+                <span *ngIf="order.penalty_amount" class="penalty-amt">Fee: ₹{{ order.penalty_amount | number }}</span>
+                <span *ngIf="!order.refund_amount && !order.penalty_amount" class="no-refund">—</span>
+              </div>
+            </td>
 
-          <td>
-            <select class="status-select"
-              [value]="order.status"
-              (change)="updateStatus(order, $event)">
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="cancellation_requested" disabled>Cancellation Requested</option>
-            </select>
-          </td>
+            <td>
+              <span class="date">{{ order.created_at | date:'dd MMM yy' }}</span>
+              <span class="date-time">{{ order.created_at | date:'h:mm a' }}</span>
+            </td>
 
-        </tr>
+            <td>
+              <span class="status-pill" [ngClass]="getStatusClass(order.status)">
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </td>
+
+            <td>
+              <select class="status-select"
+                [value]="order.status"
+                [disabled]="order.status === 'cancellation_requested'"
+                (change)="updateStatus(order, $event)">
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="cancellation_requested" disabled>Cancellation Requested</option>
+              </select>
+            </td>
+
+          </tr>
+
+          <!-- Inline approve/reject panel — shows for any row currently
+               awaiting cancellation approval, and pulses when jumped to
+               from the notification bell -->
+          <tr class="ao-cancel-row" *ngIf="order.status === 'cancellation_requested'"
+              [class.row-highlighted]="highlightedOrderId === order.id">
+            <td colspan="10">
+              <div class="cancel-action-panel">
+                <div class="cancel-action-info">
+                  <strong>Cancellation requested</strong> for Order #{{ order.id }} —
+                  Refund ₹{{ order.refund_amount | number }}
+                  <ng-container *ngIf="order.penalty_amount > 0">
+                    &nbsp;· 25% fee ₹{{ order.penalty_amount | number }}
+                  </ng-container>
+                </div>
+                <div class="cancel-action-buttons">
+                  <button
+                    class="cancel-btn approve"
+                    [disabled]="actingId === order.id"
+                    (click)="approveCancel(order)"
+                  >{{ actingId === order.id ? 'Working…' : 'Approve' }}</button>
+                  <button
+                    class="cancel-btn reject"
+                    [disabled]="actingId === order.id"
+                    (click)="rejectCancel(order)"
+                  >Reject</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
 
         <tr *ngIf="pagedOrders.length === 0">
           <td colspan="10" class="empty-row">No orders found.</td>

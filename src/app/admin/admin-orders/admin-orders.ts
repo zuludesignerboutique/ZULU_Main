@@ -30,10 +30,11 @@ export class AdminOrders implements OnInit {
   pageSize = 20;
   totalPages = 1;
 
-  // ✅ id of the order to jump to / highlight, arrives via ?highlight=<id> from the
-  // admin-layout notification bell
   private highlightId: string | null = null;
   highlightedOrderId: number | null = null;
+
+  // id currently being approved/rejected (disables its inline buttons)
+  actingId: number | null = null;
 
   private api = '';
 
@@ -87,16 +88,12 @@ export class AdminOrders implements OnInit {
     });
   }
 
-  // ✅ Finds which page the highlighted order lands on, flips to it, then scrolls
-  // the row into view and pulses it for a few seconds
   private jumpToHighlighted() {
     const targetId = this.highlightId;
     if (!targetId) return;
 
     const index = this.filteredOrders.findIndex(o => String(o.id) === String(targetId));
     if (index === -1) {
-      // Order isn't in the currently filtered set (e.g. status filter excludes it) —
-      // reset filters so it's visible, then retry once.
       if (this.statusFilter !== 'all') {
         this.statusFilter = 'all';
         this.applyFilters();
@@ -116,8 +113,8 @@ export class AdminOrders implements OnInit {
       if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 50);
 
-    // Clear the highlight pulse after a few seconds, and drop the query param
-    // so refreshing the page doesn't re-trigger it
+    // Keep the visual pulse only briefly — the Approve/Reject panel itself
+    // stays as long as the order is still in cancellation_requested status
     setTimeout(() => {
       this.ngZone.run(() => {
         this.highlightedOrderId = null;
@@ -198,6 +195,57 @@ export class AdminOrders implements OnInit {
     });
   }
 
+  // ── Cancellation approve/reject — now inline in the order row ──────────
+
+  approveCancel(order: any) {
+    const confirmed = window.confirm(
+      `Approve cancellation for Order #${order.id}?\n\nThis will cancel the order. Refund of ₹${order.refund_amount} will need to be processed manually.`
+    );
+    if (!confirmed) return;
+
+    this.actingId = order.id;
+    this.http.patch<any>(`/api/admin/orders/${order.id}/approve-cancel`, {}).subscribe({
+      next: () => {
+        this.ngZone.run(() => {
+          order.status = 'cancelled';
+          this.actingId = null;
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        console.error('AdminOrders: approve-cancel error', err);
+        alert('Could not approve the cancellation. Please try again.');
+        this.actingId = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  rejectCancel(order: any) {
+    const confirmed = window.confirm(
+      `Reject cancellation for Order #${order.id}?\n\nThe order will continue as normal — no refund will be issued.`
+    );
+    if (!confirmed) return;
+
+    this.actingId = order.id;
+    this.http.patch<any>(`/api/admin/orders/${order.id}/reject-cancel`, {}).subscribe({
+      next: () => {
+        this.ngZone.run(() => {
+          // Adjust to whatever status your backend reverts to (e.g. previous status)
+          order.status = order.previous_status || 'confirmed';
+          this.actingId = null;
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        console.error('AdminOrders: reject-cancel error', err);
+        alert('Could not reject the cancellation. Please try again.');
+        this.actingId = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   get summary() {
     const total = this.filteredOrders.length;
     const totalRevenue = this.filteredOrders.reduce((s, o) => s + Number(o.total_amount), 0);
@@ -219,8 +267,6 @@ export class AdminOrders implements OnInit {
     return map[status] || '';
   }
 
-  // ✅ Friendly label for status pills / chips — 'cancellation_requested' doesn't
-  // read well through the titlecase pipe (underscore stays literal)
   getStatusLabel(status: string): string {
     if (status === 'cancellation_requested') return 'Cancellation Requested';
     return status.charAt(0).toUpperCase() + status.slice(1);

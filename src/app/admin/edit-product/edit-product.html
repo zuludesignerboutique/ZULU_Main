@@ -124,35 +124,79 @@
           </div>
         </div>
 
-        <!-- Section 04: Product Image -->
+        <!-- Section 04: Product Images -->
         <div class="form-section">
-          <div class="fs-label">04 · Product Image</div>
+          <div class="fs-label">04 · Product Images <span class="hint">— up to {{ maxImages }}</span></div>
 
-          <!-- Current image -->
-          <div class="current-image-row" *ngIf="product.image_url && !selectedFile">
-            <img class="current-image-thumb"
-              [src]="imageBase + product.image_url" [alt]="product.name" />
-            <span class="current-image-label">Current Image</span>
-          </div>
-
-          <!-- Upload area -->
-          <div class="image-upload-area"
-            (click)="fileInput.click()"
-            [class.has-preview]="imagePreview">
-            <input #fileInput type="file" accept="image/*"
-              (change)="onFileSelect($event)" hidden />
-
-            <div class="upload-placeholder" *ngIf="!imagePreview">
-              <span class="upload-icon">📷</span>
-              <p>Click to upload new image</p>
-              <small>JPG, PNG, WEBP up to 5MB — leave empty to keep current</small>
+          <!-- Legacy single-image product (no gallery rows yet) -->
+          <div class="legacy-thumb-note" *ngIf="!existingImages.length && product.image_url && !newImages.length">
+            <p>This product uses a single legacy image. It will keep working as-is. Add new images below to build a gallery
+              (the first one becomes the new listing thumbnail).</p>
+            <div class="legacy-thumb">
+              <img [src]="imageBase + product.image_url" [alt]="product.name" />
+              <span>Current thumbnail</span>
             </div>
-
-            <img *ngIf="imagePreview" [src]="imagePreview"
-              class="image-preview" alt="New Preview" />
-            <button type="button" class="remove-img"
-              *ngIf="imagePreview" (click)="removeImage($event)">✕</button>
           </div>
+
+          <!-- Existing gallery images -->
+          <div class="current-gallery" *ngIf="existingImages.length">
+            <div class="gallery-item" *ngFor="let img of existingImages; let i = index">
+              <div class="gallery-item-preview">
+                <img [src]="imageBase + img.image_url" [alt]="product.name" />
+                <span class="gallery-item-index" *ngIf="i === 0">THUMB</span>
+                <button type="button" class="remove-img" (click)="deleteImage(img)" title="Delete image">✕</button>
+              </div>
+              <div class="gallery-item-controls">
+                <select class="image-label" [(ngModel)]="img.label" name="existingLabel-{{img.id}}"
+                  (ngModelChange)="saveOrderAndLabels()">
+                  <option value="">No label</option>
+                  <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+                </select>
+                <div class="gallery-move">
+                  <button type="button" (click)="moveImage(i, -1)" [disabled]="i === 0" title="Move up">↑</button>
+                  <button type="button" (click)="moveImage(i, 1)" [disabled]="i === existingImages.length - 1" title="Move down">↓</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending new images (not yet uploaded) -->
+          <div class="new-gallery" *ngIf="newImages.length">
+            <div class="gallery-item new" *ngFor="let img of newImages; let i = index">
+              <div class="gallery-item-preview">
+                <img [src]="img.preview" alt="New image" />
+                <span class="gallery-item-index">NEW</span>
+                <button type="button" class="remove-img" (click)="removeNewImage(i)" title="Remove">✕</button>
+              </div>
+              <select class="image-label" [(ngModel)]="img.label" name="newLabel-{{i}}">
+                <option value="">No label</option>
+                <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Add more images -->
+          <div class="gallery-add-row" *ngIf="canAddMoreImages">
+            <div class="image-add-tile" (click)="fileInput.click()">
+              <input #fileInput type="file" accept="image/*" multiple (change)="onNewFilesChange($event)" hidden />
+              <span class="upload-icon">📷</span>
+              <p>Add images</p>
+              <small>{{ totalImageCount }}/{{ maxImages }}</small>
+            </div>
+          </div>
+
+          <!-- Upload pending images -->
+          <div class="gallery-save-row" *ngIf="newImages.length">
+            <button type="button" class="btn-inline-save" [disabled]="imageBusy" (click)="addPendingImages()">
+              {{ imageBusy ? 'Saving...' : 'Upload new images' }}
+            </button>
+          </div>
+
+          <p class="image-msg" [class.error]="imageMsgError" *ngIf="imageMsg">{{ imageMsg }}</p>
+          <p class="image-hint">
+            Up to {{ maxImages }} images (Front, Back, Side, Full view). The first image is the listing thumbnail —
+            use ↑ / ↓ to reorder. Images can be deleted or replaced any time.
+          </p>
         </div>
 
         <!-- Actions -->
@@ -222,6 +266,7 @@
           <li>Use subcategory exactly as listed for filtering to work</li>
           <li>Images look best at 3:4 ratio</li>
           <li>Add size options separated by commas</li>
+          <li>Add up to 4 images — front, back, side, full view</li>
         </ul>
       </div>
 

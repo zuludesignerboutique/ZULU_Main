@@ -210,6 +210,190 @@ $success:#27ae60;
   padding-bottom: 4px;
 }
 
+// ── GALLERY ──────────────────────────────────────
+.legacy-thumb-note {
+  background: rgba(200,169,110,0.06);
+  border: 1px solid rgba(200,169,110,0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  p { font-size: 12px; color: $muted; margin: 0 0 12px; line-height: 1.55; }
+
+  .legacy-thumb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img {
+      width: 56px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid $border;
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: $muted;
+    }
+  }
+}
+
+.current-gallery,
+.new-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+
+  @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.gallery-item {
+  border-radius: 12px;
+  overflow: hidden;
+  background: $surface;
+  border: 1.5px solid $border;
+
+  .gallery-item-preview {
+    position: relative;
+    aspect-ratio: 3/4;
+    background: #f0ede8;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-item-index {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 3px 7px;
+      border-radius: 6px;
+    }
+  }
+
+  .gallery-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-top: 1.5px solid $border;
+  }
+
+  .image-label {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    padding: 8px 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    color: $ink;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+
+    &:focus { background: rgba(200,169,110,0.06); }
+  }
+
+  .gallery-move {
+    display: flex;
+    flex-shrink: 0;
+
+    button {
+      width: 30px;
+      height: 34px;
+      border: none;
+      border-left: 1px solid $border;
+      background: #fff;
+      color: $muted;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+
+      &:hover:not(:disabled) { background: rgba(200,169,110,0.12); color: $gold; }
+      &:disabled { opacity: 0.3; cursor: not-allowed; }
+    }
+  }
+}
+
+.gallery-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.image-add-tile {
+  width: 130px;
+  aspect-ratio: 3/4;
+  border: 2px dashed $border;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  background: $surface;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: center;
+  padding: 10px;
+
+  &:hover { border-color: $gold; background: rgba(200,169,110,0.05); }
+
+  .upload-icon { font-size: 26px; opacity: 0.4; }
+  p { font-size: 12px; color: $muted; margin: 0; font-weight: 600; }
+  small { font-size: 11px; color: lighten(#9a9080, 10%); }
+}
+
+.gallery-save-row {
+  margin-top: 14px;
+
+  .btn-inline-save {
+    padding: 11px 20px;
+    border: none;
+    border-radius: 10px;
+    background: $gold;
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+
+    &:hover:not(:disabled) { background: darken(#c8a96e, 8%); }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+}
+
+.image-msg {
+  margin: 12px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: $success;
+
+  &.error { color: $error; }
+}
+
+.image-hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: $muted;
+  line-height: 1.5;
+}
+
 .image-upload-area {
   border: 2px dashed $border;
   border-radius: 16px;
@@ -250,13 +434,13 @@ $success:#27ae60;
 
 .remove-img {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 8px;
+  right: 8px;
   background: rgba(0,0,0,0.6);
   color: #fff;
   border: none;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   font-size: 12px;
   cursor: pointer;
@@ -264,6 +448,7 @@ $success:#27ae60;
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
+  z-index: 2;
 
   &:hover { background: $error; }
 }

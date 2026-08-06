@@ -5,6 +5,14 @@ import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CategoryService, Category, Subcategory, InUseProduct } from '../../services/category.service';
 
+// ── Multi-image upload state ───────────────────────
+// A single selected image (file + preview + optional label).
+interface SelectedImage {
+  file: File;
+  preview: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-add-product',
   standalone: true,
@@ -20,8 +28,9 @@ export class AddProduct implements OnInit {
     stock: 0, product_code: '', size: ''
   };
 
-  selectedFile: File | null = null;
-  imagePreview: string | null = null;
+  readonly maxImages = 4;
+  readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  selectedImages: SelectedImage[] = [];
   isSubmitting = false;
   successMsg = '';
   errorMsg = '';
@@ -429,27 +438,52 @@ export class AddProduct implements OnInit {
     });
   }
 
-  // ── Image handling ───────────────────────────────────────
-  onFileChange(event: Event) {
+  // ── Image handling (multiple, max 4) ─────────────
+  onFilesChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files?.[0]) {
-      this.selectedFile = input.files[0];
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
+    const remaining = this.maxImages - this.selectedImages.length;
+    if (remaining <= 0) {
+      this.errorMsg = `You can upload a maximum of ${this.maxImages} images per product.`;
+      input.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length < files.length) {
+      this.errorMsg = `Only ${this.maxImages} images are allowed per product. ${toAdd.length} image(s) added.`;
+    } else {
+      this.errorMsg = '';
+    }
+
+    toAdd.forEach(file => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.imagePreview = e.target?.result as string;
+        this.selectedImages.push({
+          file,
+          preview: (e.target?.result as string) || '',
+          label: ''
+        });
         this.cdr.detectChanges();
       };
-      reader.readAsDataURL(this.selectedFile);
-    }
+      reader.readAsDataURL(file);
+    });
+
+    // Reset so selecting the same file again still fires the change event
+    input.value = '';
+    this.cdr.detectChanges();
   }
 
-  removeImage(event: Event) {
-    event.stopPropagation();
-    this.selectedFile = null;
-    this.imagePreview = null;
+  removeImage(index: number) {
+    this.selectedImages.splice(index, 1);
+    this.errorMsg = '';
+    this.cdr.detectChanges();
   }
 
-  // ── Submit ────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────
   addProduct() {
     this.successMsg = '';
     this.errorMsg = '';
@@ -470,9 +504,8 @@ export class AddProduct implements OnInit {
     formData.append('stock',        String(this.product.stock));
     formData.append('product_code', this.product.product_code);
     formData.append('size',         this.product.size);
-    if (this.selectedFile) {
-      formData.append('image', this.selectedFile);
-    }
+    this.selectedImages.forEach(img => formData.append('images', img.file));
+    formData.append('labels', JSON.stringify(this.selectedImages.map(img => img.label)));
 
     this.http.post('/api/products', formData).subscribe({
       next: () => {
@@ -483,7 +516,7 @@ export class AddProduct implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.errorMsg = 'Failed to add product. Please try again.';
+        this.errorMsg = err?.error?.error || 'Failed to add product. Please try again.';
         this.cdr.detectChanges();
         console.error(err);
       }

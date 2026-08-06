@@ -43,6 +43,9 @@ export class ProductView implements OnInit, OnDestroy {
 
   imageBase: string = '/uploads/';
 
+  // ── Gallery (multi-image support) ───────────────
+  selectedImageUrl: string | null = null;
+
   private navStateProduct: any = null;
   private destroy$ = new Subject<void>();
   private popupTimer: any;
@@ -82,6 +85,7 @@ export class ProductView implements OnInit, OnDestroy {
 
     if (stateProduct && String(stateProduct.id) === String(id)) {
       this.product = stateProduct;
+      this.selectedImageUrl = null;
       this.isLoading = false;
       this.saveProductToCache(stateProduct);
       this.loadWishlistState();
@@ -92,6 +96,7 @@ export class ProductView implements OnInit, OnDestroy {
     const cached = this.getProductFromCache(id);
     if (cached) {
       this.product = cached;
+      this.selectedImageUrl = null;
       this.isLoading = false;
       this.loadWishlistState();
       this.fetchProductSilently(id);
@@ -150,6 +155,7 @@ export class ProductView implements OnInit, OnDestroy {
           const found = data.find(p => p.id == id);
           if (found) {
             this.product = found;
+            this.selectedImageUrl = null;
             this.saveProductToCache(found);
           } else {
             this.error = `Product with id "${id}" not found.`;
@@ -172,11 +178,50 @@ export class ProductView implements OnInit, OnDestroy {
           const found = data.find(p => p.id == id);
           if (found) {
             this.product = found;
+            this.selectedImageUrl = null;
             this.saveProductToCache(found);
           }
         },
         error: () => {}
       });
+  }
+
+  // ── Gallery (multi-image) ───────────────────────
+
+  // Gallery source: product_images rows when present, otherwise fall back to
+  // the legacy single thumbnail so old products still render.
+  get galleryImages(): any[] {
+    if (this.product?.images?.length) return this.product.images;
+    if (this.product?.image_url) {
+      return [{ id: null, image_url: this.product.image_url, display_order: 1, label: '' }];
+    }
+    return [];
+  }
+
+  // The image shown in the main frame — first gallery image by default.
+  get mainImageUrl(): string | null {
+    if (this.selectedImageUrl) return this.selectedImageUrl;
+    const first = this.galleryImages[0];
+    return first ? first.image_url : null;
+  }
+
+  isActiveImage(image: any): boolean {
+    return (this.selectedImageUrl || this.galleryImages[0]?.image_url) === image?.image_url;
+  }
+
+  selectImage(image: any) {
+    this.selectedImageUrl = image?.image_url || null;
+  }
+
+  // Re-created when the URL changes so the fade-in animation replays
+  trackImage(_index: number, url: string | null): string | null {
+    return url;
+  }
+
+  imageSrc(imageUrl: string): string {
+    if (!imageUrl) return 'assets/images/placeholder.jpg';
+    if (imageUrl.startsWith('http') || imageUrl.startsWith('assets/')) return imageUrl;
+    return this.imageBase + imageUrl;
   }
 
   // ── Wishlist ─────────────────────────────────────

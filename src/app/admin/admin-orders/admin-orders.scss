@@ -423,6 +423,11 @@ $border: rgba(0,0,0,0.07);
   transition: border-color 0.2s;
 
   &:focus { border-color: $gold; }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .empty-row {
@@ -430,6 +435,70 @@ $border: rgba(0,0,0,0.07);
   padding: 48px !important;
   color: $muted;
   font-size: 14px;
+}
+
+// ── INLINE CANCELLATION APPROVE/REJECT PANEL ──────
+.ao-cancel-row {
+  td {
+    padding: 0 !important;
+    border-bottom: 1px solid $border;
+  }
+}
+
+.cancel-action-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(230,162,60,0.08);
+  border-left: 3px solid #b9791c;
+}
+
+.cancel-action-info {
+  font-size: 12px;
+  color: #6b4e16;
+
+  strong {
+    color: #b9791c;
+    font-weight: 700;
+  }
+}
+
+.cancel-action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cancel-btn {
+  padding: 7px 18px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s ease;
+
+  &.approve {
+    background: #27ae60;
+    color: #fff;
+    &:hover:not(:disabled) { background: darken(#27ae60, 6%); }
+  }
+
+  &.reject {
+    background: transparent;
+    border: 1.5px solid rgba(192,57,43,0.35);
+    color: #c0392b;
+    &:hover:not(:disabled) { background: rgba(192,57,43,0.08); }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 // ── PAGINATION ────────────────────────────────────
