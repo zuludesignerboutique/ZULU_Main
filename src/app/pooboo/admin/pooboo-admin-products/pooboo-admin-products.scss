@@ -29,6 +29,57 @@
     &.error { color: #e05588; }
   }
 
+  // ── Search bar ───────────────────────────────────────
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1.5px solid #f0ece4;
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    max-width: 420px;
+    transition: border-color 0.2s;
+
+    &:focus-within { border-color: #ff6b9d; }
+
+    .search-icon { font-size: 14px; opacity: 0.6; }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1814;
+      background: transparent;
+
+      &::placeholder { color: #b7ae9f; }
+    }
+
+    .search-clear {
+      border: none;
+      background: #f0ece4;
+      color: #9a9080;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-size: 11px;
+      cursor: pointer;
+      line-height: 1;
+      &:hover { background: #ff6b9d; color: #fff; }
+    }
+
+    .search-count {
+      font-size: 12px;
+      color: #9a9080;
+      white-space: nowrap;
+      padding-left: 8px;
+      border-left: 1px solid #f0ece4;
+    }
+  }
+
   .table-wrap { overflow-x: auto; }
 
   .products-table {

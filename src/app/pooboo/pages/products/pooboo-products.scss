@@ -79,6 +79,43 @@ $soft-bg: #FFF8F5;
       align-items: center;
     }
 
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .search-icon {
+        position: absolute;
+        left: 14px;
+        color: rgba($dark, 0.4);
+        pointer-events: none;
+      }
+
+      .search-input {
+        padding: 9px 16px 9px 36px;
+        border: 2px solid rgba($dark, 0.08);
+        border-radius: 50px;
+        font-family: 'Nunito', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        color: $dark;
+        background: $soft-bg;
+        outline: none;
+        transition: all 0.2s;
+        width: 220px;
+
+        &::placeholder { color: rgba($dark, 0.35); font-weight: 600; }
+
+        &:focus {
+          border-color: $coral;
+          background-color: $white;
+          box-shadow: 0 0 0 3px rgba($coral, 0.1);
+        }
+
+        @media (max-width: 480px) { width: 100%; }
+      }
+    }
+
     .filter-select {
       padding: 9px 18px;
       border: 2px solid rgba($dark, 0.08);

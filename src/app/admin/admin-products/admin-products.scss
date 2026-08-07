@@ -95,9 +95,65 @@ $font-mono:      'JetBrains Mono', 'Courier New', monospace;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 16px 24px;
   border-bottom: 1px solid $border;
   background: #faf8f5;
+  flex-wrap: wrap;
+}
+
+// ─── Search Bar ───────────────────────────────────────────────────────────────
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 13px;
+  color: $text-muted;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 260px;
+  max-width: 100%;
+  padding: 9px 32px 9px 32px;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  font-family: $font-body;
+  font-size: 13px;
+  color: $text-primary;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &::placeholder { color: $text-muted; }
+
+  &:focus {
+    border-color: $accent;
+  }
+}
+
+.search-clear {
+  position: absolute;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: $text-muted;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+
+  &:hover {
+    color: $danger;
+  }
 }
 
 .product-count {

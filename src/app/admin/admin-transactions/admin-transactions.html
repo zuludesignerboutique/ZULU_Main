@@ -51,6 +51,12 @@
       <input type="date" class="filter-input" [(ngModel)]="startDate" (change)="onDateChange()">
       <span class="sep">to</span>
       <input type="date" class="filter-input" [(ngModel)]="endDate" (change)="onDateChange()">
+    </div>
+
+    <div class="filter-group">
+      <input type="text" class="filter-input search-input"
+        placeholder="Search consumer name, email, order ID, product code..."
+        [(ngModel)]="searchQuery" (keyup.enter)="onSearch()">
       <button class="clear-btn" (click)="clearFilters()">Clear</button>
     </div>
   </div>

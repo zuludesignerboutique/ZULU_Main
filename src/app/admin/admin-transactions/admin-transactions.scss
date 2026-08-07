@@ -70,6 +70,8 @@ $border: rgba(0,0,0,0.07);
 
 .sep { font-size: 12px; color: $muted; }
 
+.search-input { min-width: 280px; }
+
 .clear-btn {
   padding: 7px 16px; background: transparent; border: 1.5px solid $border;
   border-radius: 8px; font-size: 12px; font-weight: 600; color: $muted;

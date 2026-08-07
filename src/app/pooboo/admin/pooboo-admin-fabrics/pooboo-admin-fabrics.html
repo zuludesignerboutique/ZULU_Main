@@ -134,6 +134,20 @@
   <div *ngIf="loading" class="state-msg">Loading fabrics...</div>
   <div *ngIf="error"   class="state-msg error">{{ error }}</div>
 
+  <!-- Search -->
+  <div *ngIf="!loading && !error" class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      placeholder="Search by name or product code..."
+      class="search-input" />
+    <button *ngIf="searchQuery" class="search-clear" (click)="searchQuery = ''">✕</button>
+    <span *ngIf="searchQuery" class="search-count">
+      {{ filteredProducts.length }} of {{ products.length }}
+    </span>
+  </div>
+
   <div *ngIf="!loading && !error" class="table-wrap">
     <table class="products-table">
       <thead>
@@ -149,7 +163,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of products">
+        <tr *ngFor="let p of filteredProducts">
           <td>
             <img [src]="getImageUrl(p.image_url)" [alt]="p.name" class="product-thumb" />
           </td>
@@ -164,9 +178,9 @@
             <button class="btn-delete" (click)="deleteProduct(p.id, p.name)">Delete</button>
           </td>
         </tr>
-        <tr *ngIf="products.length === 0">
+        <tr *ngIf="filteredProducts.length === 0">
           <td colspan="8" class="empty-row">
-            No fabrics yet. Click "＋ Add Fabric" above to add your first one.
+            {{ searchQuery ? 'No fabrics match "' + searchQuery + '".' : 'No fabrics yet. Click "＋ Add Fabric" above to add your first one.' }}
           </td>
         </tr>
       </tbody>

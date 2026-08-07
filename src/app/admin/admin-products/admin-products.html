@@ -13,7 +13,17 @@
 <div class="table-card">
 
   <div class="table-toolbar">
-    <span class="product-count">{{ products.length }} Products</span>
+    <span class="product-count">{{ filteredProducts.length }} Products</span>
+    <div class="search-wrap">
+      <span class="search-icon">⚲</span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by name or product code..."
+        [(ngModel)]="searchQuery"
+      >
+      <button class="search-clear" *ngIf="searchQuery" (click)="clearSearch()" aria-label="Clear search">×</button>
+    </div>
   </div>
 
   <table class="product-table">
@@ -26,8 +36,8 @@
         <th>Actions</th>
       </tr>
     </thead>
-    <tbody *ngIf="products.length > 0">
-      <tr *ngFor="let product of products; trackBy: trackById">
+    <tbody *ngIf="filteredProducts.length > 0">
+      <tr *ngFor="let product of filteredProducts; trackBy: trackById">
         <td class="col-id">#{{ product.id }}</td>
         <td class="col-img">
           <div class="img-wrapper">
@@ -45,9 +55,11 @@
         </td>
       </tr>
     </tbody>
-    <tbody *ngIf="products.length === 0">
+    <tbody *ngIf="filteredProducts.length === 0">
       <tr>
-        <td colspan="5" class="empty-state">No products found.</td>
+        <td colspan="5" class="empty-state">
+          {{ searchQuery ? 'No products match "' + searchQuery + '".' : 'No products found.' }}
+        </td>
       </tr>
     </tbody>
   </table>

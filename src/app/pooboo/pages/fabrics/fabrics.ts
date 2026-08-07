@@ -3,8 +3,10 @@ import {
   Inject, PLATFORM_ID, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';
 import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
 import { PoobooFabricService } from '../../services/pooboo-fabric.service';
@@ -15,7 +17,7 @@ import { AuthService } from '../../../services/auth.service';
 @Component({
   selector: 'app-fabrics',
   standalone: true,
-  imports: [CommonModule, RouterModule, PoobooHeader, PoobooFooter],
+  imports: [CommonModule, RouterModule, FormsModule, PoobooHeader, PoobooFooter],
   templateUrl: './fabrics.html',
   styleUrl: './fabrics.scss'
 })
@@ -24,6 +26,12 @@ export class Fabrics implements OnInit, OnDestroy {
   products: PoobooFabric[] = [];
   isLoading = false;
   selectedType = 'all';
+
+  // 🔍 Search & Sort
+  searchTerm = '';
+  sortBy     = '';   // '' | 'price_asc' | 'price_desc' | 'newest'
+  private searchSubject = new Subject<string>();
+  private searchSub?: Subscription;
 
   fabricTypes = [
     { label: 'Cotton',     value: 'cotton',     emoji: '🌿' },
@@ -57,10 +65,16 @@ export class Fabrics implements OnInit, OnDestroy {
       this.wishlistService.ensureLoaded();
     }
     this.wishlistSub = this.wishlistService.items$.subscribe(() => this.cdr.detectChanges());
+
+    // 🔍 Debounce search input (~300ms) before re-querying the backend
+    this.searchSub = this.searchSubject.pipe(debounceTime(300)).subscribe(() => {
+      this.loadProducts();
+    });
   }
 
   ngOnDestroy() {
     this.wishlistSub?.unsubscribe();
+    this.searchSub?.unsubscribe();
     if (this.popTimeout) clearTimeout(this.popTimeout);
   }
 
@@ -69,12 +83,22 @@ export class Fabrics implements OnInit, OnDestroy {
     this.loadProducts();
   }
 
+  // 🔍 Called on (input) — pushes into the debounced subject
+  onSearchInput() {
+    this.searchSubject.next(this.searchTerm);
+  }
+
+  onSortChange() {
+    this.loadProducts();
+  }
+
   loadProducts() {
     this.isLoading = true;
 
-    const filters = this.selectedType !== 'all'
-      ? { type: this.selectedType }
-      : undefined;
+    const filters: { type?: string; search?: string; sort?: string } = {};
+    if (this.selectedType !== 'all') filters.type = this.selectedType;
+    if (this.searchTerm.trim())      filters.search = this.searchTerm.trim();
+    if (this.sortBy)                 filters.sort = this.sortBy;
 
     this.fabricService.getAll(filters).subscribe({
       next: (data: PoobooFabric[]) => {

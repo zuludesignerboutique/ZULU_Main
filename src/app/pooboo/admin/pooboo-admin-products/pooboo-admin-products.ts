@@ -1,12 +1,13 @@
 import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-pooboo-admin-products',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './pooboo-admin-products.html',
   styleUrl: './pooboo-admin-products.scss'
 })
@@ -15,6 +16,18 @@ export class PoobooAdminProducts implements OnInit {
   products: any[] = [];
   loading = true;
   error = '';
+
+  // ── Search ────────────────────────────────────────────
+  searchQuery = '';
+
+  get filteredProducts(): any[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return this.products;
+    return this.products.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.product_code || '').toLowerCase().includes(q)
+    );
+  }
 
   constructor(
     private http: HttpClient,

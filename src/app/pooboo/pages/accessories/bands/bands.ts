@@ -1,7 +1,9 @@
 import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { PoobooHeader } from '../../../layout/pooboo-header/pooboo-header';
 import { PoobooFooter } from '../../../layout/pooboo-footer/pooboo-footer';
 import { PoobooAccessoryService } from '../../../services/pooboo-accessory.service';
@@ -12,7 +14,7 @@ import { AuthService } from '../../../../services/auth.service';
 @Component({
   selector: 'app-bands',
   standalone: true,
-  imports: [CommonModule, RouterModule, PoobooHeader, PoobooFooter],
+  imports: [CommonModule, RouterModule, FormsModule, PoobooHeader, PoobooFooter],
   templateUrl: './bands.html',
   styleUrl: './bands.scss'
 })
@@ -21,6 +23,12 @@ export class Bands implements OnInit, OnDestroy {
   products: PoobooAccessory[] = [];
   isLoading = false;
   hasError = false;
+
+  // 🔍 Search & Sort
+  searchTerm = '';
+  sortBy     = '';   // '' | 'price_asc' | 'price_desc' | 'newest'
+  private searchSubject = new Subject<string>();
+  private searchSub?: Subscription;
 
   // ✅ Wishlist — this category's route segment, used for both the item
   // payload's `category` field and rebuilding the view link on the wishlist page
@@ -47,18 +55,37 @@ export class Bands implements OnInit, OnDestroy {
     this.wishlistSub = this.wishlistService.items$.subscribe(() => {
       this.ngZone.run(() => this.cdr.detectChanges());
     });
+
+    // 🔍 Debounce search input (~300ms) before re-querying the backend
+    this.searchSub = this.searchSubject.pipe(debounceTime(300)).subscribe(() => {
+      this.loadProducts();
+    });
   }
 
   ngOnDestroy(): void {
     this.wishlistSub?.unsubscribe();
+    this.searchSub?.unsubscribe();
     if (this.popTimeout) clearTimeout(this.popTimeout);
+  }
+
+  // 🔍 Called on (input) — pushes into the debounced subject
+  onSearchInput(): void {
+    this.searchSubject.next(this.searchTerm);
+  }
+
+  onSortChange(): void {
+    this.loadProducts();
   }
 
   loadProducts(): void {
     this.isLoading = true;
     this.hasError = false;
 
-    this.accessoryService.getAll({ type: this.categorySlug }).subscribe({
+    const filters: { type?: string; search?: string; sort?: string } = { type: this.categorySlug };
+    if (this.searchTerm.trim()) filters.search = this.searchTerm.trim();
+    if (this.sortBy)            filters.sort = this.sortBy;
+
+    this.accessoryService.getAll(filters).subscribe({
       next: (data: PoobooAccessory[]) => {
         this.ngZone.run(() => {
           this.products = data;

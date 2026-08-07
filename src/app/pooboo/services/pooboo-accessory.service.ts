@@ -10,10 +10,12 @@ export class PoobooAccessoryService {
 
   constructor(private http: HttpClient) {}
 
-  // storefront: only active accessories, optional accessory_type filter
-  getAll(filters?: { type?: string }): Observable<PoobooAccessory[]> {
+  // storefront: only active accessories, optional accessory_type/search/sort filters
+  getAll(filters?: { type?: string; search?: string; sort?: string }): Observable<PoobooAccessory[]> {
     let params = new HttpParams();
-    if (filters?.type) params = params.set('type', filters.type);
+    if (filters?.type)   params = params.set('type', filters.type);
+    if (filters?.search) params = params.set('search', filters.search);
+    if (filters?.sort)   params = params.set('sort', filters.sort);
     return this.http.get<PoobooAccessory[]>(this.base, { params });
   }
 

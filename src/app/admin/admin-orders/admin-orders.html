@@ -60,7 +60,7 @@
     </div>
 
     <div class="filter-group filter-row">
-      <input type="text" class="filter-input" placeholder="Search name, email, phone, order ID..."
+      <input type="text" class="filter-input" placeholder="Search name, email, phone, order ID, product code..."
         [(ngModel)]="searchQuery" (keyup.enter)="onSearch()">
       <input type="date" class="filter-input date-input" [(ngModel)]="startDate" (change)="onSearch()">
       <span class="date-sep">to</span>

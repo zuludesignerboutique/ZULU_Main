@@ -18,6 +18,7 @@ export class AdminStock implements OnInit {
   brandFilter = 'all';
   typeFilter = 'all';
   lowStockOnly = false;
+  searchQuery = '';
 
   brands = ['all', 'zulu', 'pooboo'];
   types = ['all', 'apparel', 'fabric', 'accessory'];
@@ -70,6 +71,14 @@ export class AdminStock implements OnInit {
       });
     }
 
+    const q = this.searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter(p =>
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.product_code || '').toLowerCase().includes(q)
+      );
+    }
+
     this.filteredProducts = result;
     this.totalPages = Math.ceil(this.filteredProducts.length / this.pageSize) || 1;
     if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
@@ -96,6 +105,16 @@ export class AdminStock implements OnInit {
     this.lowStockOnly = !this.lowStockOnly;
     this.currentPage = 1;
     this.applyFilters();
+  }
+
+  onSearchChange() {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+    this.onSearchChange();
   }
 
   prevPage() {

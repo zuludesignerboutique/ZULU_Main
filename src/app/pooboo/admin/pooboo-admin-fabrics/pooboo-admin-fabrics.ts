@@ -20,6 +20,18 @@ export class PoobooAdminFabrics implements OnInit {
   loading  = true;
   error    = '';
 
+  // ── Search ────────────────────────────────────────────
+  searchQuery = '';
+
+  get filteredProducts(): any[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return this.products;
+    return this.products.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.product_code || '').toLowerCase().includes(q)
+    );
+  }
+
   // ── Form visibility ───────────────────────────────────
   showForm = false;
 

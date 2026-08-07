@@ -151,6 +151,20 @@
       </button>
     </div>
 
+    <!-- Search -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Search by name or product code..."
+        class="search-input" />
+      <button *ngIf="searchQuery" class="search-clear" (click)="searchQuery = ''">✕</button>
+      <span *ngIf="searchQuery" class="search-count">
+        {{ getTabProducts(activeTab).length }} of {{ getTabCount(activeTab) }}
+      </span>
+    </div>
+
     <div class="table-wrap">
       <table class="products-table">
         <thead>
@@ -181,14 +195,17 @@
           </tr>
           <tr *ngIf="getTabProducts(activeTab).length === 0">
             <td colspan="7" class="empty-row">
-              No {{ getActiveTabLabel() }} yet. Click "＋ Add Accessory" and select
-              <strong>{{ getActiveTabLabel() }}</strong> as the type.
+              <ng-container *ngIf="searchQuery; else noAccessoriesYet">
+                No {{ getActiveTabLabel() }} match "{{ searchQuery }}".
+              </ng-container>
+              <ng-template #noAccessoriesYet>
+                No {{ getActiveTabLabel() }} yet. Click "＋ Add Accessory" and select
+                <strong>{{ getActiveTabLabel() }}</strong> as the type.
+              </ng-template>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-
   </div>
-
 </div>

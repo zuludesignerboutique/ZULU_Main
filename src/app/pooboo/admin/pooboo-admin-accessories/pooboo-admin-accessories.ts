@@ -22,6 +22,9 @@ export class PoobooAdminAccessories implements OnInit {
   loading  = true;
   error    = '';
 
+  // ── Search ────────────────────────────────────────────
+  searchQuery = '';
+
   // ── Tabs ──────────────────────────────────────────────
   activeTab: AccessoryTab = 'baby-ornaments';
 
@@ -123,12 +126,28 @@ export class PoobooAdminAccessories implements OnInit {
     this.activeTab = tab;
   }
 
-  getTabProducts(tab: AccessoryTab): any[] {
+  // Matches the search query against name / product_code. Empty query
+  // matches everything, so this doubles as the "no search active" case.
+  private matchesSearch(p: any): boolean {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (p.name || '').toLowerCase().includes(q) ||
+           (p.product_code || '').toLowerCase().includes(q);
+  }
+
+  // Products for a tab, WITHOUT the search filter applied — used for the
+  // tab count badges so tab counts stay stable while typing.
+  getTabProductsAll(tab: AccessoryTab): any[] {
     return this.allProducts.filter(p => p.accessory_type === tab);
   }
 
+  // Products for a tab WITH the search filter applied — used for the table.
+  getTabProducts(tab: AccessoryTab): any[] {
+    return this.allProducts.filter(p => p.accessory_type === tab && this.matchesSearch(p));
+  }
+
   getTabCount(tab: AccessoryTab): number {
-    return this.allProducts.filter(p => p.accessory_type === tab).length;
+    return this.getTabProductsAll(tab).length;
   }
 
   getActiveTabLabel(): string {

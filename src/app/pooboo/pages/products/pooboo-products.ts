@@ -3,7 +3,8 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angula
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { PoobooHeader } from '../../layout/pooboo-header/pooboo-header';
 import { PoobooFooter } from '../../layout/pooboo-footer/pooboo-footer';
 import { WishlistService } from '../../../services/wishlist.service';
@@ -28,6 +29,12 @@ export class PoobooProducts implements OnInit, OnDestroy {
   selectedCategory = '';
   selectedAgeGroup = '';
   selectedGender   = '';
+
+  // 🔍 Search & Sort
+  searchTerm = '';
+  sortBy     = '';   // '' | 'price_asc' | 'price_desc' | 'newest'
+  private searchSubject = new Subject<string>();
+  private searchSub?: Subscription;
 
   categories = ['Clothing', 'Footwear', 'Innerwear', 'Nightwear'];
   ageGroups  = ['0-6 months', '6-12 months', '1-2 years', '2-3 years',
@@ -56,6 +63,14 @@ export class PoobooProducts implements OnInit, OnDestroy {
       this.ngZone.run(() => this.cdr.detectChanges());
     });
 
+    // 🔍 Debounce search input (~300ms) before re-filtering
+    this.searchSub = this.searchSubject.pipe(debounceTime(300)).subscribe(() => {
+      this.ngZone.run(() => {
+        this.applyFilters();
+        this.cdr.detectChanges();
+      });
+    });
+
     this.http.get<any[]>(`${this.api}/api/pooboo/products`).subscribe({
       next: (data) => {
         this.ngZone.run(() => {         // 👈 wrap in ngZone.run()
@@ -79,18 +94,44 @@ export class PoobooProducts implements OnInit, OnDestroy {
   }
 
   applyFilters() {
-    this.filtered = this.products.filter(p => {
+    const term = this.searchTerm.trim().toLowerCase();
+
+    let result = this.products.filter(p => {
       const matchCat    = !this.selectedCategory || p.category  === this.selectedCategory;
       const matchAge    = !this.selectedAgeGroup || p.age_group === this.selectedAgeGroup;
       const matchGender = !this.selectedGender   || p.gender    === this.selectedGender;
-      return matchCat && matchAge && matchGender;
+      const matchSearch = !term
+        || (p.name?.toLowerCase().includes(term))
+        || (p.product_code?.toLowerCase().includes(term));
+      return matchCat && matchAge && matchGender && matchSearch;
     });
+
+    result = this.sortProducts(result);
+    this.filtered = result;
+  }
+
+  // 🔍 Called on (input) — pushes into the debounced subject
+  onSearchInput() {
+    this.searchSubject.next(this.searchTerm);
+  }
+
+  sortProducts(list: any[]): any[] {
+    const sorted = [...list];
+    switch (this.sortBy) {
+      case 'price_asc':  return sorted.sort((a, b) => a.price - b.price);
+      case 'price_desc': return sorted.sort((a, b) => b.price - a.price);
+      case 'newest':     return sorted.sort((a, b) =>
+                            new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      default:            return sorted;
+    }
   }
 
   clearFilters() {
     this.selectedCategory = '';
     this.selectedAgeGroup = '';
     this.selectedGender   = '';
+    this.searchTerm       = '';
+    this.sortBy            = '';
     this.filtered = [...this.products];  // 👈 spread here too
   }
 
@@ -105,6 +146,7 @@ export class PoobooProducts implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.wishlistSub?.unsubscribe();
+    this.searchSub?.unsubscribe();
     if (this.popTimeout) clearTimeout(this.popTimeout);
   }
 

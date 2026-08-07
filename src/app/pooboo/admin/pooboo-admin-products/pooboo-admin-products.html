@@ -16,6 +16,20 @@
   <!-- Error -->
   <div *ngIf="error" class="state-msg error">{{ error }}</div>
 
+  <!-- Search -->
+  <div *ngIf="!loading && !error" class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      placeholder="Search by name or product code..."
+      class="search-input" />
+    <button *ngIf="searchQuery" class="search-clear" (click)="searchQuery = ''">✕</button>
+    <span *ngIf="searchQuery" class="search-count">
+      {{ filteredProducts.length }} of {{ products.length }}
+    </span>
+  </div>
+
   <!-- Table -->
   <div *ngIf="!loading && !error" class="table-wrap">
     <table class="products-table">
@@ -32,7 +46,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of products">
+        <tr *ngFor="let p of filteredProducts">
           <td>
             <img [src]="getImageUrl(p.image_url)" alt="{{ p.name }}" class="product-thumb" />
           </td>
@@ -51,8 +65,10 @@
             <button class="btn-delete" (click)="deleteProduct(p.id, p.name)">Delete</button>
           </td>
         </tr>
-        <tr *ngIf="products.length === 0">
-          <td colspan="8" class="empty-row">No products found. Add your first product!</td>
+        <tr *ngIf="filteredProducts.length === 0">
+          <td colspan="8" class="empty-row">
+            {{ searchQuery ? 'No products match "' + searchQuery + '".' : 'No products found. Add your first product!' }}
+          </td>
         </tr>
       </tbody>
     </table>

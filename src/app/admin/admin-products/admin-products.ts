@@ -4,17 +4,34 @@ import { ProductService } from '../../services/product.service';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-admin-products',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './admin-products.html',
   styleUrl: './admin-products.scss'
 })
 export class AdminProducts implements OnInit {
 
   products: any[] = [];
+
+  // Search — filters the already-loaded list client-side by name or product code
+  searchQuery = '';
+
+  get filteredProducts(): any[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return this.products;
+    return this.products.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.product_code || '').toLowerCase().includes(q)
+    );
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+  }
 
   constructor(
     private productService: ProductService,

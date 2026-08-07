@@ -18,6 +18,7 @@ export class AdminTransactions implements OnInit {
   brandFilter = 'all';
   startDate = '';
   endDate = '';
+  searchQuery = '';
 
   brands = ['all', 'zulu', 'pooboo'];
 
@@ -38,6 +39,7 @@ export class AdminTransactions implements OnInit {
     const params: any = {};
     if (this.startDate) params.startDate = this.startDate;
     if (this.endDate) params.endDate = this.endDate;
+    if (this.searchQuery) params.search = this.searchQuery;
 
     this.http.get<any[]>(`${this.api}/api/orders`, { params }).subscribe({
       next: (data) => {
@@ -83,10 +85,15 @@ export class AdminTransactions implements OnInit {
     this.loadOrders();
   }
 
+  onSearch() {
+    this.loadOrders();
+  }
+
   clearFilters() {
     this.brandFilter = 'all';
     this.startDate = '';
     this.endDate = '';
+    this.searchQuery = '';
     this.loadOrders();
   }
 

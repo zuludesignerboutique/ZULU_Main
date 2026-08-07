@@ -10,10 +10,12 @@ export class PoobooFabricService {
 
   constructor(private http: HttpClient) {}
 
-  // storefront: only active fabrics, optional fabric_type filter
-  getAll(filters?: { type?: string }): Observable<PoobooFabric[]> {
+  // storefront: only active fabrics, optional fabric_type/search/sort filters
+  getAll(filters?: { type?: string; search?: string; sort?: string }): Observable<PoobooFabric[]> {
     let params = new HttpParams();
-    if (filters?.type) params = params.set('type', filters.type);
+    if (filters?.type)   params = params.set('type', filters.type);
+    if (filters?.search) params = params.set('search', filters.search);
+    if (filters?.sort)   params = params.set('sort', filters.sort);
     return this.http.get<PoobooFabric[]>(this.base, { params });
   }
 
