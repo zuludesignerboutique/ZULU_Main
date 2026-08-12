@@ -33,6 +33,27 @@ export class PoobooEditFabric implements OnInit {
   f_imagePreview    : string | null = null;
   f_existingImage   : string | null = null;
 
+  // ── Tags ────────────────────────────────────────────────
+  f_tags: string[] = [];
+  f_customTag = '';
+  presetTags = ['New', 'Bestseller', 'Sale'];
+
+  togglePresetTag(tag: string) {
+    const i = this.f_tags.indexOf(tag);
+    if (i > -1) this.f_tags.splice(i, 1);
+    else this.f_tags.push(tag);
+  }
+
+  addCustomTag() {
+    const t = this.f_customTag.trim();
+    if (t && !this.f_tags.includes(t)) this.f_tags.push(t);
+    this.f_customTag = '';
+  }
+
+  removeTag(tag: string) {
+    this.f_tags = this.f_tags.filter(t => t !== tag);
+  }
+
   // ── Fabric type options (must match admin add-form & storefront) ──
   fabricTypes = [
     { label: 'Cotton',     value: 'cotton',     emoji: '🌿' },
@@ -90,6 +111,7 @@ export class PoobooEditFabric implements OnInit {
           this.f_product_code    = p.product_code ?? '';
           this.f_colour          = p.colour ?? '';
           this.f_existingImage   = p.image_url ?? null;
+          this.f_tags            = Array.isArray(p.tags) ? p.tags : [];
           this.loading = false;
           this.cdr.detectChanges();
         });
@@ -142,6 +164,7 @@ export class PoobooEditFabric implements OnInit {
     formData.append('balance_stock',   this.f_balance_stock);
     formData.append('product_code',    this.f_product_code);
     formData.append('colour',          this.f_colour);
+    formData.append('tags',            JSON.stringify(this.f_tags));
 
     if (this.f_selectedFile) {
       formData.append('image', this.f_selectedFile);

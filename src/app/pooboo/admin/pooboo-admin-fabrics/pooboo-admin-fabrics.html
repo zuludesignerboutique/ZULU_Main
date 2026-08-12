@@ -87,6 +87,28 @@
                   placeholder="Describe the fabric..."></textarea>
       </div>
 
+      <!-- Tags -->
+      <div class="form-group full-width">
+        <label>Tags</label>
+        <div class="tag-preset-row">
+          <button type="button" *ngFor="let t of presetTags"
+                  class="tag-toggle-btn" [class.active]="f_tags.includes(t)"
+                  (click)="togglePresetTag(t)">{{ t }}</button>
+        </div>
+        <div class="tag-custom-row">
+          <input type="text" [(ngModel)]="f_customTag" name="f_customTag"
+                 placeholder="Add custom tag..."
+                 (keydown.enter)="$event.preventDefault(); addCustomTag()" />
+          <button type="button" class="btn-add-tag" (click)="addCustomTag()">Add</button>
+        </div>
+        <div class="tag-chip-list" *ngIf="f_tags.length">
+          <span class="tag-chip" *ngFor="let t of f_tags">
+            {{ t }}
+            <button type="button" (click)="removeTag(t)">✕</button>
+          </span>
+        </div>
+      </div>
+
       <!-- Image Upload -->
       <div class="form-group full-width">
         <label>Product Image</label>

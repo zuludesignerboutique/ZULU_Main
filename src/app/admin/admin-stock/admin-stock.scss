@@ -246,6 +246,8 @@ $border: rgba(0,0,0,0.07);
   font-weight: 700;
   font-size: 14px;
 
+  &.stock-total { color: $muted; font-weight: 600; }
+
   &.stock-out { color: #c0392b; }
   &.stock-low { color: #e67e22; }
   &.stock-medium { color: $gold; }

@@ -8,6 +8,7 @@ export interface PoobooAccessory {
   stock: number;
   balance_stock: number;
   description: string;
+  tags: string[];
   image_url: string | null;
   is_active: boolean | number;
   created_at: string;

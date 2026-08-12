@@ -1,6 +1,8 @@
 <div class="product-card" (click)="goToProduct(product)">
 
   <div class="image-box">
+    <span class="tag-badge" [ngClass]="tagClass" *ngIf="tag">{{ tag }}</span>
+
     <button
       class="wishlist-heart"
       [class.active]="wishlisted"

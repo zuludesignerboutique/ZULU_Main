@@ -12,6 +12,7 @@ export interface PoobooProduct {
   stock: number;
   product_code: string;
   details: string[];
+  tags: string[];
   is_customizable: boolean;
   is_active: boolean;
   created_at: string;

@@ -22,6 +22,7 @@ export interface Product {
   brand?: string;
   product_type?: string;
   product_code?: string;
+  tag?: string;
   size?: string;
   colour?: string;
   qty?: number;

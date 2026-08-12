@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone, ChangeDetectorRef, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +11,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './admin-orders.html',
   styleUrls: ['./admin-orders.scss']
 })
-export class AdminOrders implements OnInit {
+export class AdminOrders implements OnInit, OnDestroy {
 
   orders: any[] = [];
   filteredOrders: any[] = [];
@@ -37,6 +37,7 @@ export class AdminOrders implements OnInit {
   actingId: number | null = null;
 
   private api = '';
+  private searchDebounce: any = null;
 
   constructor(
     private http: HttpClient,
@@ -155,6 +156,20 @@ export class AdminOrders implements OnInit {
 
   onSearch() {
     this.loadOrders();
+  }
+
+  // Debounced live search — fires ~400ms after the user stops typing,
+  // instead of waiting for Enter
+  onSearchInput() {
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => {
+      this.currentPage = 1;   // a new search always restarts from the first page
+      this.loadOrders();
+    }, 400);
+  }
+
+  ngOnDestroy() {
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
   }
 
   clearFilters() {

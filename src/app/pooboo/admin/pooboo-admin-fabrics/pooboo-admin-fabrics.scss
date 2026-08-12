@@ -415,3 +415,74 @@
     }
   }
 }
+
+// ── Tags section (preset + custom + chips) ──────────────
+.tag-preset-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tag-toggle-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &.active {
+    background: #d4af37;      // gold, matches preset badge styling on storefront cards
+    border-color: #d4af37;
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+.tag-custom-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+
+  input {
+    flex: 1;
+  }
+
+  .btn-add-tag {
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+  }
+}
+
+.tag-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: #333;
+  color: #fff;
+  font-size: 0.8rem;
+
+  button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+}

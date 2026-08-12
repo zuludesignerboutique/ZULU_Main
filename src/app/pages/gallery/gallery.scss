@@ -60,21 +60,21 @@
   }
 }
 
-// ── MASONRY GRID ─────────────────────────────────
+// ── GRID — uniform tiles, cropped to a consistent aspect ratio ───
 .gallery-grid {
-  columns: 4;
-  column-gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 
-  @media (max-width: 1100px) { columns: 3; }
-  @media (max-width: 720px)  { columns: 2; }
-  @media (max-width: 420px)  { columns: 1; }
+  @media (max-width: 1100px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 720px)  { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 420px)  { grid-template-columns: 1fr; }
 }
 
 // ── CARD ─────────────────────────────────────────
 .gallery-card {
   position: relative;
-  break-inside: avoid;
-  margin-bottom: 16px;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   cursor: pointer;
 
@@ -91,7 +91,8 @@
 
   img {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     display: block;
     transition: transform .7s var(--ease);
   }
@@ -153,28 +154,19 @@
 
 // ── SKELETON ─────────────────────────────────────
 .gallery-skeleton {
-  columns: 4;
-  column-gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 
-  @media (max-width: 1100px) { columns: 3; }
-  @media (max-width: 720px)  { columns: 2; }
-  @media (max-width: 420px)  { columns: 1; }
+  @media (max-width: 1100px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 720px)  { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 420px)  { grid-template-columns: 1fr; }
 
   .sk-card {
-    break-inside: avoid;
-    margin-bottom: 16px;
+    aspect-ratio: 3 / 4;
     background: linear-gradient(90deg, var(--ivory-deep) 25%, var(--ivory) 50%, var(--ivory-deep) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.6s infinite;
-
-    &:nth-child(1)  { height: 280px; }
-    &:nth-child(2)  { height: 360px; }
-    &:nth-child(3)  { height: 220px; }
-    &:nth-child(4)  { height: 300px; }
-    &:nth-child(5)  { height: 340px; }
-    &:nth-child(6)  { height: 260px; }
-    &:nth-child(7)  { height: 310px; }
-    &:nth-child(8)  { height: 380px; }
   }
 }
 
@@ -194,16 +186,18 @@
 
 .lightbox-inner {
   position: relative;
-  max-width: 900px;
+  width: fit-content;
+  max-width: calc(100vw - 48px);
   max-height: 90vh;
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 
   img {
-    max-width: 100%;
-    max-height: 80vh;
+    // Fixed viewing frame — every photo renders at the same size and
+    // letterboxes to fit, so the modal doesn't resize as you click through
+    width: min(560px, calc(100vw - 48px));
+    height: min(700px, 75vh);
     object-fit: contain;
     display: block;
     box-shadow: 0 32px 80px rgba(0,0,0,0.6);
@@ -226,7 +220,7 @@
   top: -48px;
   right: 0;
   background: transparent;
-  border: 1px solid rgb(255, 0, 0);
+  border: 1px solid rgba(255,255,255,0.25);
   color: rgba(255,255,255,0.6);
   width: 36px;
   height: 36px;

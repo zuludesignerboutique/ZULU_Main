@@ -107,6 +107,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/admin-transactions/admin-transactions').then(m => m.AdminTransactions)
       },
+      {
+        path: 'gallery',
+        loadComponent: () =>
+          import('./admin/admin-gallery/admin-gallery').then(m => m.AdminGallery)
+      },
       // ── POOBOO admin ───────────────────────────
       {
         path: 'pooboo/products',

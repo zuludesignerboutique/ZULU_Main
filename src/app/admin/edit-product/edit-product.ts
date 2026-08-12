@@ -26,6 +26,10 @@ export class EditProduct implements OnInit {
 
   readonly maxImages = 4;
   readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  // Suggested tags shown as quick-pick chips + datalist autocomplete.
+  // Purely a UX shortcut — product.tag is free text, so a custom value
+  // (or the tag already saved on this product) always works too.
+  readonly suggestedTags = ['Popular', 'New', 'Bestseller', 'Trending', 'Limited Edition', 'Sale'];
 
   // Gallery rows already saved in the DB (from product.images)
   existingImages: any[] = [];
@@ -68,6 +72,12 @@ export class EditProduct implements OnInit {
     if (!validSubs.includes(this.product.subcategory)) {
       this.product.subcategory = '';
     }
+  }
+
+  // Clicking a suggested chip fills the box; clicking the same chip again
+  // clears it back to "no tag".
+  selectTag(tag: string) {
+    this.product.tag = (this.product.tag === tag) ? '' : tag;
   }
 
   constructor(
@@ -289,6 +299,7 @@ export class EditProduct implements OnInit {
     formData.append('stock',        this.product.stock ? this.product.stock.toString() : '0');
     formData.append('product_code', this.product.product_code || '');
     formData.append('size',         this.product.size         || '');
+    formData.append('tag',          this.product.tag          || '');
     formData.append('colour',       this.product.colour       || '');
     formData.append('fit',          this.product.fit          || '');
     formData.append('care',         this.product.care         || '');

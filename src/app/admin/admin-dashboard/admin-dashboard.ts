@@ -71,10 +71,8 @@ export class AdminDashboard implements OnInit {
             products = products.filter((p: any) => p.brand === this.brandFilter);
           }
           this.totalProducts = products.length;
-          this.lowStockCount = products.filter((p: any) => {
-            const stock = p.product_type === 'fabric' ? (p.balance_stock ?? 0) : (p.stock ?? 0);
-            return stock <= 5;
-          }).length;
+          // Low stock is driven by sellable balance, not entered total.
+          this.lowStockCount = products.filter((p: any) => (p.balance_stock ?? 0) <= 5).length;
           this.cdr.detectChanges();
         });
       },

@@ -31,6 +31,11 @@ export class PoobooEditProduct implements OnInit {
   coloursInput    = '';
   detailsInput    = '';
 
+  // 🏷️ Tags — preset badges + custom free-text tags, merged into one array
+  presetTags      = ['New', 'Bestseller', 'Sale'];
+  selectedTags    : string[] = [];
+  customTagInput  = '';
+
   // Image
   existingImage   : string | null = null;
   selectedFile    : File | null = null;
@@ -100,6 +105,7 @@ export class PoobooEditProduct implements OnInit {
           this.sizesInput   = Array.isArray(p.sizes)   ? p.sizes.join(', ')   : '';
           this.coloursInput = Array.isArray(p.colours) ? p.colours.join(', ') : '';
           this.detailsInput = Array.isArray(p.details) ? p.details.join('\n') : '';
+          this.selectedTags = Array.isArray(p.tags)    ? [...p.tags]          : [];
 
           this.loading = false;
           this.cd.detectChanges();
@@ -140,6 +146,30 @@ export class PoobooEditProduct implements OnInit {
     this.imagePreview = null;
   }
 
+  // 🏷️ Toggle a preset badge on/off
+  togglePresetTag(tag: string) {
+    this.selectedTags = this.selectedTags.includes(tag)
+      ? this.selectedTags.filter(t => t !== tag)
+      : [...this.selectedTags, tag];
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags.includes(tag);
+  }
+
+  // 🏷️ Add a custom tag from the text input (Enter key or Add button)
+  addCustomTag() {
+    const tag = this.customTagInput.trim();
+    if (tag && !this.selectedTags.includes(tag)) {
+      this.selectedTags = [...this.selectedTags, tag];
+    }
+    this.customTagInput = '';
+  }
+
+  removeTag(tag: string) {
+    this.selectedTags = this.selectedTags.filter(t => t !== tag);
+  }
+
   onSubmit() {
     if (!this.name || !this.price) {
       this.errorMsg = 'Name and price are required.';
@@ -178,6 +208,7 @@ export class PoobooEditProduct implements OnInit {
     formData.append('sizes',   JSON.stringify(sizesArr));
     formData.append('colours', JSON.stringify(coloursArr));
     formData.append('details', JSON.stringify(detailsArr));
+    formData.append('tags',    JSON.stringify(this.selectedTags));
 
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);

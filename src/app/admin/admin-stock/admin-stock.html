@@ -80,7 +80,8 @@
           <th>Brand</th>
           <th>Type</th>
           <th>Code</th>
-          <th>Stock</th>
+          <th>Total</th>
+          <th>Balance</th>
           <th>Status</th>
         </tr>
       </thead>
@@ -96,20 +97,26 @@
           <td><span class="type-label">{{ p.product_type | titlecase }}</span></td>
           <td><span class="code">{{ p.product_code || '—' }}</span></td>
           <td>
+            <span class="stock-value stock-total">
+              {{ getTotal(p) }}
+              <span *ngIf="p.product_type === 'fabric'">m</span>
+            </span>
+          </td>
+          <td>
             <span class="stock-value" [ngClass]="getStockClass(p)">
-              {{ getStockValue(p) }}
+              {{ getBalance(p) }}
               <span *ngIf="p.product_type === 'fabric'">m</span>
             </span>
           </td>
           <td>
             <span class="stock-badge" [ngClass]="getStockClass(p)">
-              {{ getStockValue(p) <= 0 ? 'Out' : getStockValue(p) <= 5 ? 'Low' : 'OK' }}
+              {{ getBalance(p) <= 0 ? 'Out' : getBalance(p) <= 5 ? 'Low' : 'OK' }}
             </span>
           </td>
         </tr>
 
         <tr *ngIf="pagedProducts.length === 0">
-          <td colspan="6" class="empty-row">No products match the current filters.</td>
+          <td colspan="7" class="empty-row">No products match the current filters.</td>
         </tr>
       </tbody>
     </table>

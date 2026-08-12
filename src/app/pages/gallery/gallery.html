@@ -63,6 +63,7 @@
     >
 
     <span class="lightbox-title">{{ images[lightboxIndex!].title }}</span>
+    <span style="color: rgba(255, 255, 255, 0.783);" class="lightbox-desc" *ngIf="images[lightboxIndex!].description">{{ images[lightboxIndex!].description }}</span>
 
     <button class="lightbox-nav next" (click)="lightboxStep(1)">›</button>
 

@@ -30,9 +30,9 @@ export class PoobooProducts implements OnInit, OnDestroy {
   selectedAgeGroup = '';
   selectedGender   = '';
 
-  // 🔍 Search & Sort
+  // 🔍 Search & Sort (+ Tags, folded into the same dropdown)
   searchTerm = '';
-  sortBy     = '';   // '' | 'price_asc' | 'price_desc' | 'newest'
+  sortBy     = '';   // '' | 'price_asc' | 'price_desc' | 'newest' | 'tag:<tagName>'
   private searchSubject = new Subject<string>();
   private searchSub?: Subscription;
 
@@ -40,6 +40,11 @@ export class PoobooProducts implements OnInit, OnDestroy {
   ageGroups  = ['0-6 months', '6-12 months', '1-2 years', '2-3 years',
                 '3-5 years', '5-7 years', '7-10 years', '10-12 years'];
   genders    = ['unisex', 'boy', 'girl'];
+
+  // 🏷️ Tags — preset badges shown in a distinct color, custom tags shown as plain chips
+  presetTags   = ['New', 'Bestseller', 'Sale'];
+  allTags      : string[] = [];   // every distinct tag found across loaded products (listed inside the sort dropdown)
+  selectedTags : string[] = [];   // currently active tag filter (single, chosen from the dropdown)
 
   // ✅ Wishlist
   justToggledId: number | null = null;
@@ -79,6 +84,7 @@ export class PoobooProducts implements OnInit, OnDestroy {
           const apparel = data.filter(p => this.categories.includes(p.category));
           this.products = apparel;
           this.filtered = [...apparel];   // 👈 spread to create new reference
+          this.allTags  = [...new Set(apparel.flatMap(p => p.tags || []))];
           this.loading  = false;
           this.cdr.detectChanges();    // 👈 force CD
         });
@@ -96,6 +102,19 @@ export class PoobooProducts implements OnInit, OnDestroy {
   applyFilters() {
     const term = this.searchTerm.trim().toLowerCase();
 
+    // 🏷️ Refresh the dropdown's tag list to the current category/age/gender scope
+    // (the active tag filter itself is excluded from the scope so the dropdown
+    // doesn't collapse to just the one tag the user already picked).
+    this.allTags = [...new Set(
+      this.products
+        .filter(p =>
+          (!this.selectedCategory || p.category  === this.selectedCategory) &&
+          (!this.selectedAgeGroup || p.age_group === this.selectedAgeGroup) &&
+          (!this.selectedGender   || p.gender    === this.selectedGender)
+        )
+        .flatMap(p => p.tags || [])
+    )];
+
     let result = this.products.filter(p => {
       const matchCat    = !this.selectedCategory || p.category  === this.selectedCategory;
       const matchAge    = !this.selectedAgeGroup || p.age_group === this.selectedAgeGroup;
@@ -103,7 +122,9 @@ export class PoobooProducts implements OnInit, OnDestroy {
       const matchSearch = !term
         || (p.name?.toLowerCase().includes(term))
         || (p.product_code?.toLowerCase().includes(term));
-      return matchCat && matchAge && matchGender && matchSearch;
+      const matchTags = !this.selectedTags.length
+        || this.selectedTags.some(t => (p.tags || []).includes(t));
+      return matchCat && matchAge && matchGender && matchSearch && matchTags;
     });
 
     result = this.sortProducts(result);
@@ -115,6 +136,20 @@ export class PoobooProducts implements OnInit, OnDestroy {
     this.searchSubject.next(this.searchTerm);
   }
 
+  // 🏷️ The "Sort" dropdown doubles as the tag filter — tag options are prefixed 'tag:<name>'
+  onSortChange() {
+    if (this.sortBy.startsWith('tag:')) {
+      this.selectedTags = [this.sortBy.slice(4)];
+    } else {
+      this.selectedTags = [];
+    }
+    this.applyFilters();
+  }
+
+  isPresetTag(tag: string): boolean {
+    return this.presetTags.includes(tag);
+  }
+
   sortProducts(list: any[]): any[] {
     const sorted = [...list];
     switch (this.sortBy) {
@@ -122,7 +157,7 @@ export class PoobooProducts implements OnInit, OnDestroy {
       case 'price_desc': return sorted.sort((a, b) => b.price - a.price);
       case 'newest':     return sorted.sort((a, b) =>
                             new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      default:            return sorted;
+      default:            return sorted;   // covers '' (Featured) and any 'tag:<name>' selection
     }
   }
 
@@ -132,6 +167,7 @@ export class PoobooProducts implements OnInit, OnDestroy {
     this.selectedGender   = '';
     this.searchTerm       = '';
     this.sortBy            = '';
+    this.selectedTags      = [];
     this.filtered = [...this.products];  // 👈 spread here too
   }
 

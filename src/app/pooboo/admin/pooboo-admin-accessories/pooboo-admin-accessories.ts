@@ -49,6 +49,11 @@ export class PoobooAdminAccessories implements OnInit {
   a_selectedFile      : File | null = null;
   a_imagePreview      : string | null = null;
 
+  // 🏷️ Tags — preset badges + custom free-text tags, merged into one array
+  presetTags     = ['New', 'Bestseller', 'Sale'];
+  selectedTags   : string[] = [];
+  customTagInput = '';
+
   // ── UI state ──────────────────────────────────────────
   submitting = false;
   successMsg = '';
@@ -194,6 +199,30 @@ export class PoobooAdminAccessories implements OnInit {
     this.a_imageUploading = false;
   }
 
+  // 🏷️ Toggle a preset badge on/off
+  togglePresetTag(tag: string) {
+    this.selectedTags = this.selectedTags.includes(tag)
+      ? this.selectedTags.filter(t => t !== tag)
+      : [...this.selectedTags, tag];
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags.includes(tag);
+  }
+
+  // 🏷️ Add a custom tag from the text input (Enter key or Add button)
+  addCustomTag() {
+    const tag = this.customTagInput.trim();
+    if (tag && !this.selectedTags.includes(tag)) {
+      this.selectedTags = [...this.selectedTags, tag];
+    }
+    this.customTagInput = '';
+  }
+
+  removeTag(tag: string) {
+    this.selectedTags = this.selectedTags.filter(t => t !== tag);
+  }
+
   // ── Submit add-accessory form ─────────────────────────
   submitAccessory() {
     if (!this.a_name || !this.a_price) {
@@ -214,6 +243,7 @@ export class PoobooAdminAccessories implements OnInit {
     formData.append('balance_stock',  this.a_balance_stock);
     formData.append('product_code',   this.a_product_code);
     formData.append('colour',         this.a_colour);
+    formData.append('tags',           JSON.stringify(this.selectedTags));
 
     if (this.a_selectedFile) {
       formData.append('image', this.a_selectedFile);
@@ -258,6 +288,8 @@ export class PoobooAdminAccessories implements OnInit {
     this.a_accessoryCategory = this.activeTab;
     this.a_selectedFile      = null;
     this.a_imagePreview      = null;
+    this.selectedTags        = [];
+    this.customTagInput      = '';
     this.errorMsg            = '';
     this.successMsg          = '';
   }

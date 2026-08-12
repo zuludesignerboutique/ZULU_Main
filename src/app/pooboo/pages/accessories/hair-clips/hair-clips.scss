@@ -186,3 +186,23 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
   }
 }
+
+// ── TAG BADGES ──────────────────────────────────
+.pb-sub-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pb-tag-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.06);
+  color: #555;
+
+  &.preset { background: var(--accent); color: #fff; }
+}

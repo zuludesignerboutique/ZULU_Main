@@ -1,4 +1,8 @@
-.page-header {
+.acc-edit-page {
+  padding: 24px;
+
+  // ── Page header ──────────────────────────────────────
+  .page-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -31,7 +35,8 @@
     &.success { background: #e6f9f0; color: #1a9e6a; }
     &.error   { background: #fef0f0; color: #e05588; }
   }
-.form-card {
+
+  .form-card {
     background: #fff;
     border-radius: 12px;
     border: 1px solid #f0ece4;
@@ -53,7 +58,8 @@
       margin-bottom: 28px;
     }
   }
-   .form-group {
+
+  .form-group {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -96,7 +102,106 @@
     textarea { resize: vertical; }
   }
 
-  // ── Image upload ──────────────────────────────────────
+  // ── Tags ─────────────────────────────────────────────
+  .preset-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    .preset-tag-btn {
+      padding: 7px 16px;
+      border: 1px solid #e0dcd4;
+      border-radius: 50px;
+      background: #faf8f5;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1814;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+
+      &:hover { border-color: #ff6b9d; }
+
+      &.active {
+        background: #ff6b9d;
+        border-color: #ff6b9d;
+        color: #fff;
+      }
+    }
+  }
+
+  .custom-tag-input {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #e0dcd4;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1a1814;
+      background: #faf8f5;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+
+      &:focus { border-color: #ff6b9d; background: #fff; }
+    }
+
+    .btn-add-tag {
+      padding: 10px 18px;
+      background: #fff;
+      border: 1px solid #ff6b9d;
+      border-radius: 8px;
+      color: #ff6b9d;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+
+      &:hover { background: #ff6b9d; color: #fff; }
+    }
+  }
+
+  .selected-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .selected-tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px 5px 14px;
+      border-radius: 50px;
+      background: #1a1814;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+
+      button {
+        background: rgba(255,255,255,0.15);
+        border: none;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        color: #fff;
+        font-size: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        &:hover { background: #e05588; }
+      }
+    }
+  }
+
+  // ── Image upload ─────────────────────────────────────
   .image-upload-area {
     border: 2px dashed #e0dcd4;
     border-radius: 12px;
@@ -153,7 +258,8 @@
       }
     }
   }
-  // ── Form actions ──────────────────────────────────────
+
+  // ── Form actions ─────────────────────────────────────
   .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -186,13 +292,12 @@
       &:disabled { opacity: 0.6; cursor: not-allowed; }
     }
   }
+
+  // ── Loading / error states ───────────────────────────
   .state-msg {
     text-align: center;
     padding: 40px;
     color: #9a9080;
     &.error { color: #e05588; }
   }
-   
-.acc-edit-page {
-  padding: 24px;
 }

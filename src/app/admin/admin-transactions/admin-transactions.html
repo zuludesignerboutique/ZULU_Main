@@ -56,7 +56,7 @@
     <div class="filter-group">
       <input type="text" class="filter-input search-input"
         placeholder="Search consumer name, email, order ID, product code..."
-        [(ngModel)]="searchQuery" (keyup.enter)="onSearch()">
+        [(ngModel)]="searchQuery" (input)="onSearchInput()">
       <button class="clear-btn" (click)="clearFilters()">Clear</button>
     </div>
   </div>

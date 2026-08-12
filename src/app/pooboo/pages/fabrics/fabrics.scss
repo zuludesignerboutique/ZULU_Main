@@ -514,3 +514,23 @@ $soft-bg: #FFF8F5;
     animation: pbHeartPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
+
+// ── TAG BADGES ──────────────────────────────────
+.pb-product-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pb-tag-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(26,26,46,0.07);
+  color: $dark;
+
+  &.preset { background: #d4af37; color: #fff; }
+}

@@ -25,6 +25,27 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   private wishlistSub?: Subscription;
   private popTimeout?: any;
 
+  // Known tag → colour mapping (see .tag-badge modifiers in the scss).
+  // Anything not in this list falls back to a neutral style — new tag
+  // values won't break the badge, they just won't get a custom colour
+  // until added here.
+  private readonly tagStyles: Record<string, string> = {
+    popular:    'tag-popular',
+    new:        'tag-new',
+    bestseller: 'tag-bestseller',
+    sale:       'tag-sale',
+    limited:    'tag-limited',
+  };
+
+  get tag(): string {
+    return ((this.product as any)?.tag || '').trim();
+  }
+
+  get tagClass(): string {
+    const key = this.tag.toLowerCase();
+    return this.tagStyles[key] || 'tag-default';
+  }
+
   constructor(
     private cartService: CartService,
     private wishlistService: WishlistService,

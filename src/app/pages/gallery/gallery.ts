@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, HostListener, NgZone, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { GalleryService } from '../../services/gallery.service';
@@ -32,18 +32,42 @@ export class Gallery implements OnInit, OnDestroy {
   // CONSTRUCTOR
   // ══════════════════════════════════════════════
 
-  constructor(private galleryService: GalleryService) {}
+  constructor(
+    private galleryService: GalleryService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   // ══════════════════════════════════════════════
   // LIFECYCLE
   // ══════════════════════════════════════════════
 
   ngOnInit(): void {
+    // Skip the API call during prerendering (SSG/SSR): the relative /api URL
+    // doesn't exist server-side, and a failed fetch would leave the static HTML
+    // with a misleading "No images yet" empty state. Keeping isLoading=true here
+    // means the prerendered HTML ships the loading skeleton instead; the browser
+    // fetch below populates it after hydration. Same pattern as the Products page.
+    if (!isPlatformBrowser(this.platformId)) return;
+
     this.galleryService.getGalleryImages()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next:  (data) => { this.images = data;  this.isLoading = false; },
-        error: (err)  => { console.error('Gallery load failed:', err); this.isLoading = false; }
+        next: (data) => {
+          this.ngZone.run(() => {
+            this.images = data;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          });
+        },
+        error: (err) => {
+          console.error('Gallery load failed:', err);
+          this.ngZone.run(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          });
+        }
       });
   }
 

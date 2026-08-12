@@ -1,0 +1,111 @@
+<div class="admin-gallery">
+
+  <div class="ag-header">
+    <div>
+      <h2 class="ag-title">Gallery</h2>
+      <p class="ag-sub">{{ images.length }} image{{ images.length === 1 ? '' : 's' }} live on the storefront</p>
+    </div>
+  </div>
+
+  <!-- ── Upload panel ─────────────────────────────────────────── -->
+  <div class="ag-upload-card">
+
+    <label class="ag-file-picker">
+      <input type="file" accept="image/*" multiple (change)="onFilesSelected($event)" hidden>
+      <span class="ag-file-icon">⤒</span>
+      <span>Select photos to upload</span>
+    </label>
+
+    <!-- Pending photos — one card per photo, each with its own caption,
+         like reviewing captions before posting a multi-photo post -->
+    <div class="ag-pending" *ngIf="pending.length">
+
+      <div class="ag-pending-scroll">
+        <div class="ag-pending-card" *ngFor="let p of pending; let i = index">
+          <button class="ag-pending-remove" (click)="removePending(i)" aria-label="Remove photo">×</button>
+          <img [src]="p.previewUrl" class="ag-pending-img" alt="">
+          <input
+            type="text"
+            class="ag-pending-input"
+            placeholder="Name..."
+            [(ngModel)]="p.title"
+            maxlength="150"
+          >
+          <textarea
+            class="ag-pending-textarea"
+            placeholder="Description..."
+            rows="2"
+            [(ngModel)]="p.description"
+            maxlength="500"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="ag-pending-actions">
+        <span class="ag-pending-count">{{ pending.length }} photo{{ pending.length === 1 ? '' : 's' }} ready</span>
+        <button class="ag-btn-secondary" (click)="clearPending()" [disabled]="isUploading">Cancel</button>
+        <button class="ag-btn-primary" (click)="uploadPending()" [disabled]="isUploading">
+          {{ isUploading ? 'Uploading…' : 'Upload All' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────────────────── -->
+  <div class="ag-loading" *ngIf="isLoading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- ── Existing images ──────────────────────────────────────── -->
+  <div class="ag-grid" *ngIf="!isLoading && images.length > 0">
+    <div class="ag-card" *ngFor="let img of images; trackBy: trackById; let i = index">
+
+      <div class="ag-card-img-wrap">
+        <img [src]="img.image_url" [alt]="img.title">
+      </div>
+
+      <ng-container *ngIf="editingId !== img.id; else editBlock">
+        <div class="ag-card-body">
+          <span class="ag-card-title">{{ img.title || 'Untitled' }}</span>
+          <span class="ag-card-desc" [class.ag-card-desc-empty]="!img.description">
+            {{ img.description || 'No description' }}
+          </span>
+        </div>
+
+        <div class="ag-card-actions">
+          <button class="ag-icon-btn" (click)="moveUp(i)" [disabled]="i === 0" title="Move up">↑</button>
+          <button class="ag-icon-btn" (click)="moveDown(i)" [disabled]="i === images.length - 1" title="Move down">↓</button>
+          <button class="ag-icon-btn" (click)="startEdit(img)" title="Edit">✎</button>
+          <button
+            class="ag-icon-btn ag-icon-danger"
+            (click)="deleteImage(img)"
+            [disabled]="savingId === img.id"
+            title="Delete"
+          >🗑</button>
+        </div>
+      </ng-container>
+
+      <ng-template #editBlock>
+        <div class="ag-card-edit">
+          <input type="text" class="ag-edit-input" placeholder="Name" [(ngModel)]="editTitle" maxlength="150">
+          <textarea class="ag-edit-textarea" placeholder="Description" rows="2" [(ngModel)]="editDescription" maxlength="500"></textarea>
+          <div class="ag-edit-actions">
+            <button class="ag-btn-secondary" (click)="cancelEdit()" [disabled]="savingId === img.id">Cancel</button>
+            <button class="ag-btn-primary" (click)="saveEdit(img)" [disabled]="savingId === img.id">
+              {{ savingId === img.id ? 'Saving…' : 'Save' }}
+            </button>
+          </div>
+        </div>
+      </ng-template>
+
+    </div>
+  </div>
+
+  <!-- ── Empty state ──────────────────────────────────────────── -->
+  <div class="ag-empty" *ngIf="!isLoading && images.length === 0">
+    <div class="ag-empty-icon">◈</div>
+    <p>No gallery images yet — select some photos above to get started.</p>
+  </div>
+
+</div>

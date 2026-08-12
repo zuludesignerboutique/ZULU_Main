@@ -25,11 +25,14 @@ export class AddProduct implements OnInit {
   product = {
     name: '', description: '', price: 0,
     category: '', subcategory: '',
-    stock: 0, product_code: '', size: ''
+    stock: 0, product_code: '', size: '', tag: ''
   };
 
   readonly maxImages = 4;
   readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  // Suggested tags shown as quick-pick chips + datalist autocomplete.
+  // Purely a UX shortcut — the field is free text, so any value works.
+  readonly suggestedTags = ['Popular', 'New', 'Bestseller', 'Trending', 'Limited Edition', 'Sale'];
   selectedImages: SelectedImage[] = [];
   isSubmitting = false;
   successMsg = '';
@@ -438,6 +441,14 @@ export class AddProduct implements OnInit {
     });
   }
 
+  // ── Tag (optional) ────────────────────────────────
+  // Clicking a suggested chip fills the box; clicking the same chip again
+  // clears it. The box itself stays free text, so a custom tag can always
+  // be typed in directly instead of using a suggestion.
+  selectTag(tag: string) {
+    this.product.tag = (this.product.tag === tag) ? '' : tag;
+  }
+
   // ── Image handling (multiple, max 4) ─────────────
   onFilesChange(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -504,6 +515,7 @@ export class AddProduct implements OnInit {
     formData.append('stock',        String(this.product.stock));
     formData.append('product_code', this.product.product_code);
     formData.append('size',         this.product.size);
+    formData.append('tag',          this.product.tag || '');
     this.selectedImages.forEach(img => formData.append('images', img.file));
     formData.append('labels', JSON.stringify(this.selectedImages.map(img => img.label)));
 

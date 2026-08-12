@@ -10,16 +10,21 @@ export class PoobooFabricService {
 
   constructor(private http: HttpClient) {}
 
-  // storefront: only active fabrics, optional fabric_type/search/sort filters
-  getAll(filters?: { type?: string; search?: string; sort?: string }): Observable<PoobooFabric[]> {
+  // storefront: only active fabrics, optional fabric_type/search/sort/tag filters
+  getAll(filters?: { type?: string; search?: string; sort?: string; tag?: string }): Observable<PoobooFabric[]> {
     let params = new HttpParams();
     if (filters?.type)   params = params.set('type', filters.type);
     if (filters?.search) params = params.set('search', filters.search);
     if (filters?.sort)   params = params.set('sort', filters.sort);
+    if (filters?.tag)    params = params.set('tag', filters.tag);
     return this.http.get<PoobooFabric[]>(this.base, { params });
   }
 
   getById(id: number): Observable<PoobooFabric> {
     return this.http.get<PoobooFabric>(`${this.base}/${id}`);
+  }
+
+  getTags(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.base}/tags/list`);
   }
 }

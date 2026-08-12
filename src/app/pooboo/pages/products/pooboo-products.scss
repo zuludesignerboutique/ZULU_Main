@@ -272,6 +272,15 @@ $soft-bg: #FFF8F5;
             background: rgba($white, 0.92);
             color: $dark;
           }
+          &.tag {
+            background: rgba($dark, 0.75);
+            color: $white;
+
+            &.preset {
+              background: $yellow;
+              color: $dark;
+            }
+          }
         }
       }
     }

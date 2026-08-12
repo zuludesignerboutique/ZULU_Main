@@ -111,6 +111,28 @@
           </div>
 
           <div class="field-group full">
+            <label>Tag <span class="hint">— optional</span></label>
+            <input type="text" [(ngModel)]="product.tag" name="tag" list="tagSuggestions"
+              placeholder="e.g. Popular" maxlength="30" />
+            <datalist id="tagSuggestions">
+              <option *ngFor="let t of suggestedTags" [value]="t"></option>
+            </datalist>
+
+            <div class="tag-chip-row">
+              <button type="button" class="tag-chip" *ngFor="let t of suggestedTags"
+                [class.active]="product.tag === t" (click)="selectTag(t)">{{ t }}</button>
+            </div>
+
+            <p class="field-note" *ngIf="product.tag">
+              Preview: <span class="product-tag-badge">{{ product.tag }}</span>
+              — this is how it will appear on the product page.
+            </p>
+            <p class="field-note" *ngIf="!product.tag">
+              Leave blank to show no tag. Shown on the product's detail page; later usable to filter products.
+            </p>
+          </div>
+
+          <div class="field-group full">
             <label>Care Instructions</label>
             <input type="text" [(ngModel)]="product.care" name="care"
               placeholder="e.g. Hand wash in cold water" />

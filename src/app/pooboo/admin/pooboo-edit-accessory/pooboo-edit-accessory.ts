@@ -41,6 +41,11 @@ export class PoobooEditAccessory implements OnInit {
   a_imagePreview      : string | null = null;
   a_existingImage     : string | null = null;
 
+  // 🏷️ Tags — preset badges + custom free-text tags, merged into one array
+  presetTags     = ['New', 'Bestseller', 'Sale'];
+  selectedTags   : string[] = [];
+  customTagInput = '';
+
   // ── UI state ────────────────────────────────────────────
   submitting = false;
   successMsg = '';
@@ -87,6 +92,7 @@ export class PoobooEditAccessory implements OnInit {
           this.a_colour            = p.colour ?? '';
           this.a_accessoryCategory = (p.accessory_type as AccessoryTab) ?? 'baby-ornaments';
           this.a_existingImage     = p.image_url ?? null;
+          this.selectedTags        = Array.isArray(p.tags) ? [...p.tags] : [];
           this.loading = false;
           this.cdr.detectChanges();
         });
@@ -119,6 +125,30 @@ export class PoobooEditAccessory implements OnInit {
     this.a_existingImage = null;
   }
 
+  // 🏷️ Toggle a preset badge on/off
+  togglePresetTag(tag: string) {
+    this.selectedTags = this.selectedTags.includes(tag)
+      ? this.selectedTags.filter(t => t !== tag)
+      : [...this.selectedTags, tag];
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags.includes(tag);
+  }
+
+  // 🏷️ Add a custom tag from the text input (Enter key or Add button)
+  addCustomTag() {
+    const tag = this.customTagInput.trim();
+    if (tag && !this.selectedTags.includes(tag)) {
+      this.selectedTags = [...this.selectedTags, tag];
+    }
+    this.customTagInput = '';
+  }
+
+  removeTag(tag: string) {
+    this.selectedTags = this.selectedTags.filter(t => t !== tag);
+  }
+
   // ── Save changes ─────────────────────────────────────────
   saveAccessory() {
     if (!this.a_name || !this.a_price) {
@@ -139,6 +169,7 @@ export class PoobooEditAccessory implements OnInit {
     formData.append('balance_stock',  this.a_balance_stock);
     formData.append('product_code',   this.a_product_code);
     formData.append('colour',         this.a_colour);
+    formData.append('tags',           JSON.stringify(this.selectedTags));
 
     if (this.a_selectedFile) {
       formData.append('image', this.a_selectedFile);

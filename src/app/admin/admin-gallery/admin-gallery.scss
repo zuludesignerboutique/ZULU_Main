@@ -1,0 +1,331 @@
+$gold:   #c8a96e;
+$ink:    #1a1814;
+$muted:  #9a9080;
+$border: rgba(0,0,0,0.07);
+$danger: #c0392b;
+
+.admin-gallery {
+  padding: 32px;
+  font-family: 'Jost', 'Segoe UI', sans-serif;
+}
+
+// ── HEADER ───────────────────────────────────────
+.ag-header {
+  margin-bottom: 24px;
+}
+
+.ag-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: $ink;
+  margin: 0 0 4px;
+}
+
+.ag-sub {
+  font-size: 13px;
+  color: $muted;
+  margin: 0;
+}
+
+// ── UPLOAD CARD ────────────────────────────────────
+.ag-upload-card {
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.ag-file-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border: 1.5px dashed $border;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $ink;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover {
+    border-color: $gold;
+    color: $gold;
+  }
+}
+
+.ag-file-icon {
+  font-size: 16px;
+}
+
+// ── PENDING PHOTOS (caption-before-post step) ─────
+.ag-pending {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid $border;
+}
+
+.ag-pending-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+
+  &::-webkit-scrollbar { height: 6px; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 4px; }
+}
+
+.ag-pending-card {
+  position: relative;
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #faf9f7;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.ag-pending-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+
+  &:hover { background: $danger; }
+}
+
+.ag-pending-img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.ag-pending-input,
+.ag-pending-textarea {
+  padding: 7px 10px;
+  border: 1.5px solid $border;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  color: $ink;
+  background: #fff;
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s;
+
+  &:focus { border-color: $gold; }
+  &::placeholder { color: $muted; }
+}
+
+.ag-pending-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.ag-pending-count {
+  font-size: 12px;
+  color: $muted;
+  margin-right: auto;
+}
+
+.ag-btn-primary {
+  padding: 9px 20px;
+  background: $ink;
+  color: #fff;
+  border: 1.5px solid $ink;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover:not(:disabled) { background: $gold; border-color: $gold; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.ag-btn-secondary {
+  padding: 9px 18px;
+  background: transparent;
+  color: $muted;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover:not(:disabled) { border-color: $danger; color: $danger; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ── LOADING ──────────────────────────────────────
+.ag-loading {
+  display: flex;
+  justify-content: center;
+  padding: 60px;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+
+  span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $gold;
+    animation: dotPulse 1.2s infinite ease-in-out;
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(0.6); opacity: 0.4; }
+  50%      { transform: scale(1);   opacity: 1; }
+}
+
+// ── EXISTING IMAGES GRID ──────────────────────────
+.ag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 20px;
+}
+
+.ag-card {
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.ag-card-img-wrap {
+  width: 100%;
+  height: 160px;
+  background: #f5f3f0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.ag-card-body {
+  padding: 12px 14px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.ag-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $ink;
+}
+
+.ag-card-desc {
+  font-size: 12px;
+  color: $muted;
+  line-height: 1.4;
+}
+
+.ag-card-desc-empty {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.ag-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px 14px;
+}
+
+.ag-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid $border;
+  background: #fff;
+  color: $ink;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover:not(:disabled) { border-color: $gold; color: $gold; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+}
+
+.ag-icon-danger:hover:not(:disabled) {
+  border-color: $danger;
+  color: $danger;
+}
+
+// ── INLINE EDIT ────────────────────────────────────
+.ag-card-edit {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.ag-edit-input,
+.ag-edit-textarea {
+  padding: 7px 10px;
+  border: 1.5px solid $border;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  color: $ink;
+  background: #fff;
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s;
+
+  &:focus { border-color: $gold; }
+}
+
+.ag-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+// ── EMPTY STATE ────────────────────────────────────
+.ag-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: $muted;
+}
+
+.ag-empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}

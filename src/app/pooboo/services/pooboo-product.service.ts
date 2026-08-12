@@ -10,11 +10,12 @@ export class PoobooProductService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(filters?: { age_group?: string; gender?: string; category?: string }): Observable<PoobooProduct[]> {
+  getAll(filters?: { age_group?: string; gender?: string; category?: string; tag?: string }): Observable<PoobooProduct[]> {
     let params = new HttpParams();
     if (filters?.age_group) params = params.set('age_group', filters.age_group);
     if (filters?.gender)    params = params.set('gender', filters.gender);
     if (filters?.category)  params = params.set('category', filters.category);
+    if (filters?.tag)       params = params.set('tag', filters.tag);
     return this.http.get<PoobooProduct[]>(this.base, { params });
   }
 

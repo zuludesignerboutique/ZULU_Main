@@ -66,8 +66,8 @@ export class AdminStock implements OnInit {
     }
     if (this.lowStockOnly) {
       result = result.filter(p => {
-        const stock = p.product_type === 'fabric' ? p.balance_stock : p.stock;
-        return stock !== null && stock !== undefined && stock <= 5;
+        const balance = this.getBalance(p);
+        return balance <= 5;
       });
     }
 
@@ -125,27 +125,34 @@ export class AdminStock implements OnInit {
     if (this.currentPage < this.totalPages) this.currentPage++;
   }
 
-  getStockValue(p: any): number {
-    if (p.product_type === 'fabric') return p.balance_stock ?? p.total_meters ?? 0;
-    return p.stock ?? 0;
+  // Balance = remaining sellable stock (decreases on sales). Every product type
+  // carries the balance in the balance_stock column of the unified products table.
+  getBalance(p: any): number {
+    return p.balance_stock ?? 0;
+  }
+
+  // Total = quantity entered for the product (never auto-changed by sales).
+  // Fabrics track total in total_meters; everything else uses stock.
+  getTotal(p: any): number {
+    return p.product_type === 'fabric' ? (p.total_meters ?? p.balance_stock ?? 0) : (p.stock ?? 0);
   }
 
   getStockClass(p: any): string {
-    const stock = this.getStockValue(p);
-    if (stock <= 0) return 'stock-out';
-    if (stock <= 5) return 'stock-low';
-    if (stock <= 20) return 'stock-medium';
+    const balance = this.getBalance(p);
+    if (balance <= 0) return 'stock-out';
+    if (balance <= 5) return 'stock-low';
+    if (balance <= 20) return 'stock-medium';
     return 'stock-high';
   }
 
   get summary() {
     const total = this.filteredProducts.length;
-    const inStock = this.filteredProducts.filter(p => this.getStockValue(p) > 0).length;
+    const inStock = this.filteredProducts.filter(p => this.getBalance(p) > 0).length;
     const lowStock = this.filteredProducts.filter(p => {
-      const s = this.getStockValue(p);
+      const s = this.getBalance(p);
       return s > 0 && s <= 5;
     }).length;
-    const outOfStock = this.filteredProducts.filter(p => this.getStockValue(p) <= 0).length;
+    const outOfStock = this.filteredProducts.filter(p => this.getBalance(p) <= 0).length;
     return { total, inStock, lowStock, outOfStock };
   }
 }

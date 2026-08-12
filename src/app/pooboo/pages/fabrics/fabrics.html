@@ -52,6 +52,13 @@
         <option value="newest">Newest</option>
         <option value="price_asc">Price: Low to High</option>
         <option value="price_desc">Price: High to Low</option>
+        @if (availableTags.length) {
+          <optgroup label="Tags">
+            @for (t of availableTags; track t) {
+              <option [value]="'tag:' + t">🏷️ {{ t }}</option>
+            }
+          </optgroup>
+        }
       </select>
     </div>
   </div>
@@ -66,6 +73,7 @@
       <p class="pb-fab-result-count">
         Showing <strong>{{ products.length }}</strong> fabric{{ products.length === 1 ? '' : 's' }}
         @if (selectedType !== 'all') { <span>· {{ getTypeLabel() }}</span> }
+        @if (activeTag) { <span>· 🏷️ {{ activeTag }}</span> }
       </p>
     }
 
@@ -117,6 +125,14 @@
               <p class="pb-product-age">{{ product.colour || getTypeLabelFor(product.fabric_type) }}</p>
               <h3 class="pb-product-name">{{ product.name }}</h3>
               <p class="pb-product-price">₹{{ product.price_per_meter | number:'1.0-0' }} / meter</p>
+
+              @if (product.tags && product.tags.length) {
+                <div class="pb-product-tags">
+                  @for (t of product.tags; track t) {
+                    <span class="pb-tag-badge" [class.preset]="isPresetTag(t)">{{ t }}</span>
+                  }
+                </div>
+              }
             </div>
 
           </a>

@@ -36,6 +36,11 @@ export class PoobooAddProduct {
   // Details (bullet points)
   detailsInput  = '';
 
+  // 🏷️ Tags — preset badges + custom free-text tags, merged into one array
+  presetTags    = ['New', 'Bestseller', 'Sale'];
+  selectedTags  : string[] = [];
+  customTagInput = '';
+
   // Image
   selectedFile: File | null = null;
   imagePreview: string | null = null;
@@ -75,6 +80,30 @@ export class PoobooAddProduct {
   removeImage() {
     this.selectedFile = null;
     this.imagePreview = null;
+  }
+
+  // 🏷️ Toggle a preset badge on/off
+  togglePresetTag(tag: string) {
+    this.selectedTags = this.selectedTags.includes(tag)
+      ? this.selectedTags.filter(t => t !== tag)
+      : [...this.selectedTags, tag];
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags.includes(tag);
+  }
+
+  // 🏷️ Add a custom tag from the text input (Enter key or Add button)
+  addCustomTag() {
+    const tag = this.customTagInput.trim();
+    if (tag && !this.selectedTags.includes(tag)) {
+      this.selectedTags = [...this.selectedTags, tag];
+    }
+    this.customTagInput = '';
+  }
+
+  removeTag(tag: string) {
+    this.selectedTags = this.selectedTags.filter(t => t !== tag);
   }
 
   onSubmit() {
@@ -119,6 +148,9 @@ export class PoobooAddProduct {
     // Details → JSON array
     const detailsArr = this.detailsInput.split('\n').map(s => s.trim()).filter(Boolean);
     formData.append('details', JSON.stringify(detailsArr));
+
+    // Tags → JSON array (preset badges + custom, already merged in selectedTags)
+    formData.append('tags', JSON.stringify(this.selectedTags));
 
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);

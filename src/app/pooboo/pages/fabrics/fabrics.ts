@@ -29,9 +29,14 @@ export class Fabrics implements OnInit, OnDestroy {
 
   // 🔍 Search & Sort
   searchTerm = '';
-  sortBy     = '';   // '' | 'price_asc' | 'price_desc' | 'newest'
+  sortBy     = '';   // '' | 'price_asc' | 'price_desc' | 'newest' | 'tag:<name>'
   private searchSubject = new Subject<string>();
   private searchSub?: Subscription;
+
+  // 🏷️ Tags
+  availableTags: string[] = [];
+  activeTag = '';
+  presetTags = ['New', 'Bestseller', 'Sale'];
 
   fabricTypes = [
     { label: 'Cotton',     value: 'cotton',     emoji: '🌿' },
@@ -61,6 +66,14 @@ export class Fabrics implements OnInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     this.loadProducts();
 
+    this.fabricService.getTags().subscribe({
+      next: (tags) => {
+        this.availableTags = tags;
+        this.cdr.detectChanges();
+      },
+      error: () => { /* tag list is a nice-to-have; fail silently */ }
+    });
+
     if (this.auth.isLoggedIn()) {
       this.wishlistService.ensureLoaded();
     }
@@ -88,17 +101,33 @@ export class Fabrics implements OnInit, OnDestroy {
     this.searchSubject.next(this.searchTerm);
   }
 
+  // 🏷️ sortBy carries either a real sort value or 'tag:<name>'.
+  // Picking a tag sets the active tag filter; picking a real sort clears it.
   onSortChange() {
+    if (this.sortBy.startsWith('tag:')) {
+      this.activeTag = this.sortBy.slice(4);
+    } else {
+      this.activeTag = '';
+    }
     this.loadProducts();
+  }
+
+  isPresetTag(tag: string): boolean {
+    return this.presetTags.includes(tag);
   }
 
   loadProducts() {
     this.isLoading = true;
 
-    const filters: { type?: string; search?: string; sort?: string } = {};
+    const filters: { type?: string; search?: string; sort?: string; tag?: string } = {};
     if (this.selectedType !== 'all') filters.type = this.selectedType;
     if (this.searchTerm.trim())      filters.search = this.searchTerm.trim();
-    if (this.sortBy)                 filters.sort = this.sortBy;
+
+    if (this.activeTag) {
+      filters.tag = this.activeTag;
+    } else if (this.sortBy) {
+      filters.sort = this.sortBy;
+    }
 
     this.fabricService.getAll(filters).subscribe({
       next: (data: PoobooFabric[]) => {

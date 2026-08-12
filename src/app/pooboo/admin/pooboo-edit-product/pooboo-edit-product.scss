@@ -192,6 +192,96 @@ $success:#27ae60;
   }
 }
 
+// ── TAGS ──────────────────────────────────────────
+.preset-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+
+  .preset-tag-btn {
+    padding: 7px 16px;
+    border: 1.5px solid $border;
+    border-radius: 50px;
+    background: $surface;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: $ink;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { border-color: $gold; }
+
+    &.active {
+      background: $gold;
+      border-color: $gold;
+      color: #fff;
+    }
+  }
+}
+
+.custom-tag-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+
+  input {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .btn-add-tag {
+    padding: 0 18px;
+    background: #fff;
+    border: 1.5px solid $gold;
+    border-radius: 10px;
+    color: $gold;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+
+    &:hover { background: $gold; color: #fff; }
+  }
+}
+
+.selected-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .selected-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px 5px 14px;
+    border-radius: 50px;
+    background: $ink;
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+
+    button {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      color: #fff;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      &:hover { background: $error; }
+    }
+  }
+}
+
 // ── TOGGLES (checkboxes) ─────────────────────────
 .toggle-label {
   display: flex;

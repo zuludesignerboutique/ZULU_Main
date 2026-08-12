@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './admin-transactions.html',
   styleUrls: ['./admin-transactions.scss']
 })
-export class AdminTransactions implements OnInit {
+export class AdminTransactions implements OnInit, OnDestroy {
   orders: any[] = [];
   filteredOrders: any[] = [];
   isLoading = true;
@@ -27,6 +27,7 @@ export class AdminTransactions implements OnInit {
   totalPages = 1;
 
   private api = '';
+  private searchDebounce: any = null;
 
   constructor(private http: HttpClient, private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
@@ -87,6 +88,20 @@ export class AdminTransactions implements OnInit {
 
   onSearch() {
     this.loadOrders();
+  }
+
+  // Debounced live search — fires ~400ms after the user stops typing,
+  // instead of waiting for Enter
+  onSearchInput() {
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => {
+      this.currentPage = 1;   // a new search always restarts from the first page
+      this.loadOrders();
+    }, 400);
+  }
+
+  ngOnDestroy() {
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
   }
 
   clearFilters() {

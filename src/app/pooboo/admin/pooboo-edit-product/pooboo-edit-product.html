@@ -113,6 +113,41 @@
         <textarea [(ngModel)]="detailsInput" name="details" rows="4"></textarea>
       </div>
 
+      <!-- Tags -->
+      <div class="form-group full-width">
+        <label>Tags <span class="hint">(preset badges + custom)</span></label>
+
+        <div class="preset-tags-row">
+          <button
+            type="button"
+            *ngFor="let tag of presetTags"
+            class="preset-tag-btn"
+            [class.active]="isTagSelected(tag)"
+            (click)="togglePresetTag(tag)"
+          >
+            {{ tag }}
+          </button>
+        </div>
+
+        <div class="custom-tag-input">
+          <input
+            type="text"
+            [(ngModel)]="customTagInput"
+            name="customTag"
+            placeholder="Add a custom tag and press Enter"
+            (keydown.enter)="$event.preventDefault(); addCustomTag()"
+          />
+          <button type="button" class="btn-add-tag" (click)="addCustomTag()">Add</button>
+        </div>
+
+        <div class="selected-tags-row" *ngIf="selectedTags.length">
+          <span class="selected-tag-chip" *ngFor="let tag of selectedTags">
+            {{ tag }}
+            <button type="button" (click)="removeTag(tag)">✕</button>
+          </span>
+        </div>
+      </div>
+
       <!-- Image -->
       <div class="form-group full-width">
         <label>Product Image</label>
