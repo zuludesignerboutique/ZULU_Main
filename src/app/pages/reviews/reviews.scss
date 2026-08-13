@@ -26,7 +26,6 @@ $radius-xl: 28px;
   overflow: hidden;
   font-family: 'DM Sans', sans-serif;
 
-  // Ambient orb top-left
   &::before {
     content: '';
     position: absolute;
@@ -39,7 +38,6 @@ $radius-xl: 28px;
     pointer-events: none;
   }
 
-  // Subtle grain overlay
   &::after {
     content: '';
     position: absolute;
@@ -101,6 +99,7 @@ $radius-xl: 28px;
   .stats-row {
     display: flex;
     gap: 32px;
+    margin-bottom: 32px;
 
     .stat {
       .stat-number {
@@ -122,6 +121,47 @@ $radius-xl: 28px;
   }
 }
 
+// ── WRITE REVIEW CTA ──────────────────────────────
+.btn-write-review {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 36px;
+  background: linear-gradient(135deg, $gold, color.adjust($gold, $lightness: -10%));
+  color: $deep;
+  border: none;
+  border-radius: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: all .3s ease;
+  box-shadow: 0 8px 24px rgba(201,168,76,.35);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(201,168,76,.45);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
+.success-toast {
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+  padding: 12px 20px;
+  background: rgba(45,122,82,.18);
+  border: 1px solid rgba(45,122,82,.4);
+  border-radius: 12px;
+  color: $gold-light;
+  font-size: 13px;
+  max-width: 320px;
+}
+
 // ── REVIEWS WRAPPER ───────────────────────────────
 .reviews-wrapper {
   overflow: hidden;
@@ -129,7 +169,6 @@ $radius-xl: 28px;
   z-index: 1;
   padding: 20px 4px 32px;
 
-  // Fade edges
   &::before,
   &::after {
     content: '';
@@ -150,6 +189,18 @@ $radius-xl: 28px;
     right: 0;
     background: linear-gradient(to left, $deep, transparent);
   }
+}
+
+.empty-reviews {
+  position: relative;
+  z-index: 1;
+  padding: 48px 24px;
+  text-align: center;
+  color: $muted;
+  font-size: 14px;
+  background: rgba(255,255,255,.03);
+  border: 1px dashed rgba(255,255,255,.14);
+  border-radius: $radius-lg;
 }
 
 // ── SLIDER TRACK ─────────────────────────────────
@@ -195,7 +246,6 @@ $radius-xl: 28px;
   }
 }
 
-// ── QUOTE MARK ───────────────────────────────────
 .quote {
   font-family: 'Cormorant Garamond', serif;
   font-size: 72px;
@@ -206,7 +256,6 @@ $radius-xl: 28px;
   opacity: .8;
 }
 
-// ── REVIEW TEXT ──────────────────────────────────
 .review-text {
   font-size: 13.5px;
   line-height: 1.7;
@@ -215,7 +264,6 @@ $radius-xl: 28px;
   font-style: italic;
 }
 
-// ── REVIEW IMAGE ─────────────────────────────────
 .review-img {
   width: 100%;
   height: 120px;
@@ -226,7 +274,6 @@ $radius-xl: 28px;
   opacity: .92;
 }
 
-// ── FOOTER ───────────────────────────────────────
 .review-footer {
   display: flex;
   align-items: center;
@@ -243,7 +290,17 @@ $radius-xl: 28px;
   }
 }
 
-// ── AVATAR ───────────────────────────────────────
+.review-product-tag {
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: $emerald;
+  background: rgba(26,92,58,.08);
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
 .avatar {
   width: 42px;
   height: 42px;
@@ -260,7 +317,6 @@ $radius-xl: 28px;
   font-family: 'Cormorant Garamond', serif;
 }
 
-// ── STARS ────────────────────────────────────────
 .stars {
   display: flex;
   gap: 1px;
@@ -276,7 +332,6 @@ $radius-xl: 28px;
   }
 }
 
-// ── SLIDER DOTS ──────────────────────────────────
 .slider-dots {
   display: flex;
   justify-content: center;
@@ -301,144 +356,255 @@ $radius-xl: 28px;
   }
 }
 
-// ── REVIEW FORM ──────────────────────────────────
-.review-form-container {
+// ══════════════════════════════════════════════════
+// MODALS — Login + Write Review
+// ══════════════════════════════════════════════════
+.rv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,31,20,.72);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.rv-modal,
+.rv-form-modal {
   position: relative;
-  z-index: 1;
-  background: rgba(255,255,255,.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: $deep;
   border: 1px solid rgba(255,255,255,.1);
   border-radius: $radius-xl;
-  padding: 44px 40px;
-  max-width: 760px;
-  margin: 56px auto 0;
+  padding: 40px 36px;
+  font-family: 'DM Sans', sans-serif;
+  color: #fff;
+  box-shadow: 0 30px 80px rgba(0,0,0,.5);
+}
 
-  .form-header {
-    text-align: center;
-    margin-bottom: 36px;
+.rv-modal {
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
 
-    span {
-      font-size: 11px;
-      letter-spacing: .2em;
-      text-transform: uppercase;
-      color: $gold;
-    }
+.rv-form-modal {
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
 
-    h3 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 32px;
-      font-weight: 300;
-      color: #fff;
-      margin: 8px 0 0;
-    }
+.rv-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(255,255,255,.06);
+  border: none;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover { background: rgba(255,255,255,.14); }
+}
+
+.rv-modal-icon {
+  font-size: 40px;
+  margin-bottom: 14px;
+}
+
+.rv-modal-title,
+.rv-form-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 400;
+  margin: 0 0 12px;
+}
+
+.rv-modal-body {
+  color: $muted;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 26px;
+}
+
+.rv-form-subtitle {
+  color: $gold-light;
+  font-size: 13px;
+  margin: -6px 0 20px;
+}
+
+.rv-btn-login {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, $gold, color.adjust($gold, $lightness: -10%));
+  color: $deep;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover { transform: translateY(-1px); }
+}
+
+.rv-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rv-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: $muted;
+}
+
+.rv-required { color: $gold; }
+
+.rv-input,
+.rv-textarea {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  padding: 13px 16px;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .25s, background .25s;
+  width: 100%;
+
+  &::placeholder { color: rgba(255,255,255,.35); }
+
+  &:focus {
+    border-color: $gold;
+    background: rgba(255,255,255,.09);
   }
 }
 
-.review-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.rv-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
 
-  input[type="text"],
-  select,
-  textarea {
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 12px;
-    padding: 14px 18px;
-    color: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color .25s, background .25s;
-    width: 100%;
+.rv-char-count {
+  text-align: right;
+  font-size: 11px;
+  color: $muted;
+}
 
-    &::placeholder { color: rgba(255,255,255,.35); }
+.rv-error {
+  font-size: 12px;
+  color: #e8837a;
+}
 
-    &:focus {
-      border-color: $gold;
-      background: rgba(255,255,255,.09);
-    }
-  }
+.rv-submit-error {
+  font-size: 13px;
+  color: #e8837a;
+  background: rgba(232,131,122,.1);
+  border: 1px solid rgba(232,131,122,.3);
+  padding: 10px 14px;
+  border-radius: 10px;
+}
 
-  select {
+.rv-star-picker {
+  display: flex;
+  gap: 6px;
+
+  .rv-star-pick {
+    font-size: 26px;
+    color: #3a3a3a;
     cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a84c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
+    transition: color .15s;
 
-    option { background: $deep; color: #fff; }
+    &.active { color: $gold; }
   }
+}
 
-  textarea {
-    grid-column: span 2;
-    resize: vertical;
-    min-height: 110px;
-    line-height: 1.6;
-  }
-
-  input[type="file"] {
-    grid-column: span 2;
-    border: 1px dashed rgba(255,255,255,.18);
+.rv-photo-upload {
+  .rv-photo-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 1px dashed rgba(255,255,255,.2);
     border-radius: 12px;
-    padding: 14px 18px;
-    color: rgba(255,255,255,.5);
+    cursor: pointer;
     font-size: 13px;
-    cursor: pointer;
+    color: $muted;
+    transition: border-color .2s, color .2s;
 
-    &::file-selector-button {
-      background: $emerald;
-      color: #fff;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      margin-right: 12px;
-      font-family: 'DM Sans', sans-serif;
-      transition: background .2s;
-
-      &:hover { background: $sage; }
-    }
+    &:hover { border-color: $gold; color: $gold-light; }
   }
 
-  button[type="submit"] {
-    grid-column: span 2;
-    justify-self: center;
-    padding: 15px 48px;
-    background: linear-gradient(135deg, $gold, (color.adjust($gold, $lightness: -10%)));
-    color: $deep;
+  .rv-hidden-input { display: none; }
+}
+
+.rv-photo-preview {
+  position: relative;
+  width: 120px;
+
+  img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+
+  .rv-remove-photo {
+    margin-top: 8px;
+    background: none;
     border: none;
-    border-radius: 50px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: .06em;
-    text-transform: uppercase;
+    color: #e8837a;
+    font-size: 12px;
     cursor: pointer;
-    transition: all .3s ease;
+    padding: 0;
+  }
+}
+
+.rv-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+
+  button {
+    padding: 12px 26px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .2s ease;
+  }
+
+  .rv-btn-cancel {
+    background: rgba(255,255,255,.06);
+    color: #fff;
+
+    &:hover { background: rgba(255,255,255,.12); }
+  }
+
+  .rv-btn-submit {
+    background: linear-gradient(135deg, $gold, color.adjust($gold, $lightness: -10%));
+    color: $deep;
     box-shadow: 0 8px 24px rgba(201,168,76,.35);
-    position: relative;
-    overflow: hidden;
 
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(255,255,255,0);
-      transition: background .2s;
-    }
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 32px rgba(201,168,76,.45);
-
-      &::after { background: rgba(255,255,255,.08); }
-    }
-
-    &:active { transform: translateY(0); }
+    &:hover { transform: translateY(-1px); }
+    &:disabled { opacity: .6; cursor: not-allowed; transform: none; }
   }
 }
 
@@ -455,17 +621,14 @@ $radius-xl: 28px;
     h2 { font-size: 38px; }
   }
 
-  .review-form-container {
-    padding: 32px 24px;
+  .rv-modal,
+  .rv-form-modal {
+    padding: 30px 24px;
   }
 
-  .review-form {
-    grid-template-columns: 1fr;
+  .rv-form-actions {
+    flex-direction: column-reverse;
 
-    textarea,
-    input[type="file"],
-    button[type="submit"] {
-      grid-column: span 1;
-    }
+    button { width: 100%; }
   }
 }

@@ -1,41 +1,72 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, Inject, PLATFORM_ID,
+  ChangeDetectorRef, inject, signal, computed
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ReviewService } from '../../services/review.service';
 import { Review } from '../../core/models/review.model';
-import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-reviews',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './reviews.html',
   styleUrl: './reviews.scss',
 })
 export class Reviews implements OnInit, OnDestroy {
-
-  reviews: Review[] = [];
-
-  newReview: Review = { id: 0, name: '', rating: 5, comment: '' };
-
-  selectedFile: File | null = null;
-  currentIndex = 0;
-  private slideInterval: ReturnType<typeof setInterval> | null = null;
-
-  // ✅ Reference to the file input so we can clear it after submit
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  private reviewService = inject(ReviewService);
+  private authService = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
 
   constructor(
-    private reviewService: ReviewService,
-    private http: HttpClient,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+  reviews: Review[] = [];
+  currentIndex = 0;
+  private slideInterval: ReturnType<typeof setInterval> | null = null;
+
+  isLoggedIn = computed(() => this.authService.customerLoggedInSignal());
+
+  showLoginModal = signal(false);
+  showReviewForm = signal(false);
+  submitSuccess = signal(false);
+  submitError = signal('');
+  isSubmitting = signal(false);
+  selectedPhoto = signal<File | null>(null);
+  selectedPhotoPreview = signal<string | null>(null);
+  hoverRating = signal(0);
+
+  // Set when arriving via "Write a Review" deep-link from a product page
+  // e.g. /reviews?productId=12&productName=Silk+Saree&write=1
+  linkedProductId: number | null = null;
+  linkedProductName: string | null = null;
+
+  reviewForm: FormGroup = this.fb.group({
+    rating: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
+    title: ['', [Validators.required, Validators.maxLength(100)]],
+    body: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+  });
+
   ngOnInit(): void {
-    // Only fetch in browser — SSR can't reach localhost:4000
+    const params = this.route.snapshot.queryParamMap;
+    const pid = params.get('productId');
+    this.linkedProductId = pid ? Number(pid) : null;
+    this.linkedProductName = params.get('productName');
+
     if (!isPlatformBrowser(this.platformId)) return;
+
     this.loadReviews();
+
+    // Auto-open the write-review form if the link asked for it
+    if (params.get('write') === '1') {
+      this.onWriteReviewClick();
+    }
   }
 
   ngOnDestroy(): void {
@@ -43,7 +74,7 @@ export class Reviews implements OnInit, OnDestroy {
   }
 
   loadReviews(): void {
-    this.reviewService.getReviews().subscribe({
+    this.reviewService.getAllReviews().subscribe({
       next: (data) => {
         this.reviews = data;
         this.currentIndex = 0;
@@ -55,6 +86,17 @@ export class Reviews implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  get averageRatingValue(): number {
+    if (!this.reviews.length) return 0;
+    return this.reviews.reduce((s, r) => s + r.rating, 0) / this.reviews.length;
+  }
+
+  get satisfactionPercent(): number {
+    if (!this.reviews.length) return 0;
+    const satisfied = this.reviews.filter(r => r.rating >= 4).length;
+    return Math.round((satisfied / this.reviews.length) * 100);
   }
 
   startAutoSlide(): void {
@@ -77,46 +119,94 @@ export class Reviews implements OnInit, OnDestroy {
     this.currentIndex = (this.currentIndex + 1) % this.reviews.length;
   }
 
-  prevSlide(): void {
-    if (this.reviews.length === 0) return;
-    this.currentIndex = (this.currentIndex - 1 + this.reviews.length) % this.reviews.length;
-  }
-
   goToSlide(index: number): void {
     this.currentIndex = index;
     this.startAutoSlide();
     this.cdr.detectChanges();
   }
 
-  onFileSelect(event: Event): void {
+  onWriteReviewClick(): void {
+    if (this.isLoggedIn()) {
+      this.showReviewForm.set(true);
+    } else {
+      this.showLoginModal.set(true);
+    }
+  }
+
+  closeLoginModal(): void {
+    this.showLoginModal.set(false);
+  }
+
+  goToLogin(): void {
+    window.location.href = '/login?returnUrl=/reviews';
+  }
+
+  setRating(value: number): void {
+    this.reviewForm.patchValue({ rating: value });
+  }
+
+  onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.selectedFile = input.files?.[0] ?? null;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      this.selectedPhoto.set(file);
+      const reader = new FileReader();
+      reader.onload = (e) => this.selectedPhotoPreview.set(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removePhoto(): void {
+    this.selectedPhoto.set(null);
+    this.selectedPhotoPreview.set(null);
   }
 
   submitReview(): void {
-    if (!this.newReview.name.trim() || !this.newReview.comment.trim()) return;
+    if (this.reviewForm.invalid) {
+      this.reviewForm.markAllAsTouched();
+      return;
+    }
+    this.isSubmitting.set(true);
+    this.submitError.set('');
+    const { rating, title, body } = this.reviewForm.value;
 
-    const formData = new FormData();
-    formData.append('name',    this.newReview.name);
-    formData.append('rating',  this.newReview.rating.toString());
-    formData.append('comment', this.newReview.comment);
-    if (this.selectedFile) formData.append('image', this.selectedFile);
-
-    this.reviewService.addReview(formData).subscribe({
-      next: () => {
-        this.loadReviews();
-        this.resetForm();
+    this.reviewService.submitReview({
+      rating,
+      title,
+      body,
+      productId: this.linkedProductId,
+      photo: this.selectedPhoto() ?? undefined
+    }).subscribe({
+      next: (newReview) => {
+        this.reviews = [newReview, ...this.reviews];
+        this.submitSuccess.set(true);
+        this.showReviewForm.set(false);
+        this.reviewForm.reset({ rating: 0, title: '', body: '' });
+        this.selectedPhoto.set(null);
+        this.selectedPhotoPreview.set(null);
+        this.isSubmitting.set(false);
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.submitSuccess.set(false);
+          this.cdr.detectChanges();
+        }, 4000);
       },
-      error: (err) => console.error('Failed to submit review:', err)
+      error: (err) => {
+        console.error('Failed to submit review:', err);
+        this.submitError.set('Something went wrong. Please try again.');
+        this.isSubmitting.set(false);
+      }
     });
   }
 
-  private resetForm(): void {
-    this.newReview    = { id: 0, name: '', rating: 5, comment: '' };
-    this.selectedFile = null;
-    // ✅ Clear the file input so it doesn't show the old filename
-    if (this.fileInput) {
-      this.fileInput.nativeElement.value = '';
-    }
+  cancelForm(): void {
+    this.showReviewForm.set(false);
+    this.reviewForm.reset({ rating: 0, title: '', body: '' });
+    this.selectedPhoto.set(null);
+    this.selectedPhotoPreview.set(null);
+  }
+
+  getStarArray(rating: number): number[] {
+    return [1, 2, 3, 4, 5];
   }
 }

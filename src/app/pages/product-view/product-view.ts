@@ -414,6 +414,18 @@ export class ProductView implements OnInit, OnDestroy {
     this.openDetail = this.openDetail === key ? null : key;
   }
 
+  // ── Reviews ─────────────────────────────────────
+
+  writeReview() {
+    this.router.navigate(['/reviews'], {
+      queryParams: {
+        productId: this.product?.id,
+        productName: this.product?.name,
+        write: '1',
+      },
+    });
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();

@@ -15,19 +15,27 @@
       </p>
 
       <!-- STATS ROW -->
-      <div class="stats-row">
+      <div class="stats-row" *ngIf="reviews.length > 0">
         <div class="stat">
-          <div class="stat-number">4.9</div>
+          <div class="stat-number">{{ averageRatingValue | number: '1.1-1' }}</div>
           <div class="stat-label">Avg. Rating</div>
         </div>
         <div class="stat">
-          <div class="stat-number">200+</div>
+          <div class="stat-number">{{ reviews.length }}</div>
           <div class="stat-label">Reviews</div>
         </div>
         <div class="stat">
-          <div class="stat-number">98%</div>
+          <div class="stat-number">{{ satisfactionPercent }}%</div>
           <div class="stat-label">Satisfaction</div>
         </div>
+      </div>
+
+      <button class="btn-write-review" (click)="onWriteReviewClick()">
+        ✏️ Write a Review
+      </button>
+
+      <div class="success-toast" *ngIf="submitSuccess()">
+        🎉 Thank you! Your review has been posted.
       </div>
 
     </div>
@@ -36,7 +44,7 @@
     <div class="col-md-7">
 
       <!-- WRAPPER -->
-      <div class="reviews-wrapper">
+      <div class="reviews-wrapper" *ngIf="reviews.length > 0">
 
         <!-- SLIDER TRACK -->
         <div
@@ -51,25 +59,22 @@
 
             <span class="quote">"</span>
 
-            <p class="review-text">{{ review.comment }}</p>
+            <p class="review-text">{{ review.body }}</p>
 
-            <!-- ✅ REVIEW IMAGE — only shown if review has one -->
             <img
-              *ngIf="review.image"
-              [src]="'/uploads/' + review.image"
+              *ngIf="review.photoUrl"
+              [src]="review.photoUrl"
               alt="Review photo"
               class="review-img"
             />
 
             <div class="review-footer">
 
-              <!-- AVATAR -->
-              <div class="avatar">{{ review.name.charAt(0) }}</div>
+              <div class="avatar">{{ review.customerName.charAt(0) }}</div>
 
               <div>
-                <h6>{{ review.name }}</h6>
+                <h6>{{ review.customerName }}</h6>
 
-                <!-- STARS -->
                 <div class="stars">
                   <span
                     *ngFor="let s of [1,2,3,4,5]"
@@ -80,14 +85,22 @@
 
             </div>
 
+            <div class="review-product-tag" *ngIf="review.productName">
+              📦 {{ review.productName }}
+            </div>
+
           </div>
 
         </div>
 
       </div>
 
+      <div class="empty-reviews" *ngIf="reviews.length === 0">
+        <p>No reviews yet. Be the first to share your experience!</p>
+      </div>
+
       <!-- DOTS -->
-      <div class="slider-dots">
+      <div class="slider-dots" *ngIf="reviews.length > 0">
         <button
           class="dot"
           *ngFor="let review of reviews; let i = index"
@@ -101,48 +114,104 @@
 
   </div>
 
-  <!-- ══ REVIEW FORM ══════════════════════════════ -->
-  <div class="review-form-container mt-5">
-
-    <div class="form-header">
-      <span>Share Your Experience</span>
-      <h3>Leave a Review</h3>
-    </div>
-
-    <form (ngSubmit)="submitReview()" class="review-form">
-
-      <input
-        type="text"
-        placeholder="Your Name"
-        [(ngModel)]="newReview.name"
-        name="name"
-        required
-      >
-
-      <select [(ngModel)]="newReview.rating" name="rating">
-        <option *ngFor="let r of [5,4,3,2,1]" [value]="r">
-          {{ r }} Star{{ r > 1 ? 's' : '' }}
-        </option>
-      </select>
-
-      <textarea
-        placeholder="Share your experience with us..."
-        [(ngModel)]="newReview.comment"
-        name="comment"
-      ></textarea>
-
-      <!-- ✅ #fileInput ref so we can clear it after submit -->
-      <input
-        #fileInput
-        type="file"
-        (change)="onFileSelect($event)"
-        accept="image/*"
-      >
-
-      <button type="submit">Submit Review</button>
-
-    </form>
-
-  </div>
-
 </section>
+
+
+<!-- ══════════════════════════════════════
+     Login Modal
+════════════════════════════════════════ -->
+<div class="rv-modal-overlay" *ngIf="showLoginModal()" (click)="closeLoginModal()">
+  <div class="rv-modal" (click)="$event.stopPropagation()">
+    <button class="rv-modal-close" (click)="closeLoginModal()">✕</button>
+    <div class="rv-modal-icon">🔐</div>
+    <h2 class="rv-modal-title">Login to Review</h2>
+    <p class="rv-modal-body">
+      Share your experience with other customers! You'll need to log in first.
+    </p>
+    <button class="rv-btn-login" (click)="goToLogin()">Log In / Sign Up</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     Review Submission Form
+════════════════════════════════════════ -->
+<div class="rv-modal-overlay" *ngIf="showReviewForm()" (click)="cancelForm()">
+  <div class="rv-form-modal" (click)="$event.stopPropagation()">
+    <button class="rv-modal-close" (click)="cancelForm()">✕</button>
+    <h2 class="rv-form-title">Write Your Review</h2>
+    <p class="rv-form-subtitle" *ngIf="linkedProductName">Reviewing: {{ linkedProductName }}</p>
+
+    <div [formGroup]="reviewForm" class="rv-form">
+
+      <!-- Star Rating Picker -->
+      <div class="rv-field">
+        <label class="rv-label">Rating <span class="rv-required">*</span></label>
+        <div class="rv-star-picker">
+          <span *ngFor="let s of getStarArray(5)"
+            class="rv-star-pick"
+            [class.active]="s <= (hoverRating() || reviewForm.get('rating')?.value)"
+            (mouseenter)="hoverRating.set(s)"
+            (mouseleave)="hoverRating.set(0)"
+            (click)="setRating(s)">★</span>
+        </div>
+        <div class="rv-error"
+          *ngIf="reviewForm.get('rating')?.touched && reviewForm.get('rating')?.value < 1">
+          Please select a rating.
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="rv-field">
+        <label class="rv-label" for="rv-title">Review Title <span class="rv-required">*</span></label>
+        <input id="rv-title" type="text" class="rv-input" formControlName="title"
+          placeholder="Summarise your experience…" maxlength="100" />
+        <div class="rv-error"
+          *ngIf="reviewForm.get('title')?.invalid && reviewForm.get('title')?.touched">
+          Title is required (max 100 characters).
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="rv-field">
+        <label class="rv-label" for="rv-body">Your Review <span class="rv-required">*</span></label>
+        <textarea id="rv-body" class="rv-textarea" formControlName="body" rows="4"
+          placeholder="Tell us what you loved (or didn't!)…" maxlength="500"></textarea>
+        <div class="rv-char-count">{{ reviewForm.get('body')?.value?.length || 0 }}/500</div>
+        <div class="rv-error"
+          *ngIf="reviewForm.get('body')?.invalid && reviewForm.get('body')?.touched">
+          Review must be at least 10 characters.
+        </div>
+      </div>
+
+      <!-- Photo Upload -->
+      <div class="rv-field">
+        <label class="rv-label">Photo (optional)</label>
+        <div class="rv-photo-upload" *ngIf="!selectedPhotoPreview()">
+          <label for="rv-photo" class="rv-photo-label">
+            <span>📷 Upload a photo</span>
+            <input id="rv-photo" type="file" accept="image/*" (change)="onPhotoSelected($event)"
+              class="rv-hidden-input" />
+          </label>
+        </div>
+        <div class="rv-photo-preview" *ngIf="selectedPhotoPreview()">
+          <img [src]="selectedPhotoPreview()" alt="Preview" />
+          <button class="rv-remove-photo" (click)="removePhoto()">Remove</button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="rv-submit-error" *ngIf="submitError()">{{ submitError() }}</div>
+
+      <!-- Actions -->
+      <div class="rv-form-actions">
+        <button class="rv-btn-cancel" type="button" (click)="cancelForm()">Cancel</button>
+        <button class="rv-btn-submit" type="button"
+          (click)="submitReview()" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Posting…' : 'Post Review' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
