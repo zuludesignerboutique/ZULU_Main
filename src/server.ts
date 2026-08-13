@@ -6,7 +6,6 @@ import {
 } from '@angular/ssr/node';
 
 import express from 'express';
-import mysql from 'mysql2/promise';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -14,100 +13,15 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 
 /* ==============================
-   MySQL DATABASE CONNECTION
-================================ */
-const db = await mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'Navilu@2003',
-  database: 'zulu_db',
-});
-
-/* ==============================
    ANGULAR ENGINE
-================================ */
+=============================== */
 const angularApp = new AngularNodeAppEngine();
 app.use(express.json());
 
 /* ==============================
-   API ROUTES
-================================ */
-
-// GET all categories
-app.get('/api/categories', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT * FROM categories');
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
-
-// GET subcategories by category
-app.get('/api/subcategories/:categoryId', async (req, res) => {
-  try {
-    const categoryId = req.params.categoryId;
-
-    const [rows] = await db.query(
-      'SELECT * FROM subcategories WHERE category_id = ?',
-      [categoryId]
-    );
-
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
-
-// GET all products
-app.get('/api/products', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT * FROM products');
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
-
-// ADD product
-app.post('/api/products', async (req, res) => {
-  try {
-    const { name, description, price, category, subcategory, image, stock } = req.body;
-
-    const sql = `
-      INSERT INTO products 
-      (name, description, price, category, subcategory, image, stock)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    const [result] = await db.query(sql, [
-      name,
-      description,
-      price,
-      category,
-      subcategory,
-      image,
-      stock
-    ]);
-
-    res.json({
-      message: "Product added successfully",
-      result
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
-
-/* ==============================
    STATIC FILES
-================================ */
-// Serve uploaded images
+=============================== */
+// Serve uploaded images (uploaded files live in zulu-backend/uploads)
 app.use('/uploads', express.static(join(import.meta.dirname, '../uploads')));
 
 // Serve Angular browser files
@@ -121,7 +35,7 @@ app.use(
 
 /* ==============================
    ANGULAR SSR HANDLER
-================================ */
+=============================== */
 app.use((req, res, next) => {
   angularApp
     .handle(req)
@@ -133,7 +47,7 @@ app.use((req, res, next) => {
 
 /* ==============================
    SERVER START
-================================ */
+=============================== */
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   const port = process.env['PORT'] || 4000;
 
