@@ -1,8 +1,8 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PoobooReviewService } from '../../services/pooboo-review.service';
-import { PoobooReview } from '../../core/models/pooboo-review.model';
+import { ReviewService } from '../../../services/review.service';
+import { Review } from '../../../core/models/review.model';
 
 @Component({
   selector: 'app-pooboo-admin-reviews',
@@ -12,12 +12,13 @@ import { PoobooReview } from '../../core/models/pooboo-review.model';
   styleUrl: './pooboo-admin-reviews.scss'
 })
 export class PoobooAdminReviews implements OnInit {
-  private reviewService = inject(PoobooReviewService);
+  private reviewService = inject(ReviewService);
 
-  reviews = signal<PoobooReview[]>([]);
+  reviews = signal<Review[]>([]);
   isLoading = signal(true);
   searchQuery = signal('');
   filterRating = signal<number>(0);
+  filterBrand = signal<string>('all');
   deleteConfirmId = signal<number | null>(null);
   deleteInProgress = signal(false);
   errorMessage = signal('');
@@ -27,6 +28,7 @@ export class PoobooAdminReviews implements OnInit {
     let list = this.reviews();
     const q = this.searchQuery().toLowerCase();
     const r = this.filterRating();
+    const b = this.filterBrand();
     if (q) {
       list = list.filter(rev =>
         rev.customerName.toLowerCase().includes(q) ||
@@ -36,6 +38,7 @@ export class PoobooAdminReviews implements OnInit {
       );
     }
     if (r > 0) list = list.filter(rev => rev.rating === r);
+    if (b !== 'all') list = list.filter(rev => rev.brand === b);
     return list;
   });
 
@@ -95,11 +98,19 @@ export class PoobooAdminReviews implements OnInit {
     this.filterRating.set(this.filterRating() === star ? 0 : star);
   }
 
+  setFilterBrand(brand: string): void {
+    this.filterBrand.set(this.filterBrand() === brand ? 'all' : brand);
+  }
+
   getStarArray(): number[] {
     return [1, 2, 3, 4, 5];
   }
 
-  trackById(_: number, item: PoobooReview): number {
+  brandLabel(brand?: string): string {
+    return (brand || 'zulu').toUpperCase();
+  }
+
+  trackById(_: number, item: Review): number {
     return item.id;
   }
 }

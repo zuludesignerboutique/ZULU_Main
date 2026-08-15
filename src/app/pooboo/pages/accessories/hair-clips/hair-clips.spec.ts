@@ -2,13 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { HairClips } from './hair-clips';
 
+import { RouterTestingModule } from '@angular/router/testing';
+
 describe('HairClips', () => {
   let component: HairClips;
   let fixture: ComponentFixture<HairClips>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HairClips]
+      imports: [HairClips, RouterTestingModule]
     })
     .compileComponents();
 

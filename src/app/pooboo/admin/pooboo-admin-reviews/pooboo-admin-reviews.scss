@@ -99,6 +99,32 @@ $pb-shadow:     0 2px 12px rgba(0,0,0,0.06);
   align-items: center;
 }
 
+.pbadmin-brand-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pbadmin-brand-btn {
+  background: $pb-white;
+  border: 1.5px solid $pb-border;
+  border-radius: 50px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: $pb-text-muted;
+  transition: all 0.15s;
+
+  &:hover { border-color: $pb-coral; color: $pb-coral; }
+
+  &.active {
+    background: $pb-coral;
+    border-color: $pb-coral;
+    color: $pb-white;
+  }
+}
+
 .pbadmin-search {
   flex: 1;
   min-width: 220px;
@@ -283,6 +309,31 @@ $pb-shadow:     0 2px 12px rgba(0,0,0,0.06);
   padding: 3px 10px;
   font-size: 0.78rem;
   font-weight: 500;
+}
+
+.pbadmin-store-tag {
+  display: inline-block;
+  border-radius: 50px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+
+  &.brand-zulu {
+    background: #e3f2e5;
+    color: #1a5c3a;
+  }
+
+  &.brand-pooboo {
+    background: #fde7f0;
+    color: #d16b9d;
+  }
+
+  &.brand-aurum {
+    background: #f7f0e0;
+    color: #b8860b;
+  }
 }
 
 // ── Date ──────────────────────────────────────────────────────────────

@@ -43,9 +43,14 @@ export class Reviews implements OnInit, OnDestroy {
   hoverRating = signal(0);
 
   // Set when arriving via "Write a Review" deep-link from a product page
-  // e.g. /reviews?productId=12&productName=Silk+Saree&write=1
+  // e.g. /reviews?brand=pooboo&productId=12&productName=Frock&write=1
   linkedProductId: number | null = null;
   linkedProductName: string | null = null;
+
+  // Store the review is being submitted for. Derived from ?brand= (the store the
+  // user clicked "Write a Review" from), whitelisted, defaulting to 'zulu'.
+  private allowedBrands = ['zulu', 'pooboo', 'aurum'];
+  currentBrand = 'zulu';
 
   reviewForm: FormGroup = this.fb.group({
     rating: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
@@ -58,6 +63,10 @@ export class Reviews implements OnInit, OnDestroy {
     const pid = params.get('productId');
     this.linkedProductId = pid ? Number(pid) : null;
     this.linkedProductName = params.get('productName');
+    const brand = params.get('brand');
+    if (brand && this.allowedBrands.includes(brand)) {
+      this.currentBrand = brand;
+    }
 
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -138,7 +147,14 @@ export class Reviews implements OnInit, OnDestroy {
   }
 
   goToLogin(): void {
-    window.location.href = '/login?returnUrl=/reviews';
+    const params = this.route.snapshot.queryParamMap;
+    const parts: string[] = [];
+    params.keys.forEach(k => {
+      const v = params.get(k);
+      if (v) parts.push(`${k}=${encodeURIComponent(v)}`);
+    });
+    const returnUrl = '/reviews' + (parts.length ? '?' + parts.join('&') : '');
+    window.location.href = `/login?returnUrl=${encodeURIComponent(returnUrl)}`;
   }
 
   setRating(value: number): void {
@@ -175,6 +191,7 @@ export class Reviews implements OnInit, OnDestroy {
       title,
       body,
       productId: this.linkedProductId,
+      brand: this.currentBrand,
       photo: this.selectedPhoto() ?? undefined
     }).subscribe({
       next: (newReview) => {
@@ -208,5 +225,9 @@ export class Reviews implements OnInit, OnDestroy {
 
   getStarArray(rating: number): number[] {
     return [1, 2, 3, 4, 5];
+  }
+
+  brandLabel(brand?: string): string {
+    return (brand || 'zulu').toUpperCase();
   }
 }

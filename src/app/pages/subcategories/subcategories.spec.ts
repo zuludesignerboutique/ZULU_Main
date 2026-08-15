@@ -1,18 +1,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
-import { Subcategories } from './subcategories';
+import { SubcategoriesComponent } from './subcategories';
 
-describe('Subcategories', () => {
-  let component: Subcategories;
-  let fixture: ComponentFixture<Subcategories>;
+describe('SubcategoriesComponent', () => {
+  let component: SubcategoriesComponent;
+  let fixture: ComponentFixture<SubcategoriesComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Subcategories]
+      imports: [SubcategoriesComponent, RouterTestingModule],
+      providers: [provideHttpClient(), provideHttpClientTesting()]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Subcategories);
+    fixture = TestBed.createComponent(SubcategoriesComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

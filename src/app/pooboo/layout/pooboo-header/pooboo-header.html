@@ -47,7 +47,7 @@
          routerLinkActive="active"
          class="pb-nav-link pb-nav-highlight">✂️ Enquiry</a>
 
-      <a routerLink="/pooboo/reviews"
+      <a routerLink="/reviews" [queryParams]="{ brand: 'pooboo' }"
          routerLinkActive="active"
          class="pb-nav-link">Reviews</a>
 
@@ -134,7 +134,7 @@
          routerLinkActive="active"
          class="pb-mobile-link pb-mobile-highlight">✂️ Enquiry</a>
 
-      <a routerLink="/pooboo/reviews"
+      <a routerLink="/reviews" [queryParams]="{ brand: 'pooboo' }"
          routerLinkActive="active"
          class="pb-mobile-link">Reviews</a>
 

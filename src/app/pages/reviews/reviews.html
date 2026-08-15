@@ -89,6 +89,10 @@
               📦 {{ review.productName }}
             </div>
 
+            <div class="review-brand-tag" [class]="'brand-' + (review.brand || 'zulu')">
+              {{ review.brand }}
+            </div>
+
           </div>
 
         </div>
@@ -141,6 +145,7 @@
     <button class="rv-modal-close" (click)="cancelForm()">✕</button>
     <h2 class="rv-form-title">Write Your Review</h2>
     <p class="rv-form-subtitle" *ngIf="linkedProductName">Reviewing: {{ linkedProductName }}</p>
+    <p class="rv-form-subtitle rv-brand-note">Store: <strong>{{ currentBrand }}</strong></p>
 
     <div [formGroup]="reviewForm" class="rv-form">
 

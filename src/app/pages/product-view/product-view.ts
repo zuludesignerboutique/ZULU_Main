@@ -419,6 +419,7 @@ export class ProductView implements OnInit, OnDestroy {
   writeReview() {
     this.router.navigate(['/reviews'], {
       queryParams: {
+        brand: 'zulu',
         productId: this.product?.id,
         productName: this.product?.name,
         write: '1',

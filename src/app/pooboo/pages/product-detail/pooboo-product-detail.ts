@@ -90,6 +90,21 @@ goToEnquiry() {
   });
 }
 
+// Deep-links to the shared reviews page, pre-filled with this product's
+// context and set to auto-open the write-review form (write=1). brand=pooboo
+// tells the shared page which store the review belongs to.
+goToWriteReview() {
+  if (!this.product) return;
+  this.router.navigate(['/reviews'], {
+    queryParams: {
+      brand:       'pooboo',
+      productId:   this.product.id,
+      productName: this.product.name,
+      write:       1
+    }
+  });
+}
+
   goBack() {
     this.router.navigate(['/pooboo/products']);
   }

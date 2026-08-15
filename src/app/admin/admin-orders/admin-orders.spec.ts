@@ -2,13 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AdminOrders } from './admin-orders';
 
+import { RouterTestingModule } from '@angular/router/testing';
+
 describe('AdminOrders', () => {
   let component: AdminOrders;
   let fixture: ComponentFixture<AdminOrders>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminOrders]
+      imports: [AdminOrders, RouterTestingModule]
     })
     .compileComponents();
 

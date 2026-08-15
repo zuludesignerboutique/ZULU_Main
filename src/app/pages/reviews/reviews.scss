@@ -301,6 +301,32 @@ $radius-xl: 28px;
   display: inline-block;
 }
 
+.review-brand-tag {
+  margin-top: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+
+  &.brand-zulu {
+    color: $emerald;
+    background: rgba(26,92,58,.1);
+  }
+
+  &.brand-pooboo {
+    color: #d16b9d;
+    background: rgba(209,107,157,.12);
+  }
+
+  &.brand-aurum {
+    color: #b8860b;
+    background: rgba(184,134,11,.12);
+  }
+}
+
 .avatar {
   width: 42px;
   height: 42px;

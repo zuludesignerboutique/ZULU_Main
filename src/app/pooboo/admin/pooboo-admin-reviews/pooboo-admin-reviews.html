@@ -4,7 +4,7 @@
   <div class="pbadmin-header">
     <div>
       <h2 class="pbadmin-title">Reviews</h2>
-      <p class="pbadmin-sub">Manage all POOBOO customer reviews</p>
+      <p class="pbadmin-sub">Manage reviews across all stores (ZULU, POOBOO, AURUM)</p>
     </div>
     <div class="pbadmin-stats">
       <div class="pbadmin-stat">
@@ -42,6 +42,16 @@
       <button class="pbadmin-star-btn" [class.active]="filterRating() === 0"
         (click)="setFilterRating(0)">All</button>
     </div>
+    <div class="pbadmin-brand-filters">
+      <button class="pbadmin-brand-btn" [class.active]="filterBrand() === 'all'"
+        (click)="setFilterBrand('all')">All Brands</button>
+      <button class="pbadmin-brand-btn" [class.active]="filterBrand() === 'zulu'"
+        (click)="setFilterBrand('zulu')">ZULU</button>
+      <button class="pbadmin-brand-btn" [class.active]="filterBrand() === 'pooboo'"
+        (click)="setFilterBrand('pooboo')">POOBOO</button>
+      <button class="pbadmin-brand-btn" [class.active]="filterBrand() === 'aurum'"
+        (click)="setFilterBrand('aurum')">AURUM</button>
+    </div>
   </div>
 
   <!-- ── Loading ── -->
@@ -60,6 +70,7 @@
     <table class="pbadmin-table">
       <thead>
         <tr>
+          <th>Store</th>
           <th>Customer</th>
           <th>Rating</th>
           <th>Review</th>
@@ -71,6 +82,11 @@
       </thead>
       <tbody>
         <tr *ngFor="let review of filteredReviews(); trackBy: trackById">
+          <td>
+            <span class="pbadmin-store-tag" [class]="'brand-' + (review.brand || 'zulu')">
+              {{ brandLabel(review.brand) }}
+            </span>
+          </td>
           <td>
             <div class="pbadmin-customer">
               <div class="pbadmin-avatar">{{ review.customerName.charAt(0) }}</div>

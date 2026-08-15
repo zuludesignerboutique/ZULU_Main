@@ -240,8 +240,8 @@ export const routes: Routes = [
   },
   {
     path: 'pooboo/reviews',
-    loadComponent: () =>
-      import('./pooboo/pages/reviews/reviews').then(m => m.Reviews)
+    redirectTo: '/reviews',
+    pathMatch: 'full'
   },
   {
     path: 'pooboo/cart',

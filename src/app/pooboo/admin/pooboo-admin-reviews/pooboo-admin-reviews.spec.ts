@@ -2,11 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PoobooAdminReviews } from './pooboo-admin-reviews';
-import { PoobooReviewService } from '../../services/pooboo-review.service';
+import { ReviewService } from '../../../services/review.service';
 import { of, throwError } from 'rxjs';
-import { PoobooReview } from '../../core/models/pooboo-review.model';
+import { Review } from '../../../core/models/review.model';
 
-const mockReviews: PoobooReview[] = [
+const mockReviews: Review[] = [
   {
     id: 1, customerId: 1, customerName: 'Priya S', customerEmail: 'priya@example.com',
     rating: 5, title: 'Great!', body: 'Loved the product quality.', brand: 'pooboo',
@@ -14,7 +14,7 @@ const mockReviews: PoobooReview[] = [
   },
   {
     id: 2, customerId: 2, customerName: 'Arjun M', customerEmail: 'arjun@example.com',
-    rating: 3, title: 'Okay', body: 'Decent but could be better.', brand: 'pooboo',
+    rating: 3, title: 'Okay', body: 'Decent but could be better.', brand: 'zulu',
     createdAt: '2025-05-10T12:00:00Z', isVisible: true
   }
 ];
@@ -31,7 +31,7 @@ describe('PoobooAdminReviews', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PoobooAdminReviews, HttpClientTestingModule],
-      providers: [{ provide: PoobooReviewService, useValue: reviewServiceMock }]
+      providers: [{ provide: ReviewService, useValue: reviewServiceMock }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PoobooAdminReviews);
@@ -50,6 +50,12 @@ describe('PoobooAdminReviews', () => {
     component.setFilterRating(5);
     expect(component.filteredReviews().length).toBe(1);
     expect(component.filteredReviews()[0].rating).toBe(5);
+  });
+
+  it('should filter reviews by brand', () => {
+    component.setFilterBrand('pooboo');
+    expect(component.filteredReviews().length).toBe(1);
+    expect(component.filteredReviews()[0].brand).toBe('pooboo');
   });
 
   it('should filter reviews by search query', () => {

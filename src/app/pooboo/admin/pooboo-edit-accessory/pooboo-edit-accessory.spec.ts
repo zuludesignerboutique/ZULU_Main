@@ -2,13 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PoobooEditAccessory } from './pooboo-edit-accessory';
 
+import { RouterTestingModule } from '@angular/router/testing';
+
 describe('PoobooEditAccessory', () => {
   let component: PoobooEditAccessory;
   let fixture: ComponentFixture<PoobooEditAccessory>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PoobooEditAccessory]
+      imports: [PoobooEditAccessory, RouterTestingModule]
     })
     .compileComponents();
 

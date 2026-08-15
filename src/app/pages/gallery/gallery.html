@@ -18,7 +18,7 @@
       class="gallery-card"
       *ngFor="let img of images; trackBy: trackById; let i = index"
       (click)="openLightbox(i)"
-    >
+          style="border-radius: 20px;">
       <img
         [src]="img.imageUrl"
         [alt]="img.title"
