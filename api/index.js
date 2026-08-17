@@ -42,11 +42,38 @@ backendApp.use((req, res, next) => {
   });
 });
 
+// Body types Vercel's bridge parses for us. Everything else (multipart
+// form-data uploads) is left untouched so multer can read the raw stream.
+const BODY_TYPES = new Set([
+  'application/json',
+  'application/x-www-form-urlencoded',
+  'text/plain',
+]);
+
+// Vercel's Node bridge exposes the parsed body via a req.body helper that
+// reads (and thus consumes) the request stream the moment it is accessed.
+// If it reaches Express untouched, express.json() finds an already-finished
+// stream, parses nothing, and POST /login + /signup arrive with an empty body.
+// So before Express runs, materialize the platform-parsed body onto req and
+// flag it: body-parser skips re-reading once the stream is finished.
+function preserveVercelBody(req) {
+  if (req.method === 'GET' || req.method === 'HEAD') return;
+  const ct = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  if (!BODY_TYPES.has(ct)) return;
+  try {
+    req.body = req.body; // force the getter, keep the parsed value
+    req._body = true;    // older body-parser versions check this flag
+  } catch (e) {
+    // Malformed JSON - leave it for Express to respond with its 400.
+  }
+}
+
 // Shared server that forwards bridge (req, res) calls into Express.
 const server = http.createServer(backendApp);
 
 // Vercel Node bridge entry point.
 module.exports = (req, res) => {
+  preserveVercelBody(req);
   server.emit('request', req, res);
 };
 
