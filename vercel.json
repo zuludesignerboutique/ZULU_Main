@@ -13,12 +13,10 @@
     },
     {
       "source": "/login",
-      "methods": ["POST"],
       "destination": "/api/index.js"
     },
     {
       "source": "/signup",
-      "methods": ["POST"],
       "destination": "/api/index.js"
     },
     {
