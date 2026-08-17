@@ -42,8 +42,8 @@ export class LoginComponent {
           this.router.navigateByUrl(redirect);
         }
       },
-      error: () => {
-        this.error = 'Invalid email or password. Please try again.';
+      error: (err: any) => {
+        this.error = err?.error?.message || 'Invalid email or password. Please try again.';
       }
     });
   }
