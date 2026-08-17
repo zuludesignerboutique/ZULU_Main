@@ -6,9 +6,16 @@
 //                     fallback to index.csr.html for any unhandled route
 //
 // This is the same-origin single app: frontend + API behind one domain, no CORS.
+//
+// Vercel invokes the module export with the Node bridge style: a standard
+// (req, res). `serverless-http` cannot be used here — it only implements AWS
+// and Azure providers, and its AWS handler misinterprets the bridge args and
+// never writes a response (client hangs). Instead we forward each incoming
+// (req, res) straight into the Express app through a shared http.Server's
+// 'request' event (the server never actually listens).
 const path = require('path');
+const http = require('http');
 const express = require('express');
-const serverless = require('serverless-http');
 const backendApp = require('../zulu-backend/src/index.js');
 
 const browserDir = path.join(__dirname, '..', 'dist', 'myapp', 'browser');
@@ -35,7 +42,14 @@ backendApp.use((req, res, next) => {
   });
 });
 
-module.exports = serverless(backendApp);
+// Shared server that forwards bridge (req, res) calls into Express.
+const server = http.createServer(backendApp);
+
+// Vercel Node bridge entry point.
+module.exports = (req, res) => {
+  server.emit('request', req, res);
+};
+
 // Exposed for local testing of the composed app (boot via `require(...).app`).
 module.exports.app = backendApp;
 
