@@ -11,6 +11,9 @@
 npm-debug.log
 yarn-error.log
 
+# Migrated to Supabase Storage — local copies not needed in the repo
+zulu-backend/uploads/
+
 # Environment / secrets
 .env
 .env.*

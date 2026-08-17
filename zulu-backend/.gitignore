@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Secrets
+.env
+.env.*
+
+# Uploaded media (runtime data)
+uploads/
+
+# Logs
+npm-debug.log
+yarn-error.log
