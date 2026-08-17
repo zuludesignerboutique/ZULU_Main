@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ReviewService } from '../../services/review.service';
 import { Review } from '../../core/models/review.model';
 import { AuthService } from '../../services/auth.service';
@@ -21,6 +21,7 @@ export class Reviews implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -154,7 +155,7 @@ export class Reviews implements OnInit, OnDestroy {
       if (v) parts.push(`${k}=${encodeURIComponent(v)}`);
     });
     const returnUrl = '/reviews' + (parts.length ? '?' + parts.join('&') : '');
-    window.location.href = `/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+    this.router.navigate(['/login'], { queryParams: { redirect: returnUrl } });
   }
 
   setRating(value: number): void {

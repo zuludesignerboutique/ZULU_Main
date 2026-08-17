@@ -60,4 +60,23 @@ describe('Gallery', () => {
     component.lightboxStep(1);
     expect(component.lightboxIndex).toBe(0);
   });
+
+  it('should report zero-padded counter and total', () => {
+    component.images = [
+      { id: 1, imageUrl: 'a.jpg', title: 'A' },
+      { id: 2, imageUrl: 'b.jpg', title: 'B' },
+      { id: 3, imageUrl: 'c.jpg', title: 'C' },
+    ];
+
+    component.lightboxIndex = 2;
+    expect(component.currentNumber).toBe('03');
+    expect(component.totalCount).toBe(3);
+    expect(component.currentImage?.title).toBe('C');
+  });
+
+  it('should return null image when lightbox is closed', () => {
+    component.images = [{ id: 1, imageUrl: 'a.jpg', title: 'A' }];
+    component.lightboxIndex = null;
+    expect(component.currentImage).toBeNull();
+  });
 });

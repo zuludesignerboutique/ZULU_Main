@@ -1,38 +1,33 @@
 // ─────────────────────────────────────────────
-//  DESIGN TOKENS — LIGHT THEME
+//  DESIGN TOKENS — "TINNY TIN" PALETTE
+//  Green for type & accents · biscuit for backgrounds
 // ─────────────────────────────────────────────
+//
+// Per latest direction: the warm biscuit tones carry every background
+// surface on the page; the olive green is reserved for text, icons,
+// borders, and small interactive accents (button fills, tags). No
+// section uses a solid green background anymore.
+//
+//   Grain Brown     #d3b9a2 — primary biscuit background
+//   Vast Desert     #cab095 — secondary biscuit background (alternating bands)
+//   Tinny Tin       #57633a — olive green, used for headings/body text, icons, borders
+//   Tinny Tin Light #93a468 — lighter olive, for secondary text & hover accents
 
 $font-display   : 'Playfair Display', Georgia, serif;
 $font-body      : 'DM Sans', 'Segoe UI', sans-serif;
 $font-mono      : 'DM Mono', monospace;
 
-$bg-base        : #faf8f5;
-$bg-surface     : #ffffff;
+$grain-brown    : #d3b9a2;
+$vast-desert    : #cab095;
+$tinny-tin      : #57633a;
+$tinny-tin-light: #93a468;
+$tinny-tin-deep : #3f4829;   // for text where a touch more contrast is needed
 
-$gold           : #a8843a;
-$gold-light     : #c9a84c;
-$gold-dim       : rgba(168, 132, 58, 0.12);
-
-$zulu-from      : #eae4fb;
-$zulu-to        : #d4cdf5;
-$zulu-accent    : #5b3fc4;
-$zulu-text      : #3a2880;
-
-$pooboo-from    : #fde8f2;
-$pooboo-to      : #fbd0e8;
-$pooboo-accent  : #d63a8a;
-$pooboo-text    : #a02060;
-
-$aurum-from     : #fdf3e0;
-$aurum-to       : #f8e4be;
-$aurum-accent   : #a8843a;
-$aurum-text     : #7a5c1e;
-
-$ink            : #1a1814;
-$ink-soft       : #3d3a35;
-$muted          : #8a8070;
-$border         : rgba(0, 0, 0, 0.08);
-$border-strong  : rgba(0, 0, 0, 0.13);
+$paper          : #faf6ee;   // near-white cream, used behind card text for legibility
+$ink            : $tinny-tin-deep;
+$muted          : rgba(63, 72, 41, 0.66);
+$border         : rgba(63, 72, 41, 0.22);
+$border-strong  : rgba(63, 72, 41, 0.38);
 
 // ─────────────────────────────────────────────
 //  BASE
@@ -41,14 +36,14 @@ $border-strong  : rgba(0, 0, 0, 0.13);
 * { box-sizing: border-box; }
 
 body {
-  background: $bg-base;
+  background: $grain-brown;
   color: $ink;
   font-family: $font-body;
   margin: 0;
 }
 
 // ─────────────────────────────────────────────
-//  HERO SECTION
+//  HERO SECTION — biscuit background, green type
 // ─────────────────────────────────────────────
 
 .landing-container {
@@ -59,6 +54,7 @@ body {
   justify-content: center;
   padding: 80px 20px 60px;
   overflow: hidden;
+  background: linear-gradient(165deg, $grain-brown 0%, $vast-desert 100%);
 }
 
 .hero-bg {
@@ -67,20 +63,25 @@ body {
   z-index: 0;
 }
 
+// Soft tonal glows within the biscuit family + a faint green olive-branch
+// watermark for texture — decoration only, never a solid fill.
 .gradient-mesh {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 55% at 15% 10%,  rgba(91, 63, 196, 0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 50% at 85% 80%,  rgba(168, 132, 58, 0.09) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 70% at 50% 50%,  rgba(214, 58, 138, 0.04) 0%, transparent 55%),
-    linear-gradient(170deg, #fdfbf7 0%, #f7f2eb 100%);
+    radial-gradient(ellipse 55% 50% at 100% 0%, rgba(255, 255, 255, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 55% at 0% 100%, rgba(87, 99, 58, 0.05) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 900'%3E%3Cg fill='none' stroke='%2357633a' stroke-width='2.2' stroke-linecap='round' opacity='0.13'%3E%3Cpath d='M120 780 Q260 620 300 460 Q340 300 260 140'/%3E%3Cellipse cx='300' cy='420' rx='26' ry='14' transform='rotate(35 300 420)'/%3E%3Cellipse cx='330' cy='360' rx='24' ry='13' transform='rotate(30 330 360)'/%3E%3Cellipse cx='270' cy='340' rx='24' ry='13' transform='rotate(-40 270 340)'/%3E%3Cellipse cx='320' cy='280' rx='22' ry='12' transform='rotate(28 320 280)'/%3E%3Cellipse cx='260' cy='260' rx='22' ry='12' transform='rotate(-35 260 260)'/%3E%3Cellipse cx='290' cy='200' rx='20' ry='11' transform='rotate(20 290 200)'/%3E%3Cpath d='M760 120 Q640 260 610 400 Q580 540 660 680'/%3E%3Cellipse cx='620' cy='440' rx='24' ry='13' transform='rotate(-30 620 440)'/%3E%3Cellipse cx='650' cy='500' rx='22' ry='12' transform='rotate(35 650 500)'/%3E%3Cellipse cx='590' cy='500' rx='22' ry='12' transform='rotate(-30 590 500)'/%3E%3Cellipse cx='630' cy='560' rx='20' ry='11' transform='rotate(28 630 560)'/%3E%3C/g%3E%3C/svg%3E"),
+    repeating-linear-gradient(135deg, rgba(87,107,47,0.035) 0px, rgba(87,99,58,0.035) 1px, transparent 1px, transparent 60px);
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-size: auto, auto, 900px 900px, auto;
+  background-position: right top, left bottom, center 12%, center;
 }
 
 .noise-overlay {
   position: absolute;
   inset: 0;
-  opacity: 0.025;
+  opacity: 0.02;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-size: 200px 200px;
 }
@@ -92,9 +93,9 @@ body {
   animation: orbFloat 12s ease-in-out infinite;
 }
 
-.orb-1 { width: 480px; height: 480px; background: rgba(91, 63, 196, 0.07); top: -120px; left: -140px; animation-duration: 14s; }
-.orb-2 { width: 380px; height: 380px; background: rgba(214, 58, 138, 0.06); bottom: -80px; right: -100px; animation-duration: 10s; animation-delay: -4s; }
-.orb-3 { width: 300px; height: 300px; background: rgba(168, 132, 58, 0.08); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-duration: 16s; animation-delay: -7s; }
+.orb-1 { width: 480px; height: 480px; background: rgba(255, 255, 255, 0.3); top: -160px; left: -160px; animation-duration: 14s; }
+.orb-2 { width: 380px; height: 380px; background: rgba(87, 99, 58, 0.07); bottom: -120px; right: -120px; animation-duration: 10s; animation-delay: -4s; }
+.orb-3 { width: 260px; height: 260px; background: rgba(255, 255, 255, 0.22); top: 42%; left: 50%; transform: translate(-50%, -50%); animation-duration: 16s; animation-delay: -7s; }
 
 @keyframes orbFloat {
   0%, 100% { transform: translateY(0px) scale(1); }
@@ -108,55 +109,78 @@ body {
   max-width: 1100px;
 }
 
-// --- Eyebrow ---
+// --- Eyebrow — green letters on a biscuit chip ---
 
 .eyebrow-label {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   font-family: $font-mono;
-  font-size: 0.68rem;
-  letter-spacing: 0.2em;
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: $gold;
-  margin-bottom: 28px;
+  color: $tinny-tin;
+  background: $paper;
+  padding: 9px 20px;
+  border-radius: 100px;
+  box-shadow: 0 8px 20px rgba(63, 72, 41, 0.14);
+  margin-bottom: 32px;
   animation: fadeInDown 0.8s ease both;
   animation-delay: 0.1s;
 
-  &.light { color: $muted; .eyebrow-line { background: $muted; } }
+  &.light { color: $tinny-tin; background: rgba(255, 255, 255, 0.5); box-shadow: none; .eyebrow-line { background: $tinny-tin; } }
 }
 
-.eyebrow-line { display: block; width: 36px; height: 1px; background: $gold; }
+.eyebrow-line { display: block; width: 20px; height: 1px; background: $tinny-tin; opacity: 0.7; }
 
-// --- Title ---
+// --- Title — green letters throughout ---
 
 .title {
   font-family: $font-display;
-  font-size: clamp(2.8rem, 6vw, 5.2rem);
+  font-size: clamp(2.9rem, 6.4vw, 5.6rem);
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.04;
   margin-bottom: 22px;
   letter-spacing: -0.02em;
-  color: $ink;
+  color: $tinny-tin-deep;
 }
 
 .title-line { display: block; }
 .line-1 { animation: fadeInUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.2s; }
-.line-2 { animation: fadeInUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.35s; color: $gold; font-style: italic; }
+.line-2 {
+  animation: fadeInUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.35s;
+  color: $tinny-tin;
+  font-style: italic;
+  position: relative;
+  display: inline-block;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: -6px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, $tinny-tin-light 20%, $tinny-tin-light 80%, transparent);
+    border-radius: 3px;
+  }
+}
 .line-3 { animation: fadeInUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.5s; }
 
 .subtitle {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: $muted;
   margin-bottom: 52px;
-  font-weight: 300;
-  letter-spacing: 0.04em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   animation: fadeInUp 0.9s ease both;
   animation-delay: 0.65s;
 }
 
 // ─────────────────────────────────────────────
-//  CATEGORY CARDS
+//  CATEGORY CARDS — biscuit surfaces, green type,
+//  photos lightly tinted rather than washed dark
 // ─────────────────────────────────────────────
 
 .category-row {
@@ -166,65 +190,111 @@ body {
 
 .category-card {
   position: relative;
-  height: 360px;
-  border-radius: 22px;
+  height: 380px;
+  border-radius: 20px;
   display: flex;
   align-items: flex-end;
   color: $ink;
   cursor: pointer;
   overflow: hidden;
   border: 1px solid $border;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  background: linear-gradient(155deg, $vast-desert 0%, $grain-brown 100%);
+  box-shadow: 0 12px 28px rgba(63, 72, 41, 0.16);
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease, border-color 0.3s ease;
+
+  // a light, even tint over every photo — enough to unify the palette
+  // without turning the image into a green background
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(195deg, rgba(87, 99, 58, 0.14) 0%, rgba(87, 99, 58, 0.06) 45%, rgba(87, 99, 58, 0.22) 100%);
+    mix-blend-mode: multiply;
+    opacity: 1;
+    transition: opacity 0.45s ease;
+    z-index: 1;
+    pointer-events: none;
+  }
 
   &:hover {
     transform: translateY(-10px) scale(1.015);
-    border-color: $border-strong;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.11);
+    border-color: $tinny-tin;
+    box-shadow: 0 26px 52px rgba(63, 72, 41, 0.26);
 
+    &::before { opacity: 1.3; }
     .card-shimmer { opacity: 1; transform: translateX(100%); }
-    .card-bg { transform: scale(1.06); }
+    .card-bg { transform: scale(1.07); }
     .card-border-glow { opacity: 1; }
-    .btn-enter .btn-arrow { transform: translateX(4px); }
+    .card-tag { background: $tinny-tin; color: $paper; }
+    .btn-enter:not(.btn-soon) {
+      background: $tinny-tin;
+      border-color: $tinny-tin;
+      color: $paper;
+
+      .btn-arrow { transform: translateX(4px); }
+    }
   }
 }
+
+// Boutique-style ribbon tag — biscuit chip, green letters.
+.card-tag {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 3;
+  background: $paper;
+  color: $tinny-tin;
+  font-family: $font-mono;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 100px;
+  box-shadow: 0 6px 16px rgba(63, 72, 41, 0.2);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.zulu   .card-tag::before { content: '01 · Signature'; }
+.pooboo .card-tag::before { content: '02 · Kids'; }
+.aurum  .card-tag::before { content: '03 · Jewelry'; }
 
 .card-bg {
   position: absolute;
   inset: 0;
+  z-index: 0;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
-// Brand-tint gradients now use rgba (not opaque hex) so the photo underneath
-// still shows through — the gradient just washes it in the brand color and
-// keeps the card-content text legible.
 .zulu .card-bg {
-  background-image:
-    radial-gradient(ellipse at 70% 15%, rgba(126, 127, 123, 0) 0%, transparent 100%),
-    linear-gradient(155deg, rgba(234, 228, 251, 0) 0%, rgba(212, 205, 245, 0) 0%),
-    url('/assets/images/zulu-model2.jpg');
-    // background-size: contain;
+  background-image: url('/assets/images/zulu-model2.jpg');
 }
 .pooboo .card-bg {
-  background-image:
-    radial-gradient(ellipse at 30% 15%, rgba(214, 58, 138, 0) 0%, transparent 100%),
-    linear-gradient(155deg, rgba(253, 232, 242, 0) 0%, rgba(251, 208, 232, 0) 100%),
-    url('/assets/images/pooboo-model.jpeg');
+  background-image: url('/assets/images/pooboo-model.jpeg');
 }
+
+// Aurum has no live photography yet — a biscuit weave pattern instead
+// of an empty box, so the "coming soon" state looks designed.
 .aurum .card-bg {
   background-image:
-    radial-gradient(ellipse at 60% 15%, rgba(168, 132, 58, 0.18) 0%, transparent 55%),
-    linear-gradient(155deg, rgba(253, 243, 224, 0.6) 0%, rgba(248, 228, 190, 0.6) 100%),
-    url('/assets/images/cards/aurum-card-bg.jpg');
+    repeating-linear-gradient(45deg, rgba(87,99,58,0.07) 0px, rgba(87,99,58,0.07) 2px, transparent 2px, transparent 16px),
+    radial-gradient(ellipse at 50% 35%, rgba(87, 99, 58, 0.1) 0%, transparent 60%),
+    linear-gradient(160deg, $grain-brown 0%, $vast-desert 100%);
+}
+.aurum {
+  border: 1.5px dashed $border-strong;
+
+  &::before { background: linear-gradient(195deg, rgba(87, 99, 58, 0.08) 0%, rgba(87, 99, 58, 0.04) 45%, rgba(87, 99, 58, 0.16) 100%); }
+
+  .card-icon { font-size: 2.1rem; opacity: 0.9; }
 }
 
 .card-shimmer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.4) 48%, rgba(87, 99, 58, 0.16) 55%, transparent 70%);
   opacity: 0;
   transform: translateX(-100%);
   transition: transform 0.7s ease, opacity 0.1s ease;
@@ -235,39 +305,40 @@ body {
 .card-border-glow {
   position: absolute;
   inset: 0;
-  border-radius: 22px;
+  border-radius: 20px;
   opacity: 0;
   transition: opacity 0.4s ease;
   pointer-events: none;
   z-index: 4;
+  box-shadow: inset 0 0 0 1.5px rgba(87, 99, 58, 0.55), inset 0 0 30px rgba(87, 99, 58, 0.14);
 }
 
-.zulu    .card-border-glow { box-shadow: inset 0 0 30px rgba(91, 63, 196, 0.12); }
-.pooboo  .card-border-glow { box-shadow: inset 0 0 30px rgba(214, 58, 138, 0.12); }
-.aurum   .card-border-glow { box-shadow: inset 0 0 30px rgba(168, 132, 58, 0.12); }
-
+// Text block sits on a biscuit scrim (not a dark photo wash) so the
+// green letters stay legible and the background rule stays consistent.
 .card-content {
   position: relative;
   z-index: 2;
-  padding: 28px;
+  padding: 26px 28px;
   width: 100%;
-  padding-top: 80px;
-  background: linear-gradient(to top, rgba(255,255,255,0.7) 0%, transparent 100%);
+  padding-top: 90px;
+  background: linear-gradient(to top, rgba(250, 246, 238, 0.92) 0%, rgba(250, 246, 238, 0.6) 55%, transparent 100%);
 }
 
-.card-icon { font-size: 1.5rem; margin-bottom: 10px; display: block; }
+.card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+  display: block;
+  color: $tinny-tin;
+}
 
 .card-content h3 {
   font-family: $font-display;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 600;
   margin-bottom: 5px;
   letter-spacing: -0.01em;
+  color: $tinny-tin-deep;
 }
-
-.zulu    .card-content h3 { color: $zulu-text; }
-.pooboo  .card-content h3 { color: $pooboo-text; }
-.aurum   .card-content h3 { color: $aurum-text; }
 
 .card-content p {
   font-size: 0.75rem;
@@ -282,23 +353,23 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255,255,255,0.75);
-  border: 1px solid $border-strong;
-  color: $ink-soft;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid $tinny-tin;
+  color: $tinny-tin;
   padding: 8px 18px;
   border-radius: 100px;
   font-size: 0.78rem;
   font-family: $font-body;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
   backdrop-filter: blur(10px);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 
   .btn-arrow { width: 13px; height: 13px; transition: transform 0.3s ease; }
 
-  &:hover { background: rgba(255,255,255,0.95); box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
-  &.btn-soon { background: $gold-dim; border-color: rgba(168,132,58,0.3); color: $gold; }
+  &:hover { box-shadow: 0 8px 18px rgba(63, 72, 41, 0.22); }
+  &.btn-soon { background: rgba(202, 176, 149, 0.4); border-color: $border-strong; color: $muted; cursor: not-allowed; }
 }
 
 // ─────────────────────────────────────────────
@@ -311,12 +382,12 @@ body {
   align-items: center;
   gap: 10px;
   margin-top: 52px;
-  opacity: 0.45;
+  opacity: 0.65;
   font-family: $font-mono;
   font-size: 0.62rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: $muted;
+  color: $tinny-tin;
   animation: fadeIn 1.2s ease both;
   animation-delay: 1.4s;
 }
@@ -324,7 +395,7 @@ body {
 .scroll-line {
   width: 1px;
   height: 38px;
-  background: linear-gradient(to bottom, $muted, transparent);
+  background: linear-gradient(to bottom, $tinny-tin, transparent);
   animation: scrollPulse 2s ease-in-out infinite;
 }
 
@@ -334,19 +405,35 @@ body {
 }
 
 // ─────────────────────────────────────────────
-//  BRAND STORIES
+//  BRAND STORIES — biscuit backgrounds throughout,
+//  green type carries all the hierarchy
 // ─────────────────────────────────────────────
 
-.brand-stories { background: $bg-base; padding-bottom: 80px; }
+.brand-stories {
+  background: $grain-brown;
+  padding-bottom: 80px;
+  position: relative;
 
-.stories-header { text-align: center; padding: 100px 20px 60px; }
+  &::before {
+    content: '';
+    display: block;
+    height: 46px;
+    background: $grain-brown;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40'%3E%3Cg fill='none' stroke='%2357633a' stroke-width='1.6' stroke-linecap='round' opacity='0.55'%3E%3Cpath d='M10 20 H80'/%3E%3Cpath d='M120 20 H190'/%3E%3Cellipse cx='100' cy='20' rx='9' ry='5'/%3E%3Cellipse cx='92' cy='14' rx='7' ry='4' transform='rotate(-30 92 14)'/%3E%3Cellipse cx='108' cy='14' rx='7' ry='4' transform='rotate(30 108 14)'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 160px 32px;
+  }
+}
+
+.stories-header { text-align: center; padding: 70px 20px 60px; background: $grain-brown; }
 
 .section-title {
   font-family: $font-display;
   font-size: clamp(2.2rem, 4vw, 3.6rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: $ink;
+  color: $tinny-tin-deep;
   margin-bottom: 16px;
 }
 
@@ -360,19 +447,21 @@ body {
 }
 
 .brand-story {
-  padding: 80px 0;
+  padding: 84px 0;
   position: relative;
   overflow: hidden;
+  background: $grain-brown;
 
-  &:nth-child(even) { background: $bg-surface; }
+  // alternate the two biscuit tones only — green never fills a section
+  &:nth-child(even) { background: $vast-desert; }
 
   &::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
-  &.brand-zulu::before   { background: radial-gradient(ellipse at 10% 60%, rgba(91, 63, 196, 0.05), transparent 55%); }
-  &.brand-pooboo::before { background: radial-gradient(ellipse at 90% 40%, rgba(214, 58, 138, 0.05), transparent 55%); }
-  &.brand-aurum::before  { background: radial-gradient(ellipse at 10% 40%, rgba(168, 132, 58, 0.06), transparent 55%); }
+  &.brand-zulu::before   { background: radial-gradient(ellipse at 10% 60%, rgba(255, 255, 255, 0.3), transparent 55%); }
+  &.brand-pooboo::before { background: radial-gradient(ellipse at 90% 40%, rgba(255, 255, 255, 0.28), transparent 55%); }
+  &.brand-aurum::before  { background: radial-gradient(ellipse at 10% 40%, rgba(255, 255, 255, 0.32), transparent 55%); }
 }
 
-.story-text { padding: 20px 32px; }
+.story-text { padding: 20px 32px; position: relative; z-index: 1; }
 
 .brand-tag {
   font-family: $font-mono;
@@ -380,12 +469,12 @@ body {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   margin-bottom: 18px;
-  display: block;
+  display: inline-block;
+  color: $tinny-tin;
+  background: $paper;
+  padding: 5px 14px;
+  border-radius: 100px;
 }
-
-.brand-zulu   .brand-tag { color: $zulu-accent; }
-.brand-pooboo .brand-tag { color: $pooboo-accent; }
-.brand-aurum  .brand-tag { color: $aurum-accent; }
 
 .story-text h3 {
   font-family: $font-display;
@@ -393,7 +482,7 @@ body {
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: $ink;
+  color: $tinny-tin-deep;
   margin-bottom: 18px;
 }
 
@@ -403,44 +492,41 @@ body {
   display: inline-flex;
   align-items: center;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
+  color: $tinny-tin;
 
-  .story-link-line { display: inline-block; width: 22px; height: 1px; margin-left: 10px; transition: width 0.3s ease; }
-  &:hover .story-link-line { width: 40px; }
+  .story-link-line { display: inline-block; width: 22px; height: 1px; margin-left: 10px; transition: width 0.3s ease, background 0.3s ease; background: $tinny-tin; }
+  &:hover { color: $tinny-tin-deep; .story-link-line { width: 40px; background: $tinny-tin-deep; } }
+
+  &.soon-link { color: $muted; .story-link-line { background: $muted; } }
 }
 
-.brand-zulu   .story-link { color: $zulu-accent;   .story-link-line { background: $zulu-accent; } }
-.brand-pooboo .story-link { color: $pooboo-accent; .story-link-line { background: $pooboo-accent; } }
-.brand-aurum  .story-link { color: $aurum-accent;  .story-link-line { background: $aurum-accent; } }
-
-.story-visual { padding: 20px; }
+.story-visual { padding: 20px; position: relative; z-index: 1; }
 
 .story-img-frame { position: relative; display: inline-block; width: 100%; }
 
 .story-img { border-radius: 16px; display: block; width: 100%; object-fit: cover; aspect-ratio: 4/3; position: relative; z-index: 1; }
 
-.frame-accent { position: absolute; width: 26px; height: 26px; z-index: 2; }
-.frame-accent-tl { top: -7px; left: -7px; border-top: 2px solid; border-left: 2px solid; border-radius: 3px 0 0 0; }
-.frame-accent-br { bottom: -7px; right: -7px; border-bottom: 2px solid; border-right: 2px solid; border-radius: 0 0 3px 0; }
+.frame-accent { position: absolute; width: 28px; height: 28px; z-index: 2; border-color: $tinny-tin; }
+.frame-accent-tl { top: -8px; left: -8px; border-top: 2.5px solid; border-left: 2.5px solid; border-radius: 3px 0 0 0; }
+.frame-accent-br { bottom: -8px; right: -8px; border-bottom: 2.5px solid; border-right: 2.5px solid; border-radius: 0 0 3px 0; }
 
-.zulu-frame    { box-shadow: 0 24px 60px rgba(91,63,196,0.13), 0 6px 18px rgba(0,0,0,0.05);   .frame-accent { border-color: $zulu-accent; } }
-.pooboo-frame  { box-shadow: 0 24px 60px rgba(214,58,138,0.13), 0 6px 18px rgba(0,0,0,0.05); .frame-accent { border-color: $pooboo-accent; } }
-.aurum-frame   { box-shadow: 0 24px 60px rgba(168,132,58,0.13), 0 6px 18px rgba(0,0,0,0.05); .frame-accent { border-color: $aurum-accent; } }
+.zulu-frame,
+.pooboo-frame,
+.aurum-frame {
+  box-shadow: 0 22px 50px rgba(63, 72, 41, 0.18), 0 6px 18px rgba(63, 72, 41, 0.08);
+}
 
-// Zulu and Pooboo story images are logo/wordmark graphics, not photos —
-// "cover" was cropping them off-center because the logo isn't centered
-// inside its own source canvas. "contain" + fixed padding shows the full
-// logo with a genuinely equal gap on all four sides, whatever the source
-// image's shape happens to be. Aurum keeps "cover" since its story image
-// is a real photo, not a logo.
+// Zulu and Pooboo story images are logo/wordmark graphics — mat them on
+// the paper cream so linework logos stay crisp against the biscuit page.
 .zulu-frame .story-img,
 .pooboo-frame .story-img {
   object-fit: contain;
   object-position: center;
-  background: $bg-surface;
+  background: $paper;
   padding: 32px;
   box-sizing: border-box;
 }
@@ -451,7 +537,7 @@ body {
 
 @keyframes fadeInUp   { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn     { from { opacity: 0; } to { opacity: 0.45; } }
+@keyframes fadeIn     { from { opacity: 0; } to { opacity: 0.65; } }
 
 // ─────────────────────────────────────────────
 //  RESPONSIVE
@@ -459,9 +545,17 @@ body {
 
 @media (max-width: 768px) {
   .title { font-size: 2.5rem; }
-  .category-card { height: 300px; }
+  .category-card { height: 320px; }
   .brand-story { padding: 56px 0; }
   .story-text h3 { font-size: 1.8rem; }
   .story-text { padding: 20px 12px; margin-bottom: 24px; }
   .scroll-indicator { display: none; }
+  .gradient-mesh { background-size: auto, auto, 560px 560px, auto; }
+}
+
+@media (max-width: 480px) {
+  .category-card { height: 280px; }
+  .card-content { padding: 22px; padding-top: 68px; }
+  .btn-enter { padding: 7px 15px; font-size: 0.72rem; }
+  .eyebrow-label { padding: 8px 16px; }
 }

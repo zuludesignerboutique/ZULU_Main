@@ -159,6 +159,46 @@
           Enquire on WhatsApp
         </a>
 
+        <!-- Customization -->
+        <div class="customize-wrap">
+          <button
+            class="btn-customize"
+            (click)="onCustomizeClick()"
+            type="button"
+            aria-label="Request customization for this product"
+            aria-describedby="customize-tooltip"
+            [attr.aria-expanded]="customizeTooltipOpen"
+          >
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v4"/>
+                <path d="M12 17v4"/>
+                <path d="M3 12h4"/>
+                <path d="M17 12h4"/>
+                <path d="M7.8 7.8l2.8 2.8"/>
+                <path d="M13.4 13.4l2.8 2.8"/>
+                <path d="M7.8 16.2l2.8-2.8"/>
+                <path d="M13.4 10.6l2.8-2.8"/>
+              </svg>
+            </span>
+            Customization
+          </button>
+
+          <!-- Hover / tap tooltip -->
+          <div class="customize-tooltip" id="customize-tooltip" [class.open]="customizeTooltipOpen">
+            <span class="tooltip-arrow"></span>
+            <p class="tooltip-title">Customize Your Look</p>
+            <p class="tooltip-text">
+              Want something different? We can help customize the design, fit, size,
+              color, fabric, or other available details based on your requirements.
+              Contact us to discuss your customization.
+            </p>
+            <button class="tooltip-cta" (click)="openCustomization()" type="button">
+              Continue to WhatsApp →
+            </button>
+          </div>
+        </div>
+
         <div class="action-row">
           <button
             class="btn-cart"
@@ -319,7 +359,7 @@
       <p class="popup-total">₹{{ cartTotal | number }}</p>
       <p class="popup-count">{{ cartCount }} item{{ cartCount !== 1 ? 's' : '' }} in cart</p>
       <div class="popup-actions">
-        <a routerLink="/cart" class="popup-btn-cart" (click)="showCartPopup = false">
+        <a routerLink="/dashboard/cart" class="popup-btn-cart" (click)="showCartPopup = false">
           Go to Cart
         </a>
         <button class="popup-btn-continue" (click)="showCartPopup = false">

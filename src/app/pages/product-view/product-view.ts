@@ -41,6 +41,12 @@ export class ProductView implements OnInit, OnDestroy {
   shareMenuOpen: boolean = false;
   linkCopied: boolean = false;
 
+  // ── Customization ────────────────────────────────
+  readonly WHATSAPP_NUMBER = '919292830608';
+  customerName: string = '';
+  isHoverDevice: boolean = true;
+  customizeTooltipOpen: boolean = false;
+
   imageBase: string = '/uploads/';
 
   // ── Gallery (multi-image support) ───────────────
@@ -68,8 +74,12 @@ export class ProductView implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    if (isPlatformBrowser(this.platformId) && typeof window.matchMedia === 'function') {
+      this.isHoverDevice = window.matchMedia('(hover: hover)').matches;
+    }
     if (this.auth.isLoggedIn()) {
       this.wishlistService.ensureLoaded();
+      this.loadCustomerName();
     }
     this.wishlistService.items$
       .pipe(takeUntil(this.destroy$))
@@ -106,12 +116,15 @@ export class ProductView implements OnInit, OnDestroy {
     this.fetchProduct(id);
   }
 
-  // ── Close share menu on outside click ────────────
+  // ── Close share menu / customize tooltip on outside click ──
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (!target.closest('.share-btn') && !target.closest('.share-menu')) {
       this.shareMenuOpen = false;
+    }
+    if (!target.closest('.customize-wrap')) {
+      this.customizeTooltipOpen = false;
     }
   }
 
@@ -141,6 +154,21 @@ export class ProductView implements OnInit, OnDestroy {
     } catch {
       return null;
     }
+  }
+
+  // ── Customer name (for WhatsApp customization) ──
+  // Fetched once on page load (never on click) so the user-gesture → window.open
+  // window stays intact on mobile — an async fetch between tap and open would
+  // otherwise be blocked as a popup.
+  private loadCustomerName() {
+    this.http.get<any>('/api/users/me')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          if (user?.name) this.customerName = user.name;
+        },
+        error: () => {}
+      });
   }
 
   // ── API ──────────────────────────────────────────
@@ -392,6 +420,60 @@ export class ProductView implements OnInit, OnDestroy {
     const size = this.selectedSize ? ` | Size: ${this.selectedSize}` : '';
     const msg = `Hi! I'm interested in ${name}${code} ${price}${size}. Please share more details.`;
     return `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  }
+
+  // ── WhatsApp Customization ───────────────────────
+
+  getProductUrl(): string {
+    return isPlatformBrowser(this.platformId) ? window.location.href : '';
+  }
+
+  getCustomizationWhatsappLink(): string {
+    const name = this.product?.name?.trim() || 'this product';
+    const code = this.product?.product_code?.trim() || '';
+
+    const lines = [
+      `Hello ZULU,`,
+      `I would like to customize this product.`,
+      ``,
+      `*Customer Name:* ${this.customerName || this.auth.getUserEmail()}`,
+      `*Product Name:* ${name}`,
+    ];
+    if (code) lines.push(`*Product Code:* ${code}`);
+    lines.push(
+      `*Product Link:* ${this.getProductUrl()}`,
+      ``,
+      `Please let me know the available customization options and details.`
+    );
+
+    const text = encodeURIComponent(lines.join('\n'));
+    return `https://wa.me/${this.WHATSAPP_NUMBER}?text=${text}`;
+  }
+
+  onCustomizeClick(): void {
+    // Not logged in — follow the existing ZULU auth flow and return here after login
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: { redirect: this.router.url }
+      });
+      return;
+    }
+
+    // Touch devices have no hover — first tap reveals the tooltip, a second tap
+    // (or the "Continue to WhatsApp" link inside it) opens WhatsApp.
+    if (!this.isHoverDevice) {
+      this.customizeTooltipOpen = !this.customizeTooltipOpen;
+      return;
+    }
+
+    this.openCustomization();
+  }
+
+  openCustomization(): void {
+    this.customizeTooltipOpen = false;
+    if (isPlatformBrowser(this.platformId)) {
+      window.open(this.getCustomizationWhatsappLink(), '_blank');
+    }
   }
 
   // ── Colour helper ─────────────────────────────────

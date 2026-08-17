@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, ActivatedRoute, convertToParamMap, ParamMap } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import { Reviews } from './reviews';
 import { ReviewService } from '../../services/review.service';
@@ -9,6 +11,8 @@ import { Review } from '../../core/models/review.model';
 describe('Reviews', () => {
   let component: Reviews;
   let fixture: ComponentFixture<Reviews>;
+  let router: Router;
+  let routeSnapshot: { queryParamMap: ParamMap };
 
   const mockReviews: Review[] = [
     { id: 1, customerId: 1, customerName: 'Alice', customerEmail: 'alice@test.com', rating: 5, title: 'Great!', body: 'Loved the quality.', brand: 'zulu', isVisible: true, createdAt: new Date() },
@@ -17,6 +21,8 @@ describe('Reviews', () => {
   ];
 
   beforeEach(async () => {
+    routeSnapshot = { queryParamMap: convertToParamMap({}) };
+
     await TestBed.configureTestingModule({
       imports: [Reviews, RouterTestingModule],
       providers: [
@@ -26,13 +32,15 @@ describe('Reviews', () => {
             getAllReviews: () => of(mockReviews),
             submitReview: () => of(mockReviews[0])
           }
-        }
+        },
+        { provide: ActivatedRoute, useValue: { snapshot: routeSnapshot } }
       ]
     })
     .compileComponents();
 
     fixture = TestBed.createComponent(Reviews);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
     await fixture.whenStable();
   });
 
@@ -64,5 +72,25 @@ describe('Reviews', () => {
     component.currentIndex = 1;
     component.nextSlide();
     expect(component.currentIndex).toBe(0);
+  });
+
+  it('should send the user to login with the redirect param preserving the review query', () => {
+    const navigateSpy = vi.spyOn(router, 'navigate');
+
+    // Simulate arriving via a deep-link so the route carries the query params
+    routeSnapshot.queryParamMap = convertToParamMap({
+      brand: 'pooboo',
+      productId: '12',
+      productName: 'Floral Frock',
+      write: '1'
+    });
+
+    component.goToLogin();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/login'], {
+      queryParams: {
+        redirect: '/reviews?brand=pooboo&productId=12&productName=Floral%20Frock&write=1'
+      }
+    });
   });
 });

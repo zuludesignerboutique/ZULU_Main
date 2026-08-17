@@ -713,6 +713,136 @@
     gap: 14px;
   }
 
+  // ── CUSTOMIZATION BUTTON + TOOLTIP ──────────────
+  .customize-wrap {
+    position: relative;
+  }
+
+  .btn-customize {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 24px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid rgba(200, 169, 110, 0.45);
+    border-radius: var(--radius);
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      background .3s var(--ease),
+      color .3s var(--ease),
+      border-color .3s var(--ease),
+      transform .3s var(--ease),
+      box-shadow .3s var(--ease);
+
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      opacity: .9;
+    }
+
+    &:hover {
+      background: var(--gold);
+      color: var(--ink);
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px var(--gold-glow);
+    }
+
+    &:active { transform: translateY(0); }
+  }
+
+  .customize-tooltip {
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 0;
+    right: 0;
+    z-index: 600;
+    background: var(--ink-soft);
+    border: 1px solid rgba(200, 169, 110, 0.3);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+    text-align: left;
+
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity .25s var(--ease), transform .25s var(--ease);
+
+    .tooltip-arrow {
+      position: absolute;
+      bottom: -7px;
+      left: 32px;
+      width: 12px;
+      height: 12px;
+      background: var(--ink-soft);
+      border-right: 1px solid rgba(200, 169, 110, 0.3);
+      border-bottom: 1px solid rgba(200, 169, 110, 0.3);
+      transform: rotate(45deg);
+    }
+
+    .tooltip-title {
+      margin: 0 0 8px;
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 500;
+      font-style: italic;
+      color: var(--gold);
+      letter-spacing: .01em;
+    }
+
+    .tooltip-text {
+      margin: 0 0 14px;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .tooltip-cta {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--ink);
+      border: none;
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+
+      &:hover {
+        background: var(--gold);
+        transform: translateY(-1px);
+      }
+    }
+
+    // Hover (desktop) + keyboard focus
+    .customize-wrap:hover &,
+    .customize-wrap:focus-within &,
+    &.open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+
+    @media (max-width: 900px) {
+      left: auto;
+      right: 0;
+      max-width: min(320px, calc(100vw - 64px));
+    }
+  }
+
   .btn-cart {
     flex: 1;
     min-width: 180px;

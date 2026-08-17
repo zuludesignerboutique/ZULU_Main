@@ -22,4 +22,12 @@ describe('Header', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should toggle mobile nav open state', () => {
+    expect(component.mobileNavOpen).toBeFalsy();
+    component.toggleMobileNav();
+    expect(component.mobileNavOpen).toBeTruthy();
+    component.toggleMobileNav();
+    expect(component.mobileNavOpen).toBeFalsy();
+  });
 });

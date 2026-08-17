@@ -24,6 +24,11 @@ export class Gallery implements OnInit, OnDestroy {
   /** Lightbox — null means closed */
   lightboxIndex: number | null = null;
 
+  /** Re-triggers the slide/fade transition each time the user navigates. */
+  transitioning = false;
+
+  private transitionTimer: ReturnType<typeof setTimeout> | null = null;
+
   readonly skeletons = Array(8);
 
   private destroy$ = new Subject<void>();
@@ -74,6 +79,7 @@ export class Gallery implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearTransition();
   }
 
   // ══════════════════════════════════════════════
@@ -91,17 +97,54 @@ export class Gallery implements OnInit, OnDestroy {
   openLightbox(index: number): void {
     this.lightboxIndex = index;
     document.body.style.overflow = 'hidden';
+    this.retriggerTransition();
   }
 
   closeLightbox(): void {
     this.lightboxIndex = null;
     document.body.style.overflow = '';
+    this.clearTransition();
   }
 
   lightboxStep(dir: 1 | -1): void {
     if (this.lightboxIndex === null) return;
     this.lightboxIndex =
       (this.lightboxIndex + dir + this.images.length) % this.images.length;
+    this.retriggerTransition();
+  }
+
+  /** The image currently shown in the presentation. */
+  get currentImage(): GalleryImage | null {
+    if (this.lightboxIndex === null || !this.images.length) return null;
+    return this.images[this.lightboxIndex];
+  }
+
+  /** Zero-padded position label, e.g. "01". */
+  get currentNumber(): string {
+    const n = (this.lightboxIndex ?? 0) + 1;
+    return String(n).padStart(2, '0');
+  }
+
+  get totalCount(): number {
+    return this.images.length;
+  }
+
+  // ── Transition helper ─────────────────────────
+  // Toggles a class on/off on the next tick so the CSS animation replays
+  // cleanly on every navigation, instead of only on the first open.
+  private retriggerTransition(): void {
+    this.clearTransition();
+    this.transitioning = false;
+    this.transitionTimer = setTimeout(() => {
+      this.transitioning = true;
+    }, 10);
+  }
+
+  private clearTransition(): void {
+    if (this.transitionTimer !== null) {
+      clearTimeout(this.transitionTimer);
+      this.transitionTimer = null;
+    }
   }
 
   // Keyboard navigation

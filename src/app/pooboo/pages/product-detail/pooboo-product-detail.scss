@@ -331,4 +331,32 @@ $soft-bg: #FFF8F5;
 
     &:active { transform: translateY(0); }
   }
+
+  // ── Write review (quiet pill, matches .btn-back / .tag treatment) ──
+  .btn-write-review {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 16px auto 0;
+    padding: 9px 20px;
+    width: fit-content;
+    background: $white;
+    border: 1.5px solid rgba($dark, 0.08);
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: #777;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+    &:hover {
+      border-color: $coral;
+      color: $coral;
+    }
+
+    &:active { transform: translateY(1px); }
+  }
 }

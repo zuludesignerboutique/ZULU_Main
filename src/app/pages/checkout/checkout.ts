@@ -81,7 +81,7 @@ export class Checkout implements OnInit, AfterViewInit {
     this.cartItems = this.cart.getCheckoutItems();
 
     if (this.cartItems.length === 0) {
-      this.router.navigate(['/cart']);
+      this.router.navigate(['/dashboard/cart']);
     }
   }
 

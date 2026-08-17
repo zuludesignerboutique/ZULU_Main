@@ -29,6 +29,7 @@
       <div class="overlay">
         <span class="overlay-zoom">⊕</span>
         <span class="overlay-title">{{ img.title }}</span>
+        <span class="overlay-desc" *ngIf="img.description">{{ img.description }}</span>
       </div>
 
     </div>
@@ -43,7 +44,7 @@
 
 </section>
 
-<!-- LIGHTBOX -->
+<!-- LIGHTBOX — PowerPoint-style presentation -->
 <div
   class="lightbox-backdrop"
   *ngIf="lightboxIndex !== null"
@@ -51,21 +52,29 @@
   (keydown.escape)="closeLightbox()"
 >
 
-  <div class="lightbox-inner" (click)="$event.stopPropagation()">
+  <div class="presentation" (click)="$event.stopPropagation()">
 
     <button class="lightbox-close" (click)="closeLightbox()">✕</button>
 
-    <button class="lightbox-nav prev" (click)="lightboxStep(-1)">‹</button>
+    <button class="lightbox-nav prev" (click)="lightboxStep(-1)" aria-label="Previous image">‹</button>
 
-    <img
-      [src]="images[lightboxIndex!].imageUrl"
-      [alt]="images[lightboxIndex!].title"
-    >
+    <!-- LEFT — large image -->
+    <div class="presentation-media" [class.animating]="transitioning">
+      <img
+        [src]="currentImage!.imageUrl"
+        [alt]="currentImage!.title"
+      >
+    </div>
 
-    <span class="lightbox-title">{{ images[lightboxIndex!].title }}</span>
-    <span style="color: rgba(255, 255, 255, 0.783);" class="lightbox-desc" *ngIf="images[lightboxIndex!].description">{{ images[lightboxIndex!].description }}</span>
+    <!-- RIGHT — title, description, counter -->
+    <div class="presentation-content" [class.animating]="transitioning">
+      <span class="presentation-eyebrow">Gallery</span>
+      <h2 class="presentation-title">{{ currentImage!.title }}</h2>
+      <p class="presentation-desc" *ngIf="currentImage!.description">{{ currentImage!.description }}</p>
+      <div class="presentation-counter">{{ currentNumber }} / {{ totalCount }}</div>
+    </div>
 
-    <button class="lightbox-nav next" (click)="lightboxStep(1)">›</button>
+    <button class="lightbox-nav next" (click)="lightboxStep(1)" aria-label="Next image">›</button>
 
   </div>
 

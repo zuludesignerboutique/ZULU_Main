@@ -43,10 +43,10 @@ export const routes: Routes = [
   { path: 'categories',       component: Categories },
   { path: 'categories/:type', component: SubcategoriesComponent },
 
-  { path: 'cart',          component: CartComponent,         canActivate: [authGuard] },
-  { path: 'wishlist',      component: Wishlist,              canActivate: [authGuard] },
+  { path: 'cart',          redirectTo: '/dashboard/cart',          pathMatch: 'full' },
+  { path: 'wishlist',      redirectTo: '/dashboard/wishlist',      pathMatch: 'full' },
   { path: 'checkout',      component: Checkout,              canActivate: [authGuard] },
-  { path: 'order-history', component: OrderHistoryComponent, canActivate: [authGuard] },
+  { path: 'order-history', redirectTo: '/dashboard/order-history', pathMatch: 'full' },
   { path: 'order-success', component: OrderSuccessComponent },
   {
     path: 'dashboard',

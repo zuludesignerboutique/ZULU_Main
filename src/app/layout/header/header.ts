@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 export class Header {
 
   menuOpen = false;
+  mobileNavOpen = false;
 
   constructor(public auth: AuthService, private router: Router) {}
 
@@ -25,17 +26,25 @@ export class Header {
     this.menuOpen = !this.menuOpen;
   }
 
-  // Close dropdown when clicking anywhere outside
+  toggleMobileNav() {
+    this.mobileNavOpen = !this.mobileNavOpen;
+  }
+
+  // Close dropdown / mobile nav when clicking anywhere outside
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (!target.closest('.user-menu-wrap')) {
       this.menuOpen = false;
     }
+    if (!target.closest('.mobile-nav-wrap') && !target.closest('.hamburger-btn')) {
+      this.mobileNavOpen = false;
+    }
   }
 
   logout() {
     this.menuOpen = false;
+    this.mobileNavOpen = false;
     this.auth.logout();
     this.router.navigateByUrl('/login');
   }

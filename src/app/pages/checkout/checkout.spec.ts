@@ -13,7 +13,7 @@ describe('Checkout', () => {
       imports: [
         Checkout,
         RouterTestingModule.withRoutes([
-          { path: 'cart', component: Checkout }
+          { path: 'dashboard/cart', component: Checkout }
         ])
       ]
     })

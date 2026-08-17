@@ -102,6 +102,7 @@
     img       { transform: scale(1.06); }
     .overlay  { opacity: 1; }
     .overlay-title { transform: translateY(0); opacity: 1; }
+    .overlay-desc  { transform: translateY(0); opacity: 1; }
   }
 }
 
@@ -130,6 +131,23 @@
   transform: translateY(8px);
   opacity: 0;
   transition: transform .4s var(--ease) .05s, opacity .4s var(--ease) .05s;
+}
+
+.overlay-desc {
+  margin-top: 4px;
+  font-family: 'Tenor Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: .02em;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.72);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transform: translateY(8px);
+  opacity: 0;
+  transition: transform .4s var(--ease) .1s, opacity .4s var(--ease) .1s;
 }
 
 .overlay-zoom {
@@ -170,7 +188,7 @@
   }
 }
 
-// ── LIGHTBOX ─────────────────────────────────────
+// ── PRESENTATION (PowerPoint-style slide) ──────
 .lightbox-backdrop {
   position: fixed;
   inset: 0;
@@ -184,41 +202,120 @@
   backdrop-filter: blur(6px);
 }
 
-.lightbox-inner {
+.presentation {
   position: relative;
-  width: fit-content;
-  max-width: calc(100vw - 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 48px;
+  width: min(1100px, calc(100vw - 48px));
+  min-height: min(640px, 86vh);
   max-height: 90vh;
-  display: flex;
-  flex-direction: column;
   align-items: center;
+  padding: 40px 72px;
 
-  img {
-    // Fixed viewing frame — every photo renders at the same size and
-    // letterboxes to fit, so the modal doesn't resize as you click through
-    width: min(560px, calc(100vw - 48px));
-    height: min(700px, 75vh);
-    object-fit: contain;
-    display: block;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
-    animation: zoomIn .3s var(--ease);
+  // ── Left: large image ──
+  .presentation-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+
+    img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      display: block;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+      border-radius: 4px;
+    }
   }
 
-  .lightbox-title {
-    font-family: 'Bodoni Moda', serif;
-    font-size: 18px;
-    font-weight: 300;
-    font-style: italic;
-    color: rgba(255,255,255,0.7);
-    margin-top: 18px;
-    letter-spacing: .04em;
+  // ── Right: title, description, counter ──
+  .presentation-content {
+    min-width: 0;
+    align-self: center;
+
+    .presentation-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Tenor Sans', sans-serif;
+      font-size: 10px;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 18px;
+
+      &::before {
+        content: '';
+        width: 28px;
+        height: 1px;
+        background: var(--gold);
+      }
+    }
+
+    .presentation-title {
+      font-family: 'Bodoni Moda', serif;
+      font-size: clamp(26px, 3.4vw, 42px);
+      font-weight: 300;
+      font-style: italic;
+      color: #fff;
+      line-height: 1.15;
+      margin: 0 0 18px;
+    }
+
+    .presentation-desc {
+      font-family: 'Tenor Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.72);
+      margin: 0 0 40px;
+    }
+
+    .presentation-counter {
+      font-family: 'Tenor Sans', sans-serif;
+      font-size: 12px;
+      letter-spacing: .18em;
+      color: rgba(255,255,255,0.45);
+    }
+  }
+
+  // ── Transition replay ──
+  .animating img {
+    animation: slideFade .5s var(--ease);
+  }
+  .animating .presentation-content {
+    animation: slideFade .5s var(--ease);
+  }
+
+  // ── Mobile: stack vertically ──
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    width: calc(100vw - 40px);
+    padding: 48px 20px;
+    min-height: auto;
+    max-height: 92vh;
+    overflow-y: auto;
+
+    .presentation-media img {
+      max-height: 48vh;
+    }
+
+    .presentation-content {
+      text-align: left;
+
+      .presentation-desc { margin-bottom: 24px; }
+    }
   }
 }
 
 .lightbox-close {
   position: absolute;
-  top: -48px;
-  right: 0;
+  top: 18px;
+  right: 18px;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.25);
   color: rgba(255,255,255,0.6);
@@ -231,6 +328,7 @@
   cursor: pointer;
   transition: all .2s;
   line-height: 1;
+  z-index: 2;
 
   &:hover {
     border-color: var(--gold);
@@ -250,13 +348,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
   transition: all .25s;
+  z-index: 2;
 
   &:hover { border-color: var(--gold); color: var(--gold); }
-  &.prev  { left: -60px;  }
-  &.next  { right: -60px; }
+  &.prev  { left: 18px;  }
+  &.next  { right: 18px; }
 
   @media (max-width: 700px) {
     &.prev { left: 8px;  }
@@ -291,7 +390,7 @@
   to   { opacity: 1; }
 }
 
-@keyframes zoomIn {
-  from { opacity: 0; transform: scale(.93); }
-  to   { opacity: 1; transform: scale(1);   }
+@keyframes slideFade {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0);    }
 }

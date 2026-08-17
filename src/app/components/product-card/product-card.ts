@@ -89,7 +89,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   addToCart(product: Product) {
     if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/cart' } });
+      this.router.navigate(['/login'], { queryParams: { redirect: '/dashboard/cart' } });
       return;
     }
     this.cartService.add(product);
@@ -97,7 +97,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
 
   toggleWishlist(product: Product) {
     if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/wishlist' } });
+      this.router.navigate(['/login'], { queryParams: { redirect: '/dashboard/wishlist' } });
       return;
     }
 

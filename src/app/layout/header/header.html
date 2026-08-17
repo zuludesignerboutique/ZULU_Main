@@ -86,8 +86,27 @@
 
         </div>
       </div>
-    </div>
 
+      <!-- Mobile hamburger -->
+      <button class="hamburger-btn" (click)="toggleMobileNav()" type="button"
+              aria-label="Menu" [attr.aria-expanded]="mobileNavOpen">
+        <span [class.open]="mobileNavOpen"></span>
+        <span [class.open]="mobileNavOpen"></span>
+        <span [class.open]="mobileNavOpen"></span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav-wrap" [class.open]="mobileNavOpen">
+    <nav class="mobile-nav" (click)="mobileNavOpen = false">
+      <a routerLink="/home"     routerLinkActive="active" class="mobile-link">Home</a>
+      <a routerLink="/products" routerLinkActive="active" class="mobile-link">Products</a>
+      <a routerLink="/gallery"  routerLinkActive="active" class="mobile-link">Gallery</a>
+      <a routerLink="/reviews"  routerLinkActive="active" class="mobile-link">Reviews</a>
+      <a routerLink="/contact"  routerLinkActive="active" class="mobile-link">Contact</a>
+    </nav>
   </div>
 
 </header>
