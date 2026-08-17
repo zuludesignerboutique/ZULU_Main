@@ -691,7 +691,7 @@ function sendCancellationRejectedEmail(order, items) {
 ========================= */
 
 // POST /login
-app.post('/api/login', (req, res) => {
+const loginHandler = (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -745,10 +745,16 @@ app.post('/api/login', (req, res) => {
       });
     }
   });
-});
+};
+
+// Mounted under /api as well: Vercel only routes /api/* to the serverless
+// function (root /login cannot be POSTed to — see vercel.json), so the
+// frontend calls /api/login.
+app.post('/login', loginHandler);
+app.post('/api/login', loginHandler);
 
 // POST /signup
-app.post('/api/signup', (req, res) => {
+const signupHandler = (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -799,7 +805,10 @@ app.post('/api/signup', (req, res) => {
       );
     });
   });
-});
+};
+
+app.post('/signup', signupHandler);
+app.post('/api/signup', signupHandler);
 
 // Passwords are now hashed with bcrypt
 
