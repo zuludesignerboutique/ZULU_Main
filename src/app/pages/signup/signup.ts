@@ -36,7 +36,7 @@ export class SignupComponent {
       return;
     }
 
-    this.http.post<any>('/signup', {
+    this.http.post<any>('/api/signup', {
       name: this.name,
       email: this.email,
       password: this.password

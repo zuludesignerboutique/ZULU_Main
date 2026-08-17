@@ -691,7 +691,7 @@ function sendCancellationRejectedEmail(order, items) {
 ========================= */
 
 // POST /login
-app.post('/login', (req, res) => {
+app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -748,7 +748,7 @@ app.post('/login', (req, res) => {
 });
 
 // POST /signup
-app.post('/signup', (req, res) => {
+app.post('/api/signup', (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -3352,7 +3352,7 @@ app.get('/api/admin/wishlist', authenticateToken, requireAdmin, (req, res) => {
 ========================= */
 
 // Test route — verify routing works
-app.get('/api/test-routing', (req, res) => res.json({ ok: true }));
+app.get('/api/test-routing', (req, res) => res.json({ ok: true, ver: 2 }));
 
 // Only listen when run directly (`node src/index.js`). When this module is
 // required by another process (e.g. a Vercel serverless function via

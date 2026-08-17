@@ -12,14 +12,6 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/login",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/signup",
-      "destination": "/api/index.js"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.csr.html"
     }

@@ -25,7 +25,7 @@ export class LoginComponent {
   ) {}
 
   login() {
-    this.http.post<any>('/login', {
+    this.http.post<any>('/api/login', {
       email: this.email,
       password: this.password
     }).subscribe({
