@@ -7,7 +7,7 @@ import { Contact } from './pages/contact/contact';
 import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy';
 import { TermsConditions } from './pages/terms-conditions/terms-conditions';
 import { ShippingPolicy } from './pages/shipping-policy/shipping-policy';
-import { AboutZora } from './pages/about-zora/about-zora';
+import { AboutZulu } from './pages/about-zulu/about-zulu';
 import { ReturnsExchange } from './pages/returns-exchange/returns-exchange';
 import { LoginComponent } from './pages/login/login';
 import { SignupComponent } from './pages/signup/signup';
@@ -174,7 +174,7 @@ export const routes: Routes = [
   { path: 'shipping-policy',  component: ShippingPolicy },
   { path: 'privacy-policy',   component: PrivacyPolicy },
   { path: 'terms-conditions', component: TermsConditions },
-  { path: 'about-zora',       component: AboutZora },
+  { path: 'about-zulu',       component: AboutZulu },
   { path: 'returns-exchange', component: ReturnsExchange },
 
   // ── POOBOO storefront (lazy) ───────────────────

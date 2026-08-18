@@ -20,7 +20,7 @@ $border       : rgba(255, 255, 255, 0.1);
 //  FOOTER SHELL
 // ─────────────────────────────────────────────
 
-.zora-footer {
+.zulu-footer {
   position: relative;
   // background-image kept via inline style in HTML
   background-size: cover;
@@ -334,7 +334,7 @@ $border       : rgba(255, 255, 255, 0.1);
 // ─────────────────────────────────────────────
 
 @media (max-width: 768px) {
-  .zora-footer {
+  .zulu-footer {
     background-attachment: scroll; // fixed doesn't work well on mobile
   }
 

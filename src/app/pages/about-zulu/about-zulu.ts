@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-about-zora',
+  selector: 'app-about-zulu',
   imports: [],
-  templateUrl: './about-zora.html',
-  styleUrl: './about-zora.scss',
+  templateUrl: './about-zulu.html',
+  styleUrl: './about-zulu.scss',
 })
-export class AboutZora {
+export class AboutZulu {
 
 }

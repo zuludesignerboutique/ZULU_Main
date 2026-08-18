@@ -22,7 +22,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'signup',    renderMode: RenderMode.Prerender },
   { path: 'gallery',   renderMode: RenderMode.Prerender },
   { path: 'contact',   renderMode: RenderMode.Prerender },
-  { path: 'about-zora',renderMode: RenderMode.Prerender },
+  { path: 'about-zulu',renderMode: RenderMode.Prerender },
 
   // Catch-all — client side
   { path: '**',        renderMode: RenderMode.Client },
