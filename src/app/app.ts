@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
 import { AuthService } from './services/auth.service';
+import { inject } from '@vercel/analytics';
 
 @Component({
   selector: 'app-root',
@@ -23,6 +24,8 @@ export class App implements OnDestroy {
     private auth: AuthService,
     private router: Router
   ) {
+
+    inject();
 
     this.router.events
       .pipe(
