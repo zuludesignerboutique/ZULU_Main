@@ -2053,7 +2053,7 @@ app.patch('/api/orders/:id/cancel', authenticateToken, (req, res) => {
 
     db.query(
       `UPDATE orders
-         SET status = "cancellation_requested",
+         SET status = 'cancellation_requested',
              refund_amount = ?, penalty_amount = ?,
              cancellation_requested_at = NOW(), pre_cancel_status = ?
        WHERE id = ?`,
@@ -2121,7 +2121,7 @@ app.patch('/api/admin/orders/:id/approve-cancel', authenticateToken, requireAdmi
       return res.status(400).json({ error: 'This order has no pending cancellation request' });
     }
 
-    db.query('UPDATE orders SET status = "cancelled" WHERE id = ?', [id], (err2) => {
+    db.query("UPDATE orders SET status = 'cancelled' WHERE id = ?", [id], (err2) => {
       if (err2) {
         console.error('Approve cancellation error:', err2);
         return res.status(500).json({ error: 'Failed to approve cancellation' });
