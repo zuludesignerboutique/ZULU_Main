@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-admin-products',
@@ -36,16 +37,22 @@ export class AdminProducts implements OnInit {
   constructor(
     private productService: ProductService,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ){}
 
-deleteProduct(id: number){
-  if(confirm("Are you sure?")){
-    this.http.delete(`/api/products/${id}`)
-      .subscribe(() => {
-        this.products = this.products.filter(p => p.id !== id);
-      });
-  }
+async deleteProduct(id: number){
+  const confirmed = await this.toast.confirm({
+    title: 'Delete product?',
+    message: 'Are you sure? This cannot be undone.',
+    confirmLabel: 'Delete'
+  });
+  if (!confirmed) return;
+  this.http.delete(`/api/products/${id}`)
+    .subscribe(() => {
+      this.products = this.products.filter(p => p.id !== id);
+      this.toast.success('Product deleted successfully!');
+    });
 }
 
   ngOnInit(){

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 
@@ -15,7 +15,9 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   cancellationRequests: any[] = [];
   notifOpen = false;
+  sidebarOpen = false;
   private pollHandle: any = null;
+  private routerSub: any = null;
 
   constructor(
     private router: Router,
@@ -28,10 +30,17 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadCancellationRequests();
     this.pollHandle = setInterval(() => this.loadCancellationRequests(), 30000);
+
+    this.routerSub = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.sidebarOpen = false;
+      }
+    });
   }
 
   ngOnDestroy() {
     if (this.pollHandle) clearInterval(this.pollHandle);
+    if (this.routerSub) this.routerSub.unsubscribe();
   }
 
   loadCancellationRequests() {
@@ -49,6 +58,14 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   toggleNotif() {
     this.notifOpen = !this.notifOpen;
     if (this.notifOpen) this.loadCancellationRequests();
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
   closeNotif() {

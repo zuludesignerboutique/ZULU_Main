@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-admin-orders',
@@ -45,7 +46,8 @@ export class AdminOrders implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
     private router: Router,
-    private elRef: ElementRef
+    private elRef: ElementRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -204,7 +206,7 @@ export class AdminOrders implements OnInit, OnDestroy {
         order.status = status;
       },
       error: () => {
-        alert('Failed to update order status');
+        this.toast.error('Failed to update order status');
         (event.target as HTMLSelectElement).value = order.status;
       }
     });
@@ -212,10 +214,12 @@ export class AdminOrders implements OnInit, OnDestroy {
 
   // ── Cancellation approve/reject — now inline in the order row ──────────
 
-  approveCancel(order: any) {
-    const confirmed = window.confirm(
-      `Approve cancellation for Order #${order.id}?\n\nThis will cancel the order. Refund of ₹${order.refund_amount} will need to be processed manually.`
-    );
+  async approveCancel(order: any) {
+    const confirmed = await this.toast.confirm({
+      title: 'Approve cancellation?',
+      message: `Approve cancellation for Order #${order.id}?\n\nThis will cancel the order. Refund of ₹${order.refund_amount} will need to be processed manually.`,
+      confirmLabel: 'Approve'
+    });
     if (!confirmed) return;
 
     this.actingId = order.id;
@@ -229,17 +233,19 @@ export class AdminOrders implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('AdminOrders: approve-cancel error', err);
-        alert('Could not approve the cancellation. Please try again.');
+        this.toast.error('Could not approve the cancellation. Please try again.');
         this.actingId = null;
         this.cdr.detectChanges();
       }
     });
   }
 
-  rejectCancel(order: any) {
-    const confirmed = window.confirm(
-      `Reject cancellation for Order #${order.id}?\n\nThe order will continue as normal — no refund will be issued.`
-    );
+  async rejectCancel(order: any) {
+    const confirmed = await this.toast.confirm({
+      title: 'Reject cancellation?',
+      message: `Reject cancellation for Order #${order.id}?\n\nThe order will continue as normal — no refund will be issued.`,
+      confirmLabel: 'Reject'
+    });
     if (!confirmed) return;
 
     this.actingId = order.id;
@@ -254,7 +260,7 @@ export class AdminOrders implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('AdminOrders: reject-cancel error', err);
-        alert('Could not reject the cancellation. Please try again.');
+        this.toast.error('Could not reject the cancellation. Please try again.');
         this.actingId = null;
         this.cdr.detectChanges();
       }

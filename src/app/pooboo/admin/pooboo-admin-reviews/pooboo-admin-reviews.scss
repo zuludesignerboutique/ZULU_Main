@@ -441,4 +441,43 @@ $pb-shadow:     0 2px 12px rgba(0,0,0,0.06);
 
   &:hover:not(:disabled) { background: darken($pb-red, 8%); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ── Responsive ─────────────────────────────────────
+
+@media (max-width: 768px) {
+  .pbadmin-reviews { padding: 20px 16px; }
+
+  .pbadmin-title { font-size: 1.35rem; }
+
+  .pbadmin-stats { gap: 10px; }
+  .pbadmin-stat { padding: 12px 16px; }
+  .pbadmin-stat-val { font-size: 1.2rem; }
+
+  .pbadmin-filters { gap: 10px; }
+  .pbadmin-search {
+    flex: 1 1 100%;
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  .pbadmin-table-wrap { border-radius: 8px; }
+
+  .pbadmin-confirm-modal { padding: 28px 20px; }
+}
+
+@media (max-width: 480px) {
+  .pbadmin-header { gap: 12px; }
+  .pbadmin-stats { width: 100%; justify-content: space-between; }
+  .pbadmin-brand-btn,
+  .pbadmin-star-btn { padding: 9px 12px; }
+
+  .pbadmin-table { min-width: 760px; }
+
+  .pbadmin-confirm-actions { flex-direction: column; }
+  .pbadmin-btn-cancel,
+  .pbadmin-btn-confirm-delete { width: 100%; padding: 12px 22px; }
+
+  .pbadmin-table th,
+  .pbadmin-table td { padding: 10px 12px; }
 }  

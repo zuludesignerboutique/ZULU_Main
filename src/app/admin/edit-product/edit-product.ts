@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../services/product.service';
+import { ToastService } from '../../services/toast.service';
 
 // A file picked by the admin that hasn't been saved to the server yet.
 interface NewImage {
@@ -86,7 +87,8 @@ export class EditProduct implements OnInit {
     private router: Router,
     private productService: ProductService,
     private ngZone: NgZone,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -203,9 +205,14 @@ export class EditProduct implements OnInit {
   }
 
   // Delete an existing gallery image
-  deleteImage(image: any) {
+  async deleteImage(image: any) {
     if (!this.product?.id || !image?.id) return;
-    if (!confirm('Delete this image?')) return;
+    const confirmed = await this.toast.confirm({
+      title: 'Delete image?',
+      message: 'Delete this image? This can\'t be undone.',
+      confirmLabel: 'Delete'
+    });
+    if (!confirmed) return;
 
     this.imageBusy = true;
     this.imageMsg = '';
@@ -328,13 +335,13 @@ export class EditProduct implements OnInit {
             next: () => {
               this.isSaving = false;
               this.newImages = [];
-              alert('Product and images updated successfully!');
+              this.toast.success('Product and images updated successfully!');
               this.router.navigate(['/admin/products']);
             },
             error: (err) => {
               this.isSaving = false;
               console.error('Image upload error:', err);
-              alert(
+              this.toast.error(
                 'Product details were saved, but the new images failed to upload: ' +
                 (err?.error?.error || 'please try "Upload new images" again before leaving this page.')
               );
@@ -346,13 +353,13 @@ export class EditProduct implements OnInit {
         }
 
         this.isSaving = false;
-        alert('Product updated successfully!');
+        this.toast.success('Product updated successfully!');
         this.router.navigate(['/admin/products']);
       },
       error: (err) => {
         this.isSaving = false;
         console.error('Update error:', err);
-        alert('Failed to update product. Please try again.');
+        this.toast.error('Failed to update product. Please try again.');
       }
     });
   }

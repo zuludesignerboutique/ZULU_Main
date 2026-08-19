@@ -755,3 +755,49 @@ $success:#27ae60;
     }
   }
 }
+
+// ── RESPONSIVE ───────────────────────────────────
+@media (max-width: 768px) {
+  .add-product-page { padding: 0 4px; }
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 20px; }
+  .btn-back { min-height: 44px; display: inline-flex; align-items: center; }
+
+  .field-group input,
+  .field-group select,
+  .field-group textarea,
+  .inline-add-widget input,
+  .cg-edit-row input,
+  .cg-delete-box input {
+    font-size: 16px;
+  }
+
+  .form-section { padding-bottom: 24px; margin-bottom: 24px; }
+  .form-actions { flex-direction: column; }
+  .btn-submit, .btn-cancel { width: 100%; min-height: 48px; justify-content: center; }
+
+  .cg-delete-actions { flex-wrap: wrap; }
+  .cg-delete-actions .btn-inline-save,
+  .cg-delete-actions .btn-inline-cancel { flex: 1; justify-content: center; display: flex; align-items: center; }
+}
+
+@media (max-width: 576px) {
+  .select-with-action { align-items: stretch; }
+  .select-with-action .btn-inline-add { height: 46px; }
+
+  .inline-add-widget { flex-direction: column; }
+  .inline-add-widget .btn-inline-save { width: 100%; padding: 12px 0; }
+
+  .cg-edit-row { flex-wrap: wrap; }
+  .cg-edit-row input { flex: 1 1 100%; min-width: 0; }
+
+  .cg-edit-row-sm input { flex: 1 1 100%; }
+
+  .cg-icon-btn { padding: 8px 10px; }
+  .cg-actions { gap: 2px; }
+
+  .ap-form-card { padding: 20px 16px; border-radius: 16px; }
+  .sidebar-card { padding: 20px 16px; }
+
+  .image-add-tile { min-height: 140px; }
+}

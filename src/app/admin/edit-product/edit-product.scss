@@ -638,3 +638,35 @@ $success:#27ae60;
     }
   }
 }
+
+// ── RESPONSIVE ───────────────────────────────────
+@media (max-width: 768px) {
+  .edit-product-page { padding: 0 4px; }
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 20px; }
+  .btn-back { min-height: 44px; display: inline-flex; align-items: center; }
+
+  .field-group input,
+  .field-group select,
+  .field-group textarea,
+  .gallery-item .image-label {
+    font-size: 16px;
+  }
+
+  .form-section { padding-bottom: 24px; margin-bottom: 24px; }
+  .form-actions { flex-direction: column; }
+  .btn-save, .btn-cancel { width: 100%; min-height: 48px; justify-content: center; }
+
+  .gallery-item-controls { flex-wrap: wrap; }
+  .gallery-item .image-label { flex: 1 1 100%; }
+  .gallery-move { width: 100%; justify-content: flex-end; }
+  .gallery-move button { flex: 1; }
+}
+
+@media (max-width: 576px) {
+  .ap-form-card { padding: 20px 16px; border-radius: 16px; }
+  .sidebar-card { padding: 20px 16px; }
+
+  .image-add-tile { width: 100%; max-width: 160px; }
+  .legacy-thumb { flex-wrap: wrap; }
+}

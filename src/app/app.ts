@@ -6,6 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
+import { Toast } from './components/toast/toast';
 import { AuthService } from './services/auth.service';
 import { inject } from '@vercel/analytics';
 
@@ -18,7 +19,7 @@ declare global {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, Header, Footer],
+  imports: [CommonModule, RouterOutlet, Header, Footer, Toast],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })

@@ -5,6 +5,8 @@
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 12px;
+  display: block;
+  margin: 0 auto;
 }
 
 @media (max-width: 480px) {

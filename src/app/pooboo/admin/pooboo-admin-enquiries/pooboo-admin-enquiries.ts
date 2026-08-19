@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-pooboo-admin-enquiries',
@@ -15,7 +16,7 @@ export class PoobooAdminEnquiries implements OnInit {
   isLoading = true;
   filterStatus = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private toast: ToastService) {}
 
   ngOnInit() {
     this.loadEnquiries();
@@ -38,11 +39,15 @@ export class PoobooAdminEnquiries implements OnInit {
     });
   }
 
-  deleteEnquiry(id: number) {
-    if (confirm('Delete this enquiry?')) {
-      this.http.delete(`/api/pooboo/enquiries/${id}`).subscribe({
-        next: () => this.loadEnquiries()
-      });
-    }
+  async deleteEnquiry(id: number) {
+    const confirmed = await this.toast.confirm({
+      title: 'Delete enquiry?',
+      message: 'Delete this enquiry? This cannot be undone.',
+      confirmLabel: 'Delete'
+    });
+    if (!confirmed) return;
+    this.http.delete(`/api/pooboo/enquiries/${id}`).subscribe({
+      next: () => this.loadEnquiries()
+    });
   }
 }

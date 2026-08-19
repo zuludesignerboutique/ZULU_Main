@@ -26,42 +26,44 @@
     </div>
   </div>
 
-  <table class="product-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Image</th>
-        <th>Name</th>
-        <th>Price</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody *ngIf="filteredProducts.length > 0">
-      <tr *ngFor="let product of filteredProducts; trackBy: trackById">
-        <td class="col-id">#{{ product.id }}</td>
-        <td class="col-img">
-          <div class="img-wrapper">
-            <img
-              [src]="'/uploads/' + product.image_url"
-              [alt]="product.name"
-            >
-          </div>
-        </td>
-        <td class="col-name">{{ product.name }}</td>
-        <td class="col-price">₹{{ product.price }}</td>
-        <td class="col-actions">
-          <button class="btn-edit" [routerLink]="['/admin/edit-product', product.id]">Edit</button>
-          <button class="btn-delete" (click)="deleteProduct(product.id)">Delete</button>
-        </td>
-      </tr>
-    </tbody>
-    <tbody *ngIf="filteredProducts.length === 0">
-      <tr>
-        <td colspan="5" class="empty-state">
-          {{ searchQuery ? 'No products match "' + searchQuery + '".' : 'No products found.' }}
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="table-scroll">
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody *ngIf="filteredProducts.length > 0">
+        <tr *ngFor="let product of filteredProducts; trackBy: trackById">
+          <td class="col-id">#{{ product.id }}</td>
+          <td class="col-img">
+            <div class="img-wrapper">
+              <img
+                [src]="'/uploads/' + product.image_url"
+                [alt]="product.name"
+              >
+            </div>
+          </td>
+          <td class="col-name">{{ product.name }}</td>
+          <td class="col-price">₹{{ product.price }}</td>
+          <td class="col-actions">
+            <button class="btn-edit" [routerLink]="['/admin/edit-product', product.id]">Edit</button>
+            <button class="btn-delete" (click)="deleteProduct(product.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="filteredProducts.length === 0">
+        <tr>
+          <td colspan="5" class="empty-state">
+            {{ searchQuery ? 'No products match "' + searchQuery + '".' : 'No products found.' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
 </div>

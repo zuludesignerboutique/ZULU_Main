@@ -443,3 +443,55 @@ $border:  rgba(0,0,0,0.07);
   font-weight: 500;
   color: $text;
 }
+
+// ── RESPONSIVE POLISH ─────────────────────────────
+@media (max-width: 576px) {
+  .orders-list {
+    padding: 32px 16px 0;
+  }
+
+  .order-card-header {
+    padding: 16px 18px;
+  }
+
+  .status-timeline {
+    padding: 16px 18px;
+  }
+
+  .cancel-row {
+    padding: 14px 18px;
+  }
+
+  .cancelled-banner,
+  .pending-cancel-banner {
+    padding: 12px 18px;
+  }
+
+  .order-items {
+    padding: 16px 18px;
+  }
+
+  .order-card-footer {
+    padding: 14px 18px;
+  }
+
+  .footer-address .footer-value {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .order-item {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .item-price {
+    width: 100%;
+    padding-left: 66px;
+  }
+
+  .tl-line {
+    min-width: 20px;
+  }
+}

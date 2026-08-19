@@ -346,6 +346,45 @@ $border       : rgba(255, 255, 255, 0.1);
   .brand-name {
     font-size: 2.4rem;
   }
+
+  .footer-inner {
+    padding-top: 48px;
+  }
+
+  .footer-brand {
+    margin-bottom: 36px;
+  }
+
+  .footer-divider-top {
+    margin-bottom: 36px;
+  }
+}
+
+@media (max-width: 576px) {
+  .footer-cols {
+    text-align: center;
+  }
+
+  .footer-title {
+    margin-bottom: 16px;
+  }
+
+  .social-icons {
+    justify-content: center;
+  }
+
+  .social-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .newsletter-input {
+    font-size: 16px;
+  }
+
+  .subscribe-btn {
+    width: 100%;
+  }
 }
 
 .subscribe-success {

@@ -329,3 +329,36 @@ $danger: #c0392b;
   margin-bottom: 12px;
   opacity: 0.5;
 }
+
+// ── RESPONSIVE ───────────────────────────────────
+@media (max-width: 768px) {
+  .admin-gallery { padding: 20px 4px; }
+  .ag-header { margin-bottom: 18px; }
+  .ag-title { font-size: 18px; }
+
+  .ag-upload-card { padding: 16px; margin-bottom: 20px; }
+  .ag-file-picker { width: 100%; justify-content: center; min-height: 48px; }
+
+  .ag-pending-card { flex: 0 0 160px; }
+  .ag-pending-input,
+  .ag-pending-textarea,
+  .ag-edit-input,
+  .ag-edit-textarea { font-size: 16px; }
+
+  .ag-pending-actions { flex-wrap: wrap; }
+  .ag-pending-count { flex: 1 1 100%; margin-bottom: 4px; }
+  .ag-btn-primary, .ag-btn-secondary { flex: 1; min-height: 44px; }
+
+  .ag-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .ag-card-img-wrap { height: 140px; }
+  .ag-icon-btn { width: 36px; height: 36px; font-size: 14px; }
+  .ag-card-actions { justify-content: space-between; }
+}
+
+@media (max-width: 480px) {
+  .ag-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .ag-card-img-wrap { height: 120px; }
+  .ag-edit-actions { flex-direction: column; }
+  .ag-edit-actions .ag-btn-primary,
+  .ag-edit-actions .ag-btn-secondary { width: 100%; min-height: 44px; }
+}

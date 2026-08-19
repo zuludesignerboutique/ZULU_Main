@@ -20,6 +20,10 @@ $soft-bg: #FFF8F5;
     position: relative;
     overflow: hidden;
 
+    @media (max-width: 576px) {
+      padding: 48px 16px;
+    }
+
     // Floating blobs like home page hero
     &::before, &::after {
       content: '';
@@ -72,6 +76,8 @@ $soft-bg: #FFF8F5;
     max-width: 1200px;
     margin: 0 auto;
 
+    @media (max-width: 576px) { padding: 16px 16px; }
+
     .filters-inner {
       display: flex;
       flex-wrap: wrap;
@@ -83,6 +89,8 @@ $soft-bg: #FFF8F5;
       position: relative;
       display: flex;
       align-items: center;
+
+      @media (max-width: 768px) { width: 100%; }
 
       .search-icon {
         position: absolute;
@@ -104,7 +112,7 @@ $soft-bg: #FFF8F5;
         transition: all 0.2s;
         width: 220px;
 
-        &::placeholder { color: rgba($dark, 0.35); font-weight: 600; }
+&::placeholder { color: rgba($dark, 0.35); font-weight: 600; }
 
         &:focus {
           border-color: $coral;
@@ -112,7 +120,7 @@ $soft-bg: #FFF8F5;
           box-shadow: 0 0 0 3px rgba($coral, 0.1);
         }
 
-        @media (max-width: 480px) { width: 100%; }
+        @media (max-width: 768px) { width: 100%; }
       }
     }
 
@@ -133,6 +141,14 @@ $soft-bg: #FFF8F5;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231A1A2E' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 12px center;
+      max-width: 100%;
+
+      @media (max-width: 768px) { flex: 1 1 45%; }
+
+      @media (max-width: 480px) {
+        flex: 1 1 100%;
+        width: 100%;
+      }
 
       &:focus {
         border-color: $coral;
@@ -174,6 +190,8 @@ $soft-bg: #FFF8F5;
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 24px 80px;
+
+    @media (max-width: 576px) { padding: 28px 16px 56px; }
   }
 
   // ── States ────────────────────────────────────
@@ -288,6 +306,8 @@ $soft-bg: #FFF8F5;
     .card-body {
       padding: 12px 14px 16px;
 
+      @media (max-width: 480px) { padding: 10px 10px 12px; }
+
       .card-category {
         font-family: 'Nunito', sans-serif;
         font-size: 11px;
@@ -316,6 +336,8 @@ $soft-bg: #FFF8F5;
         display: flex;
         justify-content: space-between;
         align-items: center;
+
+        @media (max-width: 480px) { flex-wrap: wrap; gap: 8px; }
 
         .card-price {
           font-family: 'Nunito', sans-serif;

@@ -69,6 +69,11 @@ $border: #EDE8E8;
   max-width: 900px;
   margin: 0 auto;
 
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    padding: 1.5rem 1rem;
+  }
+
   .feature-card {
     background: #fff;
     border: 1.5px solid $border;
@@ -108,6 +113,8 @@ $border: #EDE8E8;
   max-width: 500px;
   margin: 0 auto 4rem;
   padding: 0 1.5rem;
+
+  @media (max-width: 480px) { padding: 0 1rem; }
 
   .form-header {
     text-align: center;

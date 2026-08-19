@@ -29,6 +29,8 @@ $soft-bg: #FFF8F5;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
+
+    @media (max-width: 576px) { padding: 0 16px; }
   }
 
   .btn-back {
@@ -47,6 +49,8 @@ $soft-bg: #FFF8F5;
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+    @media (max-width: 576px) { margin: 20px 0 16px; }
 
     &:hover {
       border-color: $coral;
@@ -133,7 +137,7 @@ $soft-bg: #FFF8F5;
 
   .detail-price {
     font-family: 'Poppins', sans-serif;
-    font-size: 30px;
+    font-size: clamp(24px, 5vw, 30px);
     font-weight: 800;
     color: $coral;
     margin: 0 0 20px;
@@ -274,5 +278,10 @@ $soft-bg: #FFF8F5;
       cursor: not-allowed;
       box-shadow: none;
     }
+  }
+
+  @media (max-width: 576px) {
+    .detail-desc { padding: 12px 14px; }
+    .btn-add-cart, .btn-enquire { padding: 15px; font-size: 15px; }
   }
 }

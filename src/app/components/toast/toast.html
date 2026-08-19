@@ -1,0 +1,40 @@
+<div class="toast-host">
+
+  <!-- Confirm dialog -->
+  <div class="toast-backdrop" *ngIf="service.confirmations().length"></div>
+  <div class="toast-confirm" *ngIf="service.confirmations().length">
+    <div class="toast-confirm-card">
+      <div class="toast-confirm-mark">✦</div>
+      <h3 class="toast-confirm-title">{{ service.confirmations()[0].title }}</h3>
+      <p class="toast-confirm-message">{{ service.confirmations()[0].message }}</p>
+      <div class="toast-confirm-actions">
+        <button
+          type="button"
+          class="toast-btn toast-btn-cancel"
+          (click)="answer(service.confirmations()[0].id, false)">
+          {{ service.confirmations()[0].cancelLabel || 'Cancel' }}
+        </button>
+        <button
+          type="button"
+          class="toast-btn toast-btn-confirm"
+          (click)="answer(service.confirmations()[0].id, true)">
+          {{ service.confirmations()[0].confirmLabel || 'Confirm' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast stack -->
+  <div class="toast-stack" aria-live="polite">
+    <div class="toast-item toast-{{ t.type }}" *ngFor="let t of service.toasts()">
+      <span class="toast-icon">{{ icon(t.type) }}</span>
+      <p class="toast-msg">{{ t.message }}</p>
+      <button type="button" class="toast-close" (click)="service.dismiss(t.id)" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>

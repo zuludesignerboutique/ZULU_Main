@@ -7,8 +7,13 @@ app-order-history,
 
 app-cart,
 app-product-view,
-app-profile,
-app-login {
+app-login,
+app-signup,
+app-categories,
+app-subcategories,
+app-product-details,
+app-dashboard-shell,
+app-user-dashboard {
   display: block;
   padding-top: 85px;
 }
@@ -23,7 +28,37 @@ app-checkout,
 app-returns-exchange,
 app-shipping-policy,
 app-privacy-policy,
-app-terms-service {
+app-terms-conditions {
   padding-top: 120px;
   display: block;
+}
+
+@media (max-width: 992px) {
+  app-products,
+  app-gallery,
+  app-reviews,
+  app-contact,
+  app-order-history,
+  app-cart,
+  app-product-view,
+  app-login,
+  app-signup,
+  app-categories,
+  app-subcategories,
+  app-product-details,
+  app-dashboard-shell,
+  app-user-dashboard {
+    padding-top: 80px;
+  }
+
+  app-home,
+  app-wishlist,
+  app-about-zulu,
+  app-checkout,
+  app-returns-exchange,
+  app-shipping-policy,
+  app-privacy-policy,
+  app-terms-conditions {
+    padding-top: 112px;
+  }
 }

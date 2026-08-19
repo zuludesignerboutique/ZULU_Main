@@ -436,3 +436,29 @@ $success:#27ae60;
 
   &:hover { background: #edeae5; color: $ink; }
 }
+
+// ── RESPONSIVE ─────────────────────────────────
+@media (max-width: 768px) {
+  .edit-product-page { padding: 0 4px; }
+  .page-header { margin-bottom: 24px; }
+  .page-header h2 { font-size: 20px; }
+  .btn-back { min-height: 44px; }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px;
+  }
+
+  .form-actions { flex-direction: column; }
+  .btn-submit, .btn-cancel { width: 100%; min-height: 48px; }
+
+  .custom-tag-input { flex-direction: column; }
+  .custom-tag-input .btn-add-tag { min-height: 44px; }
+}
+
+@media (max-width: 480px) {
+  .form-card { padding: 20px 16px; border-radius: 16px; }
+  .toggles-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .existing-image-wrap { flex-wrap: wrap; }
+}

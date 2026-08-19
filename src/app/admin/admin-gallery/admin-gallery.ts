@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ToastService } from '../../services/toast.service';
 
 interface GalleryRow {
   id: number;
@@ -48,7 +49,8 @@ export class AdminGallery implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private ngZone: NgZone,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -128,7 +130,7 @@ export class AdminGallery implements OnInit, OnDestroy {
         this.ngZone.run(() => {
           this.isUploading = false;
           this.cdr.detectChanges();
-          alert('Upload failed. Please try again.');
+          this.toast.error('Upload failed. Please try again.');
         });
       }
     });
@@ -163,7 +165,7 @@ export class AdminGallery implements OnInit, OnDestroy {
       },
       error: () => {
         this.ngZone.run(() => {
-          alert('Could not save changes. Please try again.');
+          this.toast.error('Could not save changes. Please try again.');
           this.savingId = null;
           this.cdr.detectChanges();
         });
@@ -173,8 +175,12 @@ export class AdminGallery implements OnInit, OnDestroy {
 
   // ── Delete ────────────────────────────────────────────────────
 
-  deleteImage(img: GalleryRow) {
-    const confirmed = confirm(`Delete "${img.title || 'this image'}"? This can't be undone.`);
+  async deleteImage(img: GalleryRow) {
+    const confirmed = await this.toast.confirm({
+      title: 'Delete image?',
+      message: `Delete "${img.title || 'this image'}"? This can't be undone.`,
+      confirmLabel: 'Delete'
+    });
     if (!confirmed) return;
 
     this.savingId = img.id;
@@ -189,7 +195,7 @@ export class AdminGallery implements OnInit, OnDestroy {
       },
       error: () => {
         this.ngZone.run(() => {
-          alert('Could not delete the image. Please try again.');
+          this.toast.error('Could not delete the image. Please try again.');
           this.savingId = null;
           this.cdr.detectChanges();
         });
@@ -218,7 +224,7 @@ export class AdminGallery implements OnInit, OnDestroy {
     const orderedIds = this.images.map(img => img.id);
     this.http.post(`${this.api}/api/admin/gallery/reorder`, { orderedIds }).subscribe({
       error: () => {
-        alert('Could not save the new order — refreshing the list.');
+        this.toast.error('Could not save the new order — refreshing the list.');
         this.loadImages();
       }
     });

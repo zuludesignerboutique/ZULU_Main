@@ -14,6 +14,8 @@ $soft-bg: #FFF8F5;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
+
+  @media (max-width: 576px) { padding: 0 16px; }
 }
 
 // ── HERO ────────────────────────────────────────
@@ -23,6 +25,7 @@ $soft-bg: #FFF8F5;
   overflow: hidden;
 
   @media (max-width: 700px) { height: 420px; }
+  @media (max-width: 480px) { height: 380px; }
 }
 
 .pb-hero-slide {
@@ -43,10 +46,12 @@ $soft-bg: #FFF8F5;
   }
 
   @media (max-width: 700px) { padding: 0 24px; }
+  @media (max-width: 480px) { padding: 0 16px; }
 }
 
 .pb-hero-content {
   max-width: 560px;
+  width: 100%;
   z-index: 2;
 }
 
@@ -75,6 +80,10 @@ $soft-bg: #FFF8F5;
   margin: 0 0 14px;
   white-space: pre-line;
   text-shadow: 0 2px 20px rgba(0,0,0,0.15);
+
+  @media (max-width: 480px) {
+    font-size: clamp(26px, 8vw, 34px);
+  }
 }
 
 .pb-hero-sub {
@@ -191,6 +200,8 @@ $soft-bg: #FFF8F5;
   text-align: center;
   margin-bottom: 40px;
 
+  @media (max-width: 576px) { margin-bottom: 28px; }
+
   .pb-eyebrow {
     font-family: 'Nunito', sans-serif;
     font-size: 12px;
@@ -226,6 +237,8 @@ $soft-bg: #FFF8F5;
 .pb-age-section {
   padding: 64px 0 48px;
   background: $soft-bg;
+
+  @media (max-width: 768px) { padding: 40px 0 32px; }
 }
 
 .pb-age-grid {
@@ -275,6 +288,8 @@ $soft-bg: #FFF8F5;
 .pb-products-section {
   padding: 64px 0;
   background: $white;
+
+  @media (max-width: 768px) { padding: 40px 0; }
 }
 
 .pb-product-grid {
@@ -356,6 +371,8 @@ $soft-bg: #FFF8F5;
 
 .pb-product-info {
   padding: 12px 14px 16px;
+
+  @media (max-width: 480px) { padding: 10px 10px 12px; }
 }
 
 .pb-product-age {
@@ -475,6 +492,8 @@ $soft-bg: #FFF8F5;
 .pb-cat-section {
   padding: 64px 0;
   background: $soft-bg;
+
+  @media (max-width: 768px) { padding: 40px 0; }
 }
 
 .pb-cat-grid {
@@ -484,6 +503,7 @@ $soft-bg: #FFF8F5;
 
   @media (max-width: 900px) { grid-template-columns: repeat(3, 1fr); }
   @media (max-width: 600px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 420px) { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 
 .pb-cat-card {
@@ -522,6 +542,8 @@ $soft-bg: #FFF8F5;
 .pb-enquiry-banner {
   background: linear-gradient(135deg, #FF6B35, #e05a27, #1A1A2E);
   padding: 72px 0;
+
+  @media (max-width: 768px) { padding: 48px 0; }
 }
 
 .pb-enquiry-inner {
@@ -681,6 +703,8 @@ $soft-bg: #FFF8F5;
   padding: 48px 0;
   background: $white;
   border-top: 1px solid rgba($dark, 0.06);
+
+  @media (max-width: 768px) { padding: 32px 0; }
 }
 
 .pb-trust-grid {

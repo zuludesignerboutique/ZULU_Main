@@ -98,6 +98,10 @@
   text-transform: uppercase;
   color: var(--muted);
   animation: fadeUp 0.5s 0.1s var(--ease) both;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0;
 
   a {
     color: var(--muted);
@@ -109,7 +113,11 @@
   .sep { margin: 0 10px; opacity: .3; }
   .current { color: var(--gold); }
 
-  @media (max-width: 600px) { padding: 16px 24px; }
+  @media (max-width: 600px) {
+    padding: 16px 24px;
+    font-size: 10px;
+    letter-spacing: .1em;
+  }
 }
 
 // ── MAIN GRID ────────────────────────────────────
@@ -667,6 +675,11 @@
       color: var(--text);
       letter-spacing: .02em;
     }
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
 
@@ -1508,3 +1521,74 @@
 
 // ── REMOVE stock-badge from panel-index gap ───────
 .image-panel .stock-badge { display: none; }
+
+// ── RESPONSIVE POLISH ─────────────────────────────
+@media (max-width: 900px) {
+  .details-panel {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .size-btn {
+    min-width: 56px;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  .quantity-section {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .product-actions {
+    .action-row {
+      flex-direction: column;
+    }
+
+    .btn-cart {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .btn-wishlist {
+      width: 100%;
+      padding: 16px 24px;
+    }
+  }
+
+  .product-eyebrow {
+    gap: 8px;
+
+    .code {
+      width: 100%;
+    }
+
+    .share-btn {
+      margin-left: auto;
+    }
+  }
+
+  .trust-strip {
+    gap: 12px;
+
+    .trust-item {
+      font-size: 10px;
+    }
+  }
+
+  .cart-popup {
+    right: 12px;
+    left: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .product-name {
+    font-size: 28px;
+  }
+
+  .product-price .amount {
+    font-size: 36px;
+  }
+}

@@ -13,6 +13,10 @@ $muted:   rgba(#1A1A2E, 0.45);
   border-bottom: 1px solid rgba($coral, 0.1);
   padding: 52px 24px 44px;
   text-align: center;
+
+  @media (max-width: 576px) {
+    padding: 36px 16px 32px;
+  }
 }
 .pb-acc-hero-inner {
   max-width: 560px;
@@ -55,6 +59,8 @@ $muted:   rgba(#1A1A2E, 0.45);
 .pb-cat-section {
   background: $soft;
   padding: 48px 24px 56px;
+
+  @media (max-width: 576px) { padding: 32px 16px 40px; }
 }
 .pb-cat-inner {
   max-width: 960px;
@@ -76,6 +82,10 @@ $muted:   rgba(#1A1A2E, 0.45);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
     gap: 14px;
@@ -218,13 +228,15 @@ $muted:   rgba(#1A1A2E, 0.45);
   box-shadow: 0 4px 16px rgba(0,0,0,0.14);
   margin-left: auto;
   &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); color: $coral; }
-  @media (max-width: 600px) { margin-left: 0; }
+  @media (max-width: 600px) { margin-left: 0; width: 100%; }
 }
 
 // ── CTA BANNER ────────────────────────────────────
 .pb-acc-cta {
   background: linear-gradient(135deg, $coral 0%, #ff8c42 100%);
   padding: 40px 24px;
+
+  @media (max-width: 576px) { padding: 32px 16px; }
 }
 .pb-acc-cta-inner {
   max-width: 900px;

@@ -9,4 +9,20 @@ p {
   line-height: 1.8;
   font-size: 15px;
   margin-bottom: 1rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+strong {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 24px;
+  }
+
+  p {
+    font-size: 15px;
+  }
 }

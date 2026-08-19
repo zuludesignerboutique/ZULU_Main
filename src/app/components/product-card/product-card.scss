@@ -300,6 +300,11 @@
   &.pop svg {
     animation: heartPop 0.5s var(--spring);
   }
+
+  @media (max-width: 600px) {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 // ── ACTIONS (Add to Cart) ────────────────────────
@@ -340,5 +345,35 @@
 
   &:active {
     transform: translateY(0);
+  }
+}
+
+// ── RESPONSIVE ────────────────────────────────────
+@media (max-width: 600px) {
+  .view-btn,
+  .action-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .product-info {
+    padding: 14px 14px 16px;
+  }
+
+  .price-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .view-btn {
+    flex-shrink: 0;
   }
 }

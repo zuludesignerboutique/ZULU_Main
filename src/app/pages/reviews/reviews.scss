@@ -100,6 +100,7 @@ $radius-xl: 28px;
     display: flex;
     gap: 32px;
     margin-bottom: 32px;
+    flex-wrap: wrap;
 
     .stat {
       .stat-number {
@@ -656,5 +657,33 @@ $radius-xl: 28px;
     flex-direction: column-reverse;
 
     button { width: 100%; }
+  }
+}
+
+@media (max-width: 480px) {
+  .reviews-section {
+    padding: 48px 16px 44px;
+  }
+
+  .reviews-wrapper {
+    padding: 16px 2px 24px;
+
+    &::before,
+    &::after {
+      width: 24px;
+    }
+  }
+
+  .review-card {
+    padding: 22px 20px 20px;
+  }
+
+  .rv-modal,
+  .rv-form-modal {
+    padding: 24px 18px;
+  }
+
+  .rv-form-title {
+    font-size: 24px;
   }
 }

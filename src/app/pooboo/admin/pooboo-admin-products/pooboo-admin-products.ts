@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-pooboo-admin-products',
@@ -34,6 +35,7 @@ export class PoobooAdminProducts implements OnInit {
     private router: Router,
     private cd: ChangeDetectorRef,
     private ngZone: NgZone,
+    private toast: ToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -66,11 +68,16 @@ export class PoobooAdminProducts implements OnInit {
     this.router.navigate(['/admin/pooboo/edit-product', id]);
   }
 
-  deleteProduct(id: number, name: string) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  async deleteProduct(id: number, name: string) {
+    const confirmed = await this.toast.confirm({
+      title: 'Delete product?',
+      message: `Delete "${name}"? This cannot be undone.`,
+      confirmLabel: 'Delete'
+    });
+    if (!confirmed) return;
     this.http.delete(`/api/pooboo/products/${id}`).subscribe({
       next: () => this.loadProducts(),
-      error: () => alert('Failed to delete product')
+      error: () => this.toast.error('Failed to delete product')
     });
   }
 

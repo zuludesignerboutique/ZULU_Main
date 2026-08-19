@@ -33,6 +33,11 @@ $soft-bg: #FFF8F5;
     padding: 0 16px;
   }
 
+  @media (max-width: 576px) {
+    .pb-topbar-inner { gap: 10px; }
+    .pb-sep { display: none; }
+  }
+
   .pb-sep {
     opacity: 0.5;
     font-size: 10px;
@@ -57,6 +62,11 @@ $soft-bg: #FFF8F5;
   height: 68px;
   max-width: 1400px;
   margin: 0 auto;
+
+  @media (max-width: 576px) {
+    padding: 0 12px;
+    gap: 8px;
+  }
 }
 
 // ── LOGO ───────────────────────────────────────
@@ -107,6 +117,23 @@ $soft-bg: #FFF8F5;
       text-transform: uppercase;
     }
   }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+
+    .pb-logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+
+      .pb-logo-p { font-size: 18px; }
+    }
+
+    .pb-logo-text {
+      .pb-logo-name { font-size: 16px; letter-spacing: 0.5px; }
+      .pb-logo-sub { font-size: 8px; letter-spacing: 1px; }
+    }
+  }
 }
 
 // ── DESKTOP NAV ────────────────────────────────
@@ -115,7 +142,12 @@ $soft-bg: #FFF8F5;
   align-items: center;
   gap: 4px;
 
-  @media (max-width: 900px) { display: none; }
+  @media (max-width: 992px) { display: none; }
+}
+
+@media (max-width: 1200px) {
+  .pb-nav-link { padding: 8px 10px; font-size: 13px; }
+  .pb-cta-btn { display: none; }
 }
 
 .pb-nav-link {
@@ -163,6 +195,9 @@ $soft-bg: #FFF8F5;
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
+
+  @media (max-width: 576px) { gap: 6px; }
 }
 
 .pb-cta-btn {
@@ -202,12 +237,21 @@ $soft-bg: #FFF8F5;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  text-decoration: none;
+  flex-shrink: 0;
 
   svg { width: 18px; height: 18px; color: $dark; }
 
   &:hover {
     background: rgba($coral, 0.1);
     svg { color: $coral; }
+  }
+
+  @media (max-width: 576px) {
+    width: 34px;
+    height: 34px;
+
+    svg { width: 17px; height: 17px; }
   }
 }
 
@@ -267,8 +311,12 @@ $soft-bg: #FFF8F5;
   border: none;
   cursor: pointer;
   padding: 4px;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
 
-  @media (max-width: 900px) { display: flex; }
+  @media (max-width: 992px) { display: flex; }
 
   span {
     display: block;
@@ -293,7 +341,7 @@ $soft-bg: #FFF8F5;
   background: $white;
   border-top: 1px solid rgba($coral, 0.1);
 
-  @media (max-width: 900px) { display: block; }
+  @media (max-width: 992px) { display: block; }
 
   // 7 links × ~44px each + padding
   &.open { max-height: 420px; }
@@ -304,6 +352,8 @@ $soft-bg: #FFF8F5;
   flex-direction: column;
   padding: 12px 24px 20px;
   gap: 4px;
+
+  @media (max-width: 576px) { padding: 8px 16px 16px; }
 }
 
 .pb-mobile-link {
@@ -315,6 +365,8 @@ $soft-bg: #FFF8F5;
   padding: 10px 12px;
   border-radius: 8px;
   transition: all 0.2s;
+
+  @media (max-width: 576px) { padding: 12px 12px; }
 
   &:hover { background: rgba($coral, 0.08); color: $coral; }
 

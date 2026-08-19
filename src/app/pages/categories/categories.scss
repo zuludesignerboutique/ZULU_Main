@@ -1,5 +1,9 @@
 .categories-page {
   padding: 80px 0;
+
+  @media (max-width: 768px) {
+    padding: 48px 0;
+  }
 }
 
 .category-card {
@@ -15,6 +19,12 @@
 .category-card img {
   border-radius: 12px;
   margin-bottom: 10px;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
 }
 
 .category-card h4 {

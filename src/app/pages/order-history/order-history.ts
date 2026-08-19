@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-order-history',
@@ -32,6 +33,7 @@ export class OrderHistoryComponent implements OnInit {
     private http: HttpClient,
     private auth: AuthService,
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -113,7 +115,7 @@ export class OrderHistoryComponent implements OnInit {
     return status === 'confirmed' ? 25 : 0;
   }
 
-  cancelOrder(order: any) {
+  async cancelOrder(order: any) {
     const penaltyPercent = this.getCancelPenaltyPercent(order.status);
     const refundPercent = 100 - penaltyPercent;
     const refundAmount = Math.round(order.total_amount * refundPercent / 100);
@@ -125,8 +127,12 @@ export class OrderHistoryComponent implements OnInit {
       ? `Request cancellation for Order #${order.id}?\n\nOnce approved by our team, you'll receive a full refund of ₹${refundAmount}.`
       : `Request cancellation for Order #${order.id}?\n\nThis order has already been confirmed, so a 25% cancellation fee (₹${penaltyAmount}) will apply once approved. You'd be refunded ₹${refundAmount} of ₹${order.total_amount}.`;
 
-    // ✅ Popup confirmation before requesting
-    const confirmed = window.confirm(message);
+    // ✅ Store-themed confirmation popup before requesting
+    const confirmed = await this.toast.confirm({
+      title: 'Request cancellation?',
+      message,
+      confirmLabel: 'Request'
+    });
     if (!confirmed) return;
 
     this.cancellingId = order.id;
@@ -144,7 +150,7 @@ export class OrderHistoryComponent implements OnInit {
       },
       error: (err) => {
         console.error('[OrderHistory] cancel error:', err.status, err.error);
-        alert('Could not request cancellation. Please try again.');
+        this.toast.error('Could not request cancellation. Please try again.');
         this.cancellingId = null;
         this.cdr.detectChanges();
       }

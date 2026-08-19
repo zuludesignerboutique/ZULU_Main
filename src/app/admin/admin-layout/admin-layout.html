@@ -2,7 +2,9 @@
 <div class="admin-layout">
 
   <!-- SIDEBAR -->
-  <aside class="admin-sidebar">
+  <div class="sidebar-backdrop" *ngIf="sidebarOpen" (click)="closeSidebar()"></div>
+
+  <aside class="admin-sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-brand">
       ZULU Admin
       <span></span>
@@ -67,6 +69,8 @@
   <!-- MAIN CONTENT -->
   <main class="admin-content">
     <div class="admin-topbar">
+      <button class="sidebar-toggle" (click)="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+
       <span class="topbar-title">Admin Panel</span>
 
       <div class="topbar-actions">

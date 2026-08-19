@@ -6,4 +6,12 @@ h2 {
 p {
   color: #555;
   line-height: 1.8;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (max-width: 576px) {
+  p {
+    font-size: 15px;
+  }
 }

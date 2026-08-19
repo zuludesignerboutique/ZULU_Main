@@ -266,3 +266,18 @@
     &::after { width: 100%; }
   }
 }
+
+// ── RESPONSIVE POLISH ─────────────────────────────
+@media (max-width: 600px) {
+  .wishlist-actions {
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn-view,
+  .btn-remove {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

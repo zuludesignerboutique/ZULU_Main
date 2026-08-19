@@ -38,9 +38,64 @@ const requireAdmin = (req, res, next) => {
   res.status(403).json({ error: 'Admin access required' });
 };
 
+// Escape user input before it is interpolated into HTML emails.
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Simple in-memory sliding rate limiter for brute-force protection on
+// login/signup. Keyed by IP + email so one client cannot lock out another.
+const rateLimitStore = new Map();
+function rateLimiter({ windowMs, max, keyPrefix }) {
+  return (req, res, next) => {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const key = `${keyPrefix}:${req.ip}:${email}`;
+    const now = Date.now();
+    const entry = rateLimitStore.get(key) || { count: 0, resetAt: now + windowMs };
+    if (now > entry.resetAt) {
+      entry.count = 0;
+      entry.resetAt = now + windowMs;
+    }
+    entry.count += 1;
+    rateLimitStore.set(key, entry);
+    // Prune stale entries occasionally so the map cannot grow unbounded.
+    if (rateLimitStore.size > 10000) {
+      for (const [k, v] of rateLimitStore) {
+        if (v.resetAt < now) rateLimitStore.delete(k);
+      }
+    }
+    if (entry.count > max) {
+      const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+      res.set('Retry-After', String(retryAfter));
+      return res.status(429).json({ error: 'Too many attempts. Please try again later.' });
+    }
+    next();
+  };
+}
+
 const app = express();
 
-app.use(cors());
+// Restrict CORS to the configured frontend origin(s). FRONTEND_URL can be a
+// comma-separated list. When unset (local dev), allow any origin.
+const ALLOWED_ORIGINS = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!ALLOWED_ORIGINS.length || !origin || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 /* =========================
@@ -186,6 +241,16 @@ function persistUploads() {
         res.status(500).json({ error: 'File upload failed' });
       });
   };
+}
+
+// Extract stored filenames from image_url rows (/uploads/<name>) and delete
+// the files from storage (Supabase or local ./uploads). Used when products,
+// gallery rows, etc. are removed so orphaned files are cleaned up too.
+function deleteStoredImages(imageUrls) {
+  const names = (imageUrls || [])
+    .filter((u) => typeof u === 'string' && u.startsWith('/uploads/'))
+    .map((u) => u.replace(/^\/uploads\//, ''));
+  return Promise.all(names.map((n) => storageApi.deleteFile(n).catch(() => {})));
 }
 
 // Serve uploaded images. In cloud mode (Supabase configured) redirect to the
@@ -750,8 +815,8 @@ const loginHandler = (req, res) => {
 // Mounted under /api as well: Vercel only routes /api/* to the serverless
 // function (root /login cannot be POSTed to — see vercel.json), so the
 // frontend calls /api/login.
-app.post('/login', loginHandler);
-app.post('/api/login', loginHandler);
+app.post('/login', rateLimiter({ windowMs: 15 * 60 * 1000, max: 10, keyPrefix: 'login' }), loginHandler);
+app.post('/api/login', rateLimiter({ windowMs: 15 * 60 * 1000, max: 10, keyPrefix: 'login' }), loginHandler);
 
 // POST /signup
 const signupHandler = (req, res) => {
@@ -807,8 +872,8 @@ const signupHandler = (req, res) => {
   });
 };
 
-app.post('/signup', signupHandler);
-app.post('/api/signup', signupHandler);
+app.post('/signup', rateLimiter({ windowMs: 60 * 60 * 1000, max: 5, keyPrefix: 'signup' }), signupHandler);
+app.post('/api/signup', rateLimiter({ windowMs: 60 * 60 * 1000, max: 5, keyPrefix: 'signup' }), signupHandler);
 
 // Passwords are now hashed with bcrypt
 
@@ -990,6 +1055,10 @@ app.post('/api/contact', (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message);
+
   const mailOptions = {
     from: `"ZULU Boutique Contact" <${process.env.EMAIL_USER}>`,
     to: process.env.EMAIL_USER,
@@ -1009,15 +1078,15 @@ app.post('/api/contact', (req, res) => {
             <table style="width:100%;border-collapse:collapse;">
               <tr>
                 <td style="padding:10px 0;color:#9a9080;font-size:13px;width:100px;">Name</td>
-                <td style="padding:10px 0;font-weight:600;color:#1a1814;">${name}</td>
+                <td style="padding:10px 0;font-weight:600;color:#1a1814;">${safeName}</td>
               </tr>
               <tr>
                 <td style="padding:10px 0;color:#9a9080;font-size:13px;">Email</td>
-                <td style="padding:10px 0;color:#1a1814;">${email}</td>
+                <td style="padding:10px 0;color:#1a1814;">${safeEmail}</td>
               </tr>
               <tr>
                 <td style="padding:10px 0;color:#9a9080;font-size:13px;vertical-align:top;">Message</td>
-                <td style="padding:10px 0;color:#1a1814;line-height:1.7;">${message}</td>
+                <td style="padding:10px 0;color:#1a1814;line-height:1.7;">${safeMessage}</td>
               </tr>
             </table>
           </div>
@@ -1131,7 +1200,6 @@ app.get('/api/products/:id', (req, res) => {
 
 // ADD product (admin only)
 app.post('/api/products', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
-  console.log("BODY:", req.body);
 
   const uploaded = collectUploadedFiles(req);
   if (uploaded.length > 4) {
@@ -1299,13 +1367,22 @@ app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ n
   });
 });
 
-// DELETE product (admin only)
+// DELETE product (admin only) — also removes stored image files
 app.delete("/api/products/:id", authenticateToken, requireAdmin, (req, res) => {
-  db.query("DELETE FROM product_images WHERE product_id = ?", [req.params.id], (imgErr) => {
-    if (imgErr) console.error('Delete product_images error:', imgErr);
-    db.query("DELETE FROM products WHERE id = ?", [req.params.id], (err) => {
-      if (err) return res.status(500).json({ error: "Database error" });
-      res.json({ message: "Product deleted" });
+  db.query("SELECT image_url FROM products WHERE id = ?", [req.params.id], (selErr, rows) => {
+    const imageUrls = rows && rows.length ? [rows[0].image_url] : [];
+    db.query("SELECT image_url FROM product_images WHERE product_id = ?", [req.params.id], (gErr, gRows) => {
+      if (gErr) console.error('Select product_images error:', gErr);
+      (gRows || []).forEach((r) => imageUrls.push(r.image_url));
+      deleteStoredImages(imageUrls).then(() => {
+        db.query("DELETE FROM product_images WHERE product_id = ?", [req.params.id], (imgErr) => {
+          if (imgErr) console.error('Delete product_images error:', imgErr);
+          db.query("DELETE FROM products WHERE id = ?", [req.params.id], (err) => {
+            if (err) return res.status(500).json({ error: "Database error" });
+            res.json({ message: "Product deleted" });
+          });
+        });
+      });
     });
   });
 });
@@ -1355,16 +1432,24 @@ app.post('/api/admin/products/:id/images', authenticateToken, requireAdmin, uplo
 app.delete('/api/admin/products/:id/images/:imageId', authenticateToken, requireAdmin, (req, res) => {
   const { id, imageId } = req.params;
 
-  db.query('DELETE FROM product_images WHERE id = ? AND product_id = ?', [imageId, id], (err, result) => {
-    if (err) {
-      console.error('Delete product_images error:', err);
+  db.query('SELECT image_url FROM product_images WHERE id = ? AND product_id = ?', [imageId, id], (selErr, rows) => {
+    if (selErr) {
+      console.error('Select product_images error:', selErr);
       return res.status(500).json({ error: 'Database error' });
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Image not found' });
-    }
-    refreshThumbnail(id, () => {
-      res.json({ message: 'Image deleted successfully' });
+    db.query('DELETE FROM product_images WHERE id = ? AND product_id = ?', [imageId, id], (err, result) => {
+      if (err) {
+        console.error('Delete product_images error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      deleteStoredImages(rows.map((r) => r.image_url)).then(() => {
+        refreshThumbnail(id, () => {
+          res.json({ message: 'Image deleted successfully' });
+        });
+      });
     });
   });
 });
@@ -1432,7 +1517,7 @@ app.get('/api/gallery', (req, res) => {
 
 // POST /api/admin/gallery — bulk upload; each file gets its own title/description
 // via the `meta` field (JSON array, index-aligned with the uploaded files).
-app.post('/api/admin/gallery', authenticateToken, requireAdmin, upload.array('images', 20), (req, res) => {
+app.post('/api/admin/gallery', authenticateToken, requireAdmin, upload.array('images', 20), persistUploads(), (req, res) => {
   const files = req.files || [];
   if (!files.length) {
     return res.status(400).json({ error: 'No image files were uploaded.' });
@@ -1457,11 +1542,12 @@ app.post('/api/admin/gallery', authenticateToken, requireAdmin, upload.array('im
           console.error('Insert gallery_images error:', insErr);
           return res.status(500).json({ error: 'Gallery upload failed' });
         }
-        // MySQL gives us the first insertId; since this is a single batch
-        // INSERT, subsequent auto-increment ids follow sequentially.
+        // PostgreSQL returns every inserted id via RETURNING (result.rows);
+        // fall back to sequential ids from the first id only if unavailable.
+        const insertedIds = (result.rows || []).map((r) => r.id);
         const firstId = result.insertId;
         const inserted = rows.map((r, i) => ({
-          id: firstId + i,
+          id: insertedIds[i] ?? (firstId + i),
           title: r[0],
           description: r[1],
           image_url: `/uploads/${r[2]}`,
@@ -1889,7 +1975,14 @@ app.delete('/api/orders/:id', authenticateToken, (req, res) => {
 });
 
 // GET /api/orders/user/:email — brand-aware order history
+// Only the matching user (or an admin) may read these orders.
 app.get('/api/orders/user/:email', authenticateToken, (req, res) => {
+  const requestedEmail = String(req.params.email || '').trim().toLowerCase();
+  const callerEmail = String(req.user?.email || '').trim().toLowerCase();
+  if (req.user.role !== 'admin' && callerEmail !== requestedEmail) {
+    return res.status(403).json({ error: 'You can only view your own orders' });
+  }
+
   const sql = `
     SELECT
       o.id, o.user_name, o.phone, o.email,
@@ -2519,8 +2612,9 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.sing
 // DELETE /api/pooboo/products/:id — delete product (admin only)
 app.delete('/api/pooboo/products/:id', authenticateToken, requireAdmin, (req, res) => {
   // First get the product_code to find the matching unified record
-  db.query('SELECT product_code FROM pooboo_products WHERE id = ?', [req.params.id], (err, rows) => {
+  db.query('SELECT product_code, image_url FROM pooboo_products WHERE id = ?', [req.params.id], (err, rows) => {
     const code = rows && rows.length ? rows[0].product_code : null;
+    const imageUrl = rows && rows.length ? rows[0].image_url : null;
     db.query('DELETE FROM pooboo_products WHERE id = ?', [req.params.id], (err) => {
       if (err) return res.status(500).json({ error: 'Delete failed' });
       // Also delete from unified table
@@ -2529,7 +2623,9 @@ app.delete('/api/pooboo/products/:id', authenticateToken, requireAdmin, (req, re
           (errU) => { if (errU) console.error('POOBOO unified product delete sync error:', errU.message); }
         );
       }
-      res.json({ message: 'Product deleted successfully' });
+      deleteStoredImages([imageUrl]).then(() => {
+        res.json({ message: 'Product deleted successfully' });
+      });
     });
   });
 });
@@ -2716,8 +2812,9 @@ app.put('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, upload.singl
 
 // DELETE /api/pooboo/fabrics/:id — delete fabric (admin only)
 app.delete('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, (req, res) => {
-  db.query('SELECT product_code FROM pooboo_fabrics WHERE id = ?', [req.params.id], (err, rows) => {
+  db.query('SELECT product_code, image_url FROM pooboo_fabrics WHERE id = ?', [req.params.id], (err, rows) => {
     const code = rows && rows.length ? rows[0].product_code : null;
+    const imageUrl = rows && rows.length ? rows[0].image_url : null;
     db.query('DELETE FROM pooboo_fabrics WHERE id = ?', [req.params.id], (err) => {
       if (err) return res.status(500).json({ error: 'Delete failed' });
       if (code) {
@@ -2725,7 +2822,9 @@ app.delete('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, (req, res
           (errU) => { if (errU) console.error('POOBOO unified fabric delete sync error:', errU.message); }
         );
       }
-      res.json({ message: 'Fabric deleted successfully' });
+      deleteStoredImages([imageUrl]).then(() => {
+        res.json({ message: 'Fabric deleted successfully' });
+      });
     });
   });
 });
@@ -2917,8 +3016,9 @@ app.put('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, upload.s
 
 // DELETE /api/pooboo/accessories/:id — delete accessory (admin only)
 app.delete('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, (req, res) => {
-  db.query('SELECT product_code FROM pooboo_accessories WHERE id = ?', [req.params.id], (err, rows) => {
+  db.query('SELECT product_code, image_url FROM pooboo_accessories WHERE id = ?', [req.params.id], (err, rows) => {
     const code = rows && rows.length ? rows[0].product_code : null;
+    const imageUrl = rows && rows.length ? rows[0].image_url : null;
     db.query('DELETE FROM pooboo_accessories WHERE id = ?', [req.params.id], (err) => {
       if (err) return res.status(500).json({ error: 'Delete failed' });
       if (code) {
@@ -2926,7 +3026,9 @@ app.delete('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, (req,
           (errU) => { if (errU) console.error('POOBOO unified accessory delete sync error:', errU.message); }
         );
       }
-      res.json({ message: 'Accessory deleted successfully' });
+      deleteStoredImages([imageUrl]).then(() => {
+        res.json({ message: 'Accessory deleted successfully' });
+      });
     });
   });
 });
@@ -3021,6 +3123,14 @@ app.delete('/api/pooboo/enquiries/:id', authenticateToken, requireAdmin, (req, r
 ========================= */
 
 function sendPoobooEnquiryNotification(enquiry) {
+  const safe = {
+    id: enquiry.id,
+    name: escapeHtml(enquiry.name),
+    phone: escapeHtml(enquiry.phone),
+    email: escapeHtml(enquiry.email),
+    place: escapeHtml(enquiry.place),
+    product_link: escapeHtml(enquiry.product_link)
+  };
   const mailOptions = {
     from: `"POOBOO Kids Boutique" <${process.env.EMAIL_USER}>`,
     to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
@@ -3036,14 +3146,14 @@ function sendPoobooEnquiryNotification(enquiry) {
           </div>
           <div style="height:3px;background:linear-gradient(90deg,#ff6b9d,#ffcc02,#ff6b9d);"></div>
           <div style="padding:32px 40px;">
-            <p style="font-size:20px;font-weight:600;color:#1a1814;margin:0 0 20px;">Enquiry #${enquiry.id}</p>
+            <p style="font-size:20px;font-weight:600;color:#1a1814;margin:0 0 20px;">Enquiry #${safe.id}</p>
             <table style="width:100%;border-collapse:collapse;">
               <tbody>
-                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;width:80px;">Name</td><td style="padding:8px 0;font-weight:600;color:#1a1814;">${enquiry.name}</td></tr>
-                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Phone</td><td style="padding:8px 0;color:#1a1814;">${enquiry.phone}</td></tr>
-                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Email</td><td style="padding:8px 0;color:#1a1814;">${enquiry.email || '—'}</td></tr>
-                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Place</td><td style="padding:8px 0;color:#1a1814;">${enquiry.place || '—'}</td></tr>
-                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Regarding</td><td style="padding:8px 0;color:#1a1814;">${enquiry.product_link || '—'}</td></tr>
+                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;width:80px;">Name</td><td style="padding:8px 0;font-weight:600;color:#1a1814;">${safe.name}</td></tr>
+                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Phone</td><td style="padding:8px 0;color:#1a1814;">${safe.phone}</td></tr>
+                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Email</td><td style="padding:8px 0;color:#1a1814;">${safe.email || '—'}</td></tr>
+                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Place</td><td style="padding:8px 0;color:#1a1814;">${safe.place || '—'}</td></tr>
+                <tr><td style="padding:8px 0;color:#9a9080;font-size:13px;">Regarding</td><td style="padding:8px 0;color:#1a1814;">${safe.product_link || '—'}</td></tr>
               </tbody>
             </table>
           </div>

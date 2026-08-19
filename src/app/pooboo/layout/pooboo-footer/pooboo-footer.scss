@@ -9,6 +9,9 @@ $white:  #ffffff;
   color: rgba($white, 0.75);
   font-family: 'Nunito', sans-serif;
   padding: 60px 0 0;
+  overflow-x: hidden;
+
+  @media (max-width: 768px) { padding-top: 40px; }
 }
 
 .pb-footer-inner {
@@ -27,6 +30,7 @@ $white:  #ffffff;
     grid-template-columns: 1fr;
     gap: 28px;
   }
+  @media (max-width: 480px) { padding: 0 16px; }
 }
 
 // Brand
@@ -85,8 +89,8 @@ $white:  #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba($white, 0.08);
   color: rgba($white, 0.6);
@@ -187,6 +191,14 @@ $white:  #ffffff;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+    margin-top: 32px;
+  }
+  @media (max-width: 480px) { padding: 16px; }
 
   p {
     margin: 0;

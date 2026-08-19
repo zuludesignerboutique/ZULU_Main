@@ -65,6 +65,11 @@ $border:  rgba(0,0,0,0.07);
   @media (max-width: 860px) {
     grid-template-columns: 1fr;
   }
+
+  @media (max-width: 576px) {
+    padding: 32px 16px 0;
+    gap: 20px;
+  }
 }
 
 // ── SIDEBAR ───────────────────────────────────────
@@ -83,12 +88,22 @@ $border:  rgba(0,0,0,0.07);
   @media (max-width: 860px) {
     position: static;
   }
+
+  @media (max-width: 640px) {
+    padding: 14px;
+  }
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  @media (max-width: 640px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 }
 
 .sidebar-link {
@@ -121,6 +136,13 @@ $border:  rgba(0,0,0,0.07);
 
     .sidebar-icon { color: $rose; }
   }
+
+  @media (max-width: 640px) {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+    padding: 12px 10px;
+    font-size: 12px;
+  }
 }
 
 .sidebar-logout {
@@ -139,6 +161,11 @@ $border:  rgba(0,0,0,0.07);
   &:hover {
     border-color: #c0392b;
     color: #c0392b;
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+    text-align: center;
   }
 }
 

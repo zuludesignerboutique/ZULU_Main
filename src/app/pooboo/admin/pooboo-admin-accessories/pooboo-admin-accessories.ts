@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { ToastService } from '../../../services/toast.service';
 
 type AccessoryTab = 'baby-ornaments' | 'bands' | 'hair-clips';
 
@@ -64,6 +65,7 @@ export class PoobooAdminAccessories implements OnInit {
     private router: Router,
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -299,11 +301,16 @@ export class PoobooAdminAccessories implements OnInit {
     this.router.navigate(['/admin/pooboo/edit-accessory', id]);
   }
 
-  deleteProduct(id: number, name: string) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  async deleteProduct(id: number, name: string) {
+    const confirmed = await this.toast.confirm({
+      title: 'Delete accessory?',
+      message: `Delete "${name}"? This cannot be undone.`,
+      confirmLabel: 'Delete'
+    });
+    if (!confirmed) return;
     this.http.delete(`${this.api}/api/pooboo/accessories/${id}`).subscribe({
       next: () => this.loadAccessories(),
-      error: () => alert('Failed to delete accessory')
+      error: () => this.toast.error('Failed to delete accessory')
     });
   }
 

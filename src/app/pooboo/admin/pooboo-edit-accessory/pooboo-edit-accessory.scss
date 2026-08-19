@@ -301,3 +301,50 @@
     &.error { color: #e05588; }
   }
 }
+
+// ── Responsive ─────────────────────────────────────
+@media (max-width: 768px) {
+  .acc-edit-page { padding: 16px; }
+
+  .acc-edit-page .page-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .acc-edit-page .page-header .btn-add {
+    width: 100%;
+    min-height: 46px;
+    text-align: center;
+  }
+
+  .acc-edit-page .form-card { padding: 20px 16px; }
+
+  .acc-edit-page .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+    &.three-col { grid-template-columns: 1fr; }
+    &.toggles-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+  }
+
+  .acc-edit-page .form-group input[type="text"],
+  .acc-edit-page .form-group input[type="number"],
+  .acc-edit-page .form-group select,
+  .acc-edit-page .form-group textarea {
+    font-size: 16px;
+  }
+
+  .acc-edit-page .custom-tag-input { flex-direction: column; }
+  .acc-edit-page .custom-tag-input .btn-add-tag { min-height: 44px; }
+
+  .acc-edit-page .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  .acc-edit-page .form-actions .btn-cancel,
+  .acc-edit-page .form-actions .btn-submit {
+    width: 100%;
+    min-height: 46px;
+  }
+}

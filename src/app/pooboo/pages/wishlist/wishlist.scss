@@ -1,0 +1,55 @@
+$coral:   #FF6B35;
+$yellow:  #FFD600;
+$sky:     #00B4D8;
+$dark:    #1A1A2E;
+$white:   #ffffff;
+$soft-bg: #FFF8F5;
+
+.pooboo-wishlist-page {
+  background: $soft-bg;
+  min-height: 100vh;
+  font-family: 'Nunito', sans-serif;
+
+  .container {
+    max-width: 760px;
+  }
+
+  h2 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    color: $dark;
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+
+  p {
+    background: $white;
+    border: 1px solid rgba($dark, 0.06);
+    border-radius: 16px;
+    padding: 60px 20px;
+    text-align: center;
+    color: #888;
+    font-size: 1rem;
+    box-shadow: 0 2px 10px rgba($dark, 0.04);
+
+    a {
+      color: $coral;
+      font-weight: 800;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: background 0.15s, color 0.15s;
+
+      &:hover {
+        background: rgba($coral, 0.1);
+        text-decoration: underline;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    h2 { font-size: 1.4rem; }
+
+    p { padding: 44px 16px; }
+  }
+}

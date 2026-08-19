@@ -59,6 +59,10 @@
   align-items: center;
   padding: 64px 0 56px;
   text-align: center;
+
+  @media (max-width: 600px) {
+    padding: 44px 0 40px;
+  }
 }
 
 .section-eyebrow {
@@ -339,4 +343,8 @@
   &.sk-name { height: 16px; width: 75%; border-radius: 3px; }
   &.sk-desc { height: 12px; width: 55%; border-radius: 3px; }
   &.sk-price { height: 14px; width: 40%; border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    &.sk-img { height: 220px; }
+  }
 }

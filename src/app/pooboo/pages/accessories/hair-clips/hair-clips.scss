@@ -6,6 +6,10 @@
 
 .pb-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
+@media (max-width: 480px) {
+  .pb-container { padding: 0 16px; }
+}
+
 .pb-sub-hero {
   background: linear-gradient(135deg, var(--accent-soft), #fff);
   padding: 48px 0 40px;
@@ -15,12 +19,13 @@
 .pb-sub-back {
   display: inline-block; margin-bottom: 16px;
   color: var(--accent); text-decoration: none; font-weight: 600; font-size: 14px;
+  padding: 6px 0;
 }
 .pb-sub-badge {
   display: inline-block; background: var(--accent); color: #fff;
   padding: 6px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; margin-bottom: 12px;
 }
-.pb-sub-title { font-size: 32px; margin: 8px 0; color: #2b2b2b; }
+.pb-sub-title { font-size: clamp(24px, 6vw, 32px); margin: 8px 0; color: #2b2b2b; line-height: 1.25; }
 .pb-sub-title span { color: var(--accent); }
 .pb-sub-sub { color: #666; font-size: 15px; }
 
@@ -31,6 +36,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
+
+  @media (max-width: 480px) { gap: 12px; }
 }
 
 .pb-sub-card {
@@ -70,12 +77,20 @@
 }
 .pb-sub-cta-inner {
   display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
 }
 .pb-sub-cta-inner h3 { margin: 0 0 4px; color: #2b2b2b; }
 .pb-sub-cta-inner p { margin: 0; color: #666; font-size: 14px; }
 .pb-sub-cta-btn {
   background: var(--accent); color: #fff; padding: 12px 24px; border-radius: 999px;
   text-decoration: none; font-weight: 600; white-space: nowrap;
+
+  @media (max-width: 576px) { width: 100%; text-align: center; }
 }
 // ── WISHLIST HEART ─────────────────────────────
 @keyframes pbHeartPop {
@@ -135,6 +150,8 @@
   display: flex;
   align-items: center;
 
+  @media (max-width: 768px) { width: 100%; }
+
   .pb-sub-search-icon {
     position: absolute;
     left: 14px;
@@ -161,7 +178,7 @@
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
     }
 
-    @media (max-width: 480px) { width: 100%; }
+    @media (max-width: 768px) { width: 100%; }
   }
 }
 
@@ -180,6 +197,12 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232b2b2b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
+  max-width: 100%;
+
+  @media (max-width: 480px) {
+    flex: 1 1 100%;
+    width: 100%;
+  }
 
   &:focus {
     border-color: var(--accent);

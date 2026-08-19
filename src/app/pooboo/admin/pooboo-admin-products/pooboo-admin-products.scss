@@ -158,3 +158,35 @@
     }
   }
 }
+
+// ── Responsive ─────────────────────────────────────
+@media (max-width: 768px) {
+  .pooboo-products-page { padding: 16px; }
+
+  .pooboo-products-page .page-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .pooboo-products-page .btn-add {
+    width: 100%;
+    min-height: 46px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pooboo-products-page .search-bar { max-width: 100%; }
+  .pooboo-products-page .search-count { display: none; }
+}
+
+@media (max-width: 480px) {
+  .pooboo-products-page .products-table { min-width: 680px; }
+  .pooboo-products-page .products-table th,
+  .pooboo-products-page .products-table td { padding: 10px 12px; }
+  .pooboo-products-page .actions { flex-direction: column; gap: 6px; }
+  .pooboo-products-page .btn-edit,
+  .pooboo-products-page .btn-delete { width: 100%; padding: 10px 14px; }
+}
