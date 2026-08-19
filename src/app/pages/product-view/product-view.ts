@@ -42,7 +42,7 @@ export class ProductView implements OnInit, OnDestroy {
   linkCopied: boolean = false;
 
   // ── Customization ────────────────────────────────
-  readonly WHATSAPP_NUMBER = '919292830608';
+  readonly WHATSAPP_NUMBER = '919384268548';
   customerName: string = '';
   isHoverDevice: boolean = true;
   customizeTooltipOpen: boolean = false;

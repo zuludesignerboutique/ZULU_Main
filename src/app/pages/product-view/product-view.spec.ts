@@ -75,7 +75,7 @@ describe('ProductView', () => {
     const link = component.getCustomizationWhatsappLink();
     const msg = decodeURIComponent(link.split('?text=')[1]);
 
-    expect(link).toContain('wa.me/919292830608');
+    expect(link).toContain('wa.me/919384268548');
     expect(msg).toContain('Hello ZULU');
     expect(msg).toContain('*Customer Name:* Zara');
     expect(msg).toContain('*Product Name:* Lehenga');
@@ -118,7 +118,7 @@ describe('ProductView', () => {
 
     expect(openSpy).toHaveBeenCalledTimes(1);
     expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('wa.me/919292830608'),
+      expect.stringContaining('wa.me/919384268548'),
       '_blank'
     );
   });
@@ -150,7 +150,7 @@ describe('ProductView', () => {
     expect(component.customizeTooltipOpen).toBeFalsy();
     expect(openSpy).toHaveBeenCalledTimes(1);
     expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('wa.me/919292830608'),
+      expect.stringContaining('wa.me/919384268548'),
       '_blank'
     );
   });
