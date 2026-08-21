@@ -96,13 +96,13 @@
 
       <h1 class="product-name">{{ product?.name }}</h1>
 
-      <!-- Colour chip -->
-      <div class="colour-row" *ngIf="product?.colour || product?.color">
-        <span class="colour-label">Colour:</span>
-        <span class="colour-chip"
-          [style.background]="getColourHex(product?.colour || product?.color)">
+      <!-- Rating row (shown only when the product carries real rating data) -->
+      <div class="rating-row" *ngIf="product?.rating">
+        <span class="rating-stars" aria-hidden="true">
+          <span class="star" *ngFor="let s of [1,2,3,4,5]" [class.filled]="s <= roundedRating">★</span>
         </span>
-        <span class="colour-name">{{ product?.colour || product?.color }}</span>
+        <span class="rating-value">{{ product.rating | number:'1.1-1' }}</span>
+        <span class="rating-count" *ngIf="product?.review_count">({{ product.review_count }} review{{ product.review_count !== 1 ? 's' : '' }})</span>
       </div>
 
       <div class="product-price">
@@ -111,11 +111,23 @@
         <span class="tax-note">incl. taxes</span>
       </div>
 
+      <!-- Short description — sits directly under the price -->
+      <p class="product-summary" *ngIf="product?.description">{{ product.description }}</p>
+
+      <!-- Colour chip -->
+      <div class="colour-row" *ngIf="product?.colour || product?.color">
+        <span class="colour-label">Colour</span>
+        <span class="colour-chip"
+          [style.background]="getColourHex(product?.colour || product?.color)">
+        </span>
+        <span class="colour-name">{{ product?.colour || product?.color }}</span>
+      </div>
+
       <!-- SIZE SELECTOR — always visible -->
       <div class="size-section">
         <div class="size-header">
           <span class="size-label">Size</span>
-          <button class="size-chart-link" (click)="toggleSizeChart()">View Size Chart</button>
+          <button class="size-chart-link" (click)="toggleSizeChart()">Size guide →</button>
         </div>
         <div class="size-options" [style.outline]="sizeError ? '2px solid #e05c5c' : 'none'"
              [style.borderRadius]="sizeError ? '6px' : 'none'"
@@ -125,7 +137,7 @@
             *ngFor="let size of getAvailableSizes()"
             [class.selected]="selectedSize === size"
             (click)="selectSize(size)"
-          style="color: black;">
+          >
             {{ size }}
           </button>
         </div>
@@ -135,101 +147,109 @@
         </p>
       </div>
 
-      <!-- QUANTITY -->
-      <div class="quantity-section">
-        <span class="quantity-label">Quantity</span>
-        <div class="quantity-stepper">
-          <button class="qty-btn" (click)="decreaseQty()" [disabled]="quantity <= 1">−</button>
-          <span class="qty-value">{{ quantity }}</span>
-          <button class="qty-btn" (click)="increaseQty()">+</button>
-        </div>
-      </div>
-
-      <!-- ACTIONS -->
+      <!-- PRIMARY CTA ROW — quantity + Add to Cart + wishlist, side by side -->
       <div class="product-actions">
 
-        <!-- WhatsApp Enquiry -->
-        <a class="btn-whatsapp" [href]="getWhatsappLink()" target="_blank" rel="noopener">
-          <span class="btn-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.522 5.847L.057 23.882l6.197-1.625A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.001-1.366l-.359-.213-3.68.965.981-3.586-.234-.368A9.818 9.818 0 1112 21.818z"/>
-            </svg>
-          </span>
-          Enquire on WhatsApp
-        </a>
+        <div class="cta-row">
+          <div class="quantity-stepper">
+            <button class="qty-btn" (click)="decreaseQty()" [disabled]="quantity <= 1">−</button>
+            <span class="qty-value">{{ quantity }}</span>
+            <button class="qty-btn" (click)="increaseQty()">+</button>
+          </div>
 
-        <!-- Customization -->
-        <div class="customize-wrap">
-          <button
-            class="btn-customize"
-            (click)="onCustomizeClick()"
-            type="button"
-            aria-label="Request customization for this product"
-            aria-describedby="customize-tooltip"
-            [attr.aria-expanded]="customizeTooltipOpen"
-          >
-            <span class="btn-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3v4"/>
-                <path d="M12 17v4"/>
-                <path d="M3 12h4"/>
-                <path d="M17 12h4"/>
-                <path d="M7.8 7.8l2.8 2.8"/>
-                <path d="M13.4 13.4l2.8 2.8"/>
-                <path d="M7.8 16.2l2.8-2.8"/>
-                <path d="M13.4 10.6l2.8-2.8"/>
-              </svg>
-            </span>
-            Customization
-          </button>
+          <div class="action-row">
+            <button
+              class="btn-cart"
+              [class.added]="cartAdded"
+              (click)="addToCart()"
+            >
+              <span class="btn-label">
+                <ng-container *ngIf="!cartAdded">
+                  <span class="btn-icon">＋</span> Add to Cart
+                </ng-container>
+                <ng-container *ngIf="cartAdded">
+                  <span class="btn-icon">✓</span> Added!
+                </ng-container>
+              </span>
+              <span class="btn-shimmer"></span>
+            </button>
 
-          <!-- Hover / tap tooltip -->
-          <div class="customize-tooltip" id="customize-tooltip" [class.open]="customizeTooltipOpen">
-            <span class="tooltip-arrow"></span>
-            <p class="tooltip-title">Customize Your Look</p>
-            <p class="tooltip-text">
-              Want something different? We can help customize the design, fit, size,
-              color, fabric, or other available details based on your requirements.
-              Contact us to discuss your customization.
-            </p>
-            <button class="tooltip-cta" (click)="openCustomization()" type="button">
-              Continue to WhatsApp →
+            <button
+              class="btn-wishlist"
+              [class.active]="isWishlisted"
+              (click)="toggleWishlist()"
+              [attr.aria-label]="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
+            >
+              <span class="heart-icon">{{ isWishlisted ? '♥' : '♡' }}</span>
             </button>
           </div>
         </div>
 
-        <div class="action-row">
-          <button
-            class="btn-cart"
-            [class.added]="cartAdded"
-            (click)="addToCart()"
-          >
-            <span class="btn-label">
-              <ng-container *ngIf="!cartAdded">
-                <span class="btn-icon">＋</span> Add to Cart
-              </ng-container>
-              <ng-container *ngIf="cartAdded">
-                <span class="btn-icon">✓</span> Added!
-              </ng-container>
-            </span>
-            <span class="btn-shimmer"></span>
-          </button>
-
-          <button
-            class="btn-wishlist"
-            [class.active]="isWishlisted"
-            (click)="toggleWishlist()"
-            [attr.aria-label]="isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
-          >
-            <span class="heart-icon">{{ isWishlisted ? '♥' : '♡' }}</span>
-          </button>
+        <!-- Fulfillment checklist -->
+        <div class="fulfillment-info">
+          <p><span class="check-icon">✓</span> In stock — ships within 2–4 business days</p>
+          <!-- <p><span class="check-icon">✓</span> Free returns within 30 days</p> -->
         </div>
 
-        <!-- Write a Review -->
-        <button class="btn-review" (click)="writeReview()">
-          <span class="review-star">★</span> Write a Review
-        </button>
+        <!-- Secondary actions -->
+        <div class="secondary-actions">
+
+          <!-- WhatsApp Enquiry -->
+          <a class="btn-whatsapp" [href]="getWhatsappLink()" target="_blank" rel="noopener">
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.522 5.847L.057 23.882l6.197-1.625A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.001-1.366l-.359-.213-3.68.965.981-3.586-.234-.368A9.818 9.818 0 1112 21.818z"/>
+              </svg>
+            </span>
+            Enquire on WhatsApp
+          </a>
+
+          <!-- Customization -->
+          <div class="customize-wrap">
+            <button
+              class="btn-customize"
+              (click)="onCustomizeClick()"
+              type="button"
+              aria-label="Request customization for this product"
+              aria-describedby="customize-tooltip"
+              [attr.aria-expanded]="customizeTooltipOpen"
+            >
+              <span class="btn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3v4"/>
+                  <path d="M12 17v4"/>
+                  <path d="M3 12h4"/>
+                  <path d="M17 12h4"/>
+                  <path d="M7.8 7.8l2.8 2.8"/>
+                  <path d="M13.4 13.4l2.8 2.8"/>
+                  <path d="M7.8 16.2l2.8-2.8"/>
+                  <path d="M13.4 10.6l2.8-2.8"/>
+                </svg>
+              </span>
+              Customization
+            </button>
+
+            <!-- Hover / tap tooltip -->
+            <div class="customize-tooltip" id="customize-tooltip" [class.open]="customizeTooltipOpen">
+              <span class="tooltip-arrow"></span>
+              <p class="tooltip-title">Customize Your Look</p>
+              <p class="tooltip-text">
+                Want something different? We can help customize the design, fit, size,
+                color, fabric, or other available details based on your requirements.
+                Contact us to discuss your customization.
+              </p>
+              <button class="tooltip-cta" (click)="openCustomization()" type="button">
+                Continue to WhatsApp →
+              </button>
+            </div>
+          </div>
+
+          <!-- Write a Review -->
+          <button class="btn-review" (click)="writeReview()">
+            <span class="review-star">★</span> Write a Review
+          </button>
+        </div>
       </div>
 
       <!-- TRUST STRIP -->
@@ -251,17 +271,6 @@
       <!-- ══ PRODUCT DETAILS ACCORDION ══ -->
       <div class="product-details-section">
 
-        <!-- About -->
-        <div class="detail-block" *ngIf="product?.description">
-          <button class="detail-toggle" (click)="toggleDetail('about')" [class.open]="openDetail === 'about'">
-            <span>About</span>
-            <span class="toggle-icon">{{ openDetail === 'about' ? '−' : '+' }}</span>
-          </button>
-          <div class="detail-content" [class.expanded]="openDetail === 'about'">
-            <p class="detail-text">{{ product.description }}</p>
-          </div>
-        </div>
-
         <!-- Product Details -->
         <div class="detail-block" *ngIf="product?.details?.length">
           <button class="detail-toggle" (click)="toggleDetail('details')" [class.open]="openDetail === 'details'">
@@ -275,10 +284,10 @@
           </div>
         </div>
 
-        <!-- Specifications -->
+        <!-- Fabric & Fit -->
         <div class="detail-block">
           <button class="detail-toggle" (click)="toggleDetail('specs')" [class.open]="openDetail === 'specs'">
-            <span>Specifications</span>
+            <span>Fabric &amp; Fit</span>
             <span class="toggle-icon">{{ openDetail === 'specs' ? '−' : '+' }}</span>
           </button>
           <div class="detail-content" [class.expanded]="openDetail === 'specs'">
@@ -299,10 +308,6 @@
                 <span class="spec-label">Type</span>
                 <span class="spec-value">{{ product.subcategory }}</span>
               </div>
-              <div class="spec-row" *ngIf="product?.care || product?.wash_care">
-                <span class="spec-label">Care</span>
-                <span class="spec-value">{{ product?.care || product?.wash_care }}</span>
-              </div>
               <div class="spec-row" *ngIf="product?.product_code">
                 <span class="spec-label">Product Code</span>
                 <span class="spec-value">{{ product.product_code }}</span>
@@ -315,16 +320,28 @@
           </div>
         </div>
 
+        <!-- Care Instructions -->
+        <div class="detail-block" *ngIf="product?.care || product?.wash_care">
+          <button class="detail-toggle" (click)="toggleDetail('care')" [class.open]="openDetail === 'care'">
+            <span>Care Instructions</span>
+            <span class="toggle-icon">{{ openDetail === 'care' ? '−' : '+' }}</span>
+          </button>
+          <div class="detail-content" [class.expanded]="openDetail === 'care'">
+            <p class="detail-text">{{ product?.care || product?.wash_care }}</p>
+          </div>
+        </div>
+
         <!-- Shipping & Returns -->
         <div class="detail-block">
           <button class="detail-toggle" (click)="toggleDetail('shipping')" [class.open]="openDetail === 'shipping'">
-            <span>Shipping </span>
+            <span>Shipping &amp; Returns</span>
             <span class="toggle-icon">{{ openDetail === 'shipping' ? '−' : '+' }}</span>
           </button>
           <div class="detail-content" [class.expanded]="openDetail === 'shipping'">
             <ul class="detail-list">
               <li>Free delivery on orders above ₹3999</li>
               <li>Standard delivery within 5–15 business days</li>
+              <li>Free returns within 30 days</li>
             </ul>
           </div>
         </div>

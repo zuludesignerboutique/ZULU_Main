@@ -476,6 +476,12 @@ export class ProductView implements OnInit, OnDestroy {
     }
   }
 
+  // ── Rating ─────────────────────────────────────────
+  get roundedRating(): number {
+    const r = Number(this.product?.rating);
+    return Number.isFinite(r) ? Math.round(r) : 0;
+  }
+
   // ── Colour helper ─────────────────────────────────
   getColourHex(colour: string): string {
     if (!colour) return '#ccc';

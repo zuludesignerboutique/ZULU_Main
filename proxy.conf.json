@@ -1,21 +1,21 @@
 {
   "/api": {
-    "target": "http://localhost:4000",
+    "target": "http://127.0.0.1:4500",
     "secure": false,
     "changeOrigin": true
   },
   "/uploads": {
-    "target": "http://localhost:4000",
+    "target": "http://127.0.0.1:4500",
     "secure": false,
     "changeOrigin": true
   },
   "/login": {
-    "target": "http://localhost:4000",
+    "target": "http://127.0.0.1:4500",
     "secure": false,
     "changeOrigin": true
   },
   "/signup": {
-    "target": "http://localhost:4000",
+    "target": "http://127.0.0.1:4500",
     "secure": false,
     "changeOrigin": true
   }

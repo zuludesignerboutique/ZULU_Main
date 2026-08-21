@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "dev": "concurrently -n web,api -c blue,green \"ng serve\" \"nodemon zulu-backend/src/index.js\"",
+    "dev": "set PATH=C:\\Windows\\System32;%PATH%&& concurrently -n web,api -c blue,green \"ng serve --port 4100\" \"nodemon zulu-backend/src/index.js\"",
     "start:api": "node zulu-backend/src/index.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
