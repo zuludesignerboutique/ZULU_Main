@@ -17,6 +17,7 @@ export class AdminOrders implements OnInit, OnDestroy {
   orders: any[] = [];
   filteredOrders: any[] = [];
   isLoading = true;
+  errorMessage = '';
 
   brandFilter = 'all';
   statusFilter = 'all';
@@ -61,18 +62,22 @@ export class AdminOrders implements OnInit, OnDestroy {
 
   loadOrders() {
     this.isLoading = true;
-    const params: any = {};
+    this.errorMessage = '';
+    const params: any = {
+      limit: 100
+    };
     if (this.brandFilter !== 'all') params.brand = this.brandFilter;
     if (this.statusFilter !== 'all') params.status = this.statusFilter;
     if (this.searchQuery) params.search = this.searchQuery;
     if (this.startDate) params.startDate = this.startDate;
     if (this.endDate) params.endDate = this.endDate;
 
-    this.http.get<any[]>(`${this.api}/api/orders`, { params }).subscribe({
-      next: (data) => {
+    this.http.get<any>(`${this.api}/api/orders`, { params }).subscribe({
+      next: (res) => {
         this.ngZone.run(() => {
-          this.orders = data;
-          this.currentPage = 1;
+          this.orders = res.orders || [];
+          this.totalPages = res.totalPages || 1;
+          this.currentPage = res.page || 1;
           this.applyFilters();
           this.isLoading = false;
           this.cdr.detectChanges();
@@ -82,9 +87,10 @@ export class AdminOrders implements OnInit, OnDestroy {
           }
         });
       },
-      error: () => {
+      error: (err) => {
         this.ngZone.run(() => {
           this.isLoading = false;
+          this.errorMessage = err?.error?.error || err?.message || 'Failed to load orders';
           this.cdr.detectChanges();
         });
       }

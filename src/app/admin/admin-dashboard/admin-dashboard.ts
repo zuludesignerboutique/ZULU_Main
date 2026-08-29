@@ -32,13 +32,16 @@ export class AdminDashboard implements OnInit {
   }
 
   loadData() {
-    // Build query params for brand filter
-    const params: any = {};
+    // Build query params for brand filter. limit is set high so the dashboard's
+    // totals/revenue reflect every order, not just the first paginated page.
+    const params: any = { limit: 1000 };
 
-    this.http.get<any[]>(`${this.api}/api/orders`, { params }).subscribe({
-      next: (data) => {
+    this.http.get<any>(`${this.api}/api/orders`, { params }).subscribe({
+      next: (res) => {
         this.ngZone.run(() => {
-          let orders = data;
+          // GET /api/orders returns { orders, total, page, totalPages, limit },
+          // not a bare array — grab .orders before working with it.
+          let orders = res.orders || [];
           if (this.brandFilter !== 'all') {
             orders = orders.filter((o: any) => o.items?.[0]?.brand === this.brandFilter);
           }

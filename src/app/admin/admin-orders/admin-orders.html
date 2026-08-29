@@ -76,8 +76,15 @@
     </div>
   </div>
 
+  <!-- Error -->
+  <div class="ao-error" *ngIf="errorMessage && !isLoading">
+    <span class="error-icon">⚠</span>
+    <span class="error-text">{{ errorMessage }}</span>
+    <button class="error-retry" (click)="loadOrders()">Retry</button>
+  </div>
+
   <!-- Table -->
-  <div class="ao-table-wrap" *ngIf="!isLoading">
+  <div class="ao-table-wrap" *ngIf="!isLoading && !errorMessage">
     <table class="ao-table">
       <thead>
         <tr>

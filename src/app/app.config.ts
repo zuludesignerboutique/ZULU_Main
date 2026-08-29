@@ -5,12 +5,12 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { Router, NavigationEnd } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
-import { routes } from './app.routes';
+import { routes, publicRoutes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideRouter([...routes, ...publicRoutes]),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideClientHydration(
       withEventReplay(),

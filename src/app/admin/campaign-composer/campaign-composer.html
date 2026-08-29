@@ -1,0 +1,92 @@
+<div class="campaign-composer">
+  <div class="modal-header">
+    <h5 class="modal-title">{{ campaign ? 'Edit Campaign' : 'Create Campaign' }}</h5>
+    <button type="button" class="btn-close" (click)="onClose()"></button>
+  </div>
+  <div class="modal-body">
+    <form (ngSubmit)="onSave()">
+      <div class="mb-3">
+        <label class="form-label">Campaign Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="campaignName" name="campaignName" placeholder="e.g., Summer Sale 2026" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email Subject <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="campaignSubject" name="campaignSubject" placeholder="e.g., Summer Sale — Up to 40% Off" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Template</label>
+        <select class="form-select" [(ngModel)]="selectedTemplate" (change)="onTemplateChange(selectedTemplate)">
+          <option value="blank">Blank</option>
+          <option value="sale">🔥 Sale / Offer</option>
+          <option value="newArrival">🆕 New Arrival</option>
+        </select>
+        <div class="form-text">Select a template to pre-fill the editor. You can edit freely after.</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email Content <span class="text-danger">*</span></label>
+        <div id="campaign-editor"></div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Audience <span class="text-danger">*</span></label>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" name="audienceType" id="audience-all" value="all_subscribers" [(ngModel)]="campaignAudienceType" (change)="onAudienceChange()">
+          <label class="btn btn-outline-primary" for="audience-all">
+            <div class="fw-medium">All Subscribers</div>
+            <small>{{ getAudienceOption('all_subscribers')?.description }} ({{ stats.active }})</small>
+          </label>
+
+          <input type="radio" class="btn-check" name="audienceType" id="audience-opted" value="users_opted_in" [(ngModel)]="campaignAudienceType" (change)="onAudienceChange()">
+          <label class="btn btn-outline-primary" for="audience-opted">
+            <div class="fw-medium">Users Who Opted In</div>
+            <small>{{ getAudienceOption('users_opted_in')?.description }}</small>
+          </label>
+
+          <input type="radio" class="btn-check" name="audienceType" id="audience-selected" value="selected" [(ngModel)]="campaignAudienceType" (change)="onAudienceChange()">
+          <label class="btn btn-outline-primary" for="audience-selected">
+            <div class="fw-medium">Selected Subscribers</div>
+            <small>{{ getAudienceOption('selected')?.description }} ({{ campaignAudienceIds.length }} selected)</small>
+          </label>
+        </div>
+      </div>
+
+      <!-- Selected Subscribers List -->
+      <div class="mb-3" *ngIf="campaignAudienceType === 'selected'">
+        <label class="form-label">Select Subscribers</label>
+        <div class="bg-light rounded p-3" style="max-height: 200px; overflow-y: auto;">
+          <div class="d-flex align-items-center mb-2">
+            <input type="checkbox" class="form-check-input me-2" [checked]="allSubscribersSelected()" (change)="toggleAllSubscribers($event)">
+            <span class="fw-medium">Select All ({{ campaignAudienceIds.length }} / {{ subscribers.length }})</span>
+          </div>
+          <div *ngFor="let sub of subscribers" class="form-check">
+            <input class="form-check-input" type="checkbox" [checked]="isSubscriberSelected(sub)" (change)="toggleSubscriberSelection($event, sub)">
+            <label class="form-check-label small">
+              {{ sub.name || '—' }} ({{ sub.email }})
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-footer mt-4 pt-3 border-top">
+        <div class="composer-footer__secondary">
+          <button type="button" class="btn btn-outline-secondary" (click)="onPreview()">Preview</button>
+          <button type="button" class="btn btn-outline-primary" (click)="onTest()">Send Test</button>
+        </div>
+        <div class="composer-footer__primary">
+          <button type="button" class="btn btn-secondary" (click)="onClose()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="campaignLoading">
+            <span *ngIf="campaignLoading" class="spinner-border spinner-border-sm me-2"></span>
+            Save Draft
+          </button>
+          <button type="button" class="btn btn-success" (click)="onSend()" [disabled]="campaignLoading">
+            <span *ngIf="campaignLoading" class="spinner-border spinner-border-sm me-2"></span>
+            Send Now
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

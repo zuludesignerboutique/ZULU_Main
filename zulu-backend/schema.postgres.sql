@@ -269,6 +269,29 @@ CREATE TABLE IF NOT EXISTS newsletter_subscribers (
   CONSTRAINT uniq_newsletter_email UNIQUE (email)
 );
 
+-- Company settings for bill/invoice generation (single row, upsert pattern)
+CREATE TABLE IF NOT EXISTS company_settings (
+  id            SERIAL PRIMARY KEY,
+  name          VARCHAR(200) NOT NULL DEFAULT 'ZULU Boutique',
+  gstin         VARCHAR(20),
+  address       TEXT,
+  phone         VARCHAR(20),
+  email         VARCHAR(100),
+  website       VARCHAR(100),
+  "bankName"    VARCHAR(100),
+  "accountNumber" VARCHAR(50),
+  "ifscCode"    VARCHAR(20),
+  "upiId"       VARCHAR(100),
+  terms         TEXT,
+  "footerNote"  TEXT,
+  "logoUrl"     VARCHAR(500),
+  "updatedAt"   TIMESTAMP    NOT NULL DEFAULT now()
+);
+
+-- Insert default row (id=1)
+INSERT INTO company_settings (id, name) VALUES (1, 'ZULU Boutique')
+ON CONFLICT (id) DO NOTHING;
+
 -- Resync sequences after a data import (explicit ids do not advance SERIAL).
 -- SELECT setval(pg_get_serial_sequence('users','id'),        (SELECT COALESCE(MAX(id),1) FROM users));
 -- SELECT setval(pg_get_serial_sequence('categories','id'),   (SELECT COALESCE(MAX(id),1) FROM categories));

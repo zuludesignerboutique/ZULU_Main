@@ -112,6 +112,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/admin-gallery/admin-gallery').then(m => m.AdminGallery)
       },
+      {
+        path: 'custom-bill',
+        loadComponent: () =>
+          import('./admin/custom-bill/custom-bill').then(m => m.CustomBillComponent)
+      },
       // ── POOBOO admin ───────────────────────────
       {
         path: 'pooboo/products',
@@ -166,6 +171,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pooboo/admin/pooboo-admin-reviews/pooboo-admin-reviews')
             .then(m => m.PoobooAdminReviews)
+      },
+      // ── USERS & NEWSLETTER admin ───────────────────
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./admin/admin-users/admin-users').then(m => m.AdminUsers)
+      },
+      {
+        path: 'newsletter',
+        loadComponent: () =>
+          import('./admin/admin-newsletter/admin-newsletter').then(m => m.AdminNewsletter)
+      },
+      {
+        path: 'newsletter/history',
+        loadComponent: () =>
+          import('./admin/campaign-history/campaign-history').then(m => m.CampaignHistory)
       }
     ]
   },
@@ -244,18 +265,6 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'pooboo/cart',
-    loadComponent: () =>
-      import('./pooboo/pages/cart/cart').then(m => m.Cart),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'pooboo/wishlist',
-    loadComponent: () =>
-      import('./pooboo/pages/wishlist/wishlist').then(m => m.Wishlist),
-    canActivate: [authGuard]
-  },
-  {
     path: 'pooboo/enquiry',
     loadComponent: () =>
       import('./pooboo/pages/enquiry/pooboo-enquiry').then(m => m.PoobooEnquiry)
@@ -267,4 +276,13 @@ export const routes: Routes = [
   },
 
   { path: '**', redirectTo: '' }
+];
+
+// Public unsubscribe route (no admin guard)
+export const publicRoutes: Routes = [
+  {
+    path: 'unsubscribe',
+    loadComponent: () =>
+      import('./admin/unsubscribe/unsubscribe').then(m => m.Unsubscribe)
+  }
 ];

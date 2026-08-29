@@ -52,12 +52,8 @@
         <option value="newest">Newest</option>
         <option value="price_asc">Price: Low to High</option>
         <option value="price_desc">Price: High to Low</option>
-        @if (availableTags.length) {
-          <optgroup label="Tags">
-            @for (t of availableTags; track t) {
-              <option [value]="'tag:' + t">🏷️ {{ t }}</option>
-            }
-          </optgroup>
+        @for (t of availableTags; track t) {
+          <option [value]="'tag:' + t">{{ t }}</option>
         }
       </select>
     </div>

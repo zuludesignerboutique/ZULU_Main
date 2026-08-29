@@ -37,9 +37,7 @@
         <option value="newest">Newest</option>
         <option value="price_asc">Price: Low to High</option>
         <option value="price_desc">Price: High to Low</option>
-        <optgroup label="Tags" *ngIf="availableTags.length">
-          <option *ngFor="let t of availableTags" [value]="'tag:' + t">🏷️ {{ t }}</option>
-        </optgroup>
+        <option *ngFor="let t of availableTags" [value]="'tag:' + t">{{ t }}</option>
       </select>
     </div>
 

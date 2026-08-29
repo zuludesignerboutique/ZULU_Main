@@ -46,9 +46,7 @@
         <option value="newest">Newest</option>
         <option value="price_asc">Price: Low to High</option>
         <option value="price_desc">Price: High to Low</option>
-        <optgroup label="Tags" *ngIf="allTags.length">
-          <option *ngFor="let tag of allTags" [value]="'tag:' + tag">🏷️ {{ tag }}</option>
-        </optgroup>
+        <option *ngFor="let tag of allTags" [value]="'tag:' + tag">{{ tag }}</option>
       </select>
 
       <button *ngIf="selectedCategory || selectedAgeGroup || selectedGender || searchTerm || sortBy || selectedTags.length"

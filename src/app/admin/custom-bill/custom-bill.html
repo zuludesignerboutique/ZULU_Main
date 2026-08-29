@@ -1,0 +1,413 @@
+<!-- CUSTOM BILL COMPONENT -->
+<div class="custom-bill-page">
+
+  <!-- TOP BAR -->
+  <div class="page-header">
+    <h1 class="page-title">Custom Bill Generator</h1>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="onManualModeToggle()">
+        {{ isManualMode() ? '🔙 Switch to Order Mode' : '➕ Manual Bill' }}
+      </button>
+      <button class="btn btn-outline" (click)="showSettingsPanel.set(true)">
+        ⚙️ Company Settings
+      </button>
+    </div>
+  </div>
+
+  <!-- ORDER SELECTOR MODE -->
+  <div class="order-selector" *ngIf="showOrderSelector() && !isManualMode()">
+    <div class="selector-header">
+      <h2>Select an Order</h2>
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Search by Order ID, Customer Name, Email, Phone..."
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="currentPage.set(1)"
+          class="search-input"
+        >
+      </div>
+    </div>
+
+    <div class="orders-table-wrapper" *ngIf="orders().length">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of pagedOrders()" (click)="onOrderSelect(order.id)" class="order-row">
+            <td>{{ order.id }}</td>
+            <td>{{ order.user_name }}</td>
+            <td>{{ order.phone }}</td>
+            <td>{{ order.email || '—' }}</td>
+            <td>{{ formatCurrency(order.total_amount) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </td>
+            <td>{{ order.created_at | date:'dd MMM yyyy' }}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" (click)="$event.stopPropagation(); onOrderSelect(order.id)">
+                Generate Bill
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages() > 1">
+        <button class="btn btn-sm btn-outline" (click)="prevPage()" [disabled]="currentPage() === 1">Previous</button>
+        <span class="page-info">Page {{ currentPage() }} of {{ totalPages() }}</span>
+        <button class="btn btn-sm btn-outline" (click)="nextPage()" [disabled]="currentPage() === totalPages()">Next</button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!orders().length">
+      <p>No orders found.</p>
+    </div>
+  </div>
+
+  <!-- MANUAL BILL FORM -->
+  <div class="manual-bill-form" *ngIf="isManualMode() && !billData()">
+    <div class="form-section">
+      <h3>Customer Details</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Customer Name *</label>
+          <input type="text" [(ngModel)]="manualCustomer().name" class="form-control" placeholder="Walk-in Customer">
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" [(ngModel)]="manualCustomer().phone" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="manualCustomer().email" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>GSTIN</label>
+          <input type="text" [(ngModel)]="manualCustomer().gstin" class="form-control" placeholder="Optional">
+        </div>
+      </div>
+      <div class="form-group full-width">
+        <label>Address</label>
+        <textarea [(ngModel)]="manualCustomer().address" class="form-control" rows="3" placeholder="Full billing address"></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Bill Items <button type="button" class="btn btn-sm btn-secondary" (click)="addManualItem()">+ Add Item</button></h3>
+      <div class="items-list">
+        <div class="item-row" *ngFor="let item of manualItems(); let i = index">
+          <div class="form-group">
+            <label>Item Name *</label>
+            <input type="text" [(ngModel)]="item.name" class="form-control" placeholder="Product/Service name">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" [(ngModel)]="item.description" class="form-control" placeholder="Optional">
+          </div>
+          <div class="form-group">
+            <label>HSN Code</label>
+            <input type="text" [(ngModel)]="item.hsnCode" class="form-control" placeholder="9999">
+          </div>
+          <div class="form-group">
+            <label>Qty *</label>
+            <input type="number" [(ngModel)]="item.quantity" class="form-control" min="1" placeholder="1">
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input type="text" [(ngModel)]="item.unit" class="form-control" placeholder="PCS">
+          </div>
+          <div class="form-group">
+            <label>Rate (₹) *</label>
+            <input type="number" [(ngModel)]="item.rate" class="form-control" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Discount (₹)</label>
+            <input type="number" [(ngModel)]="item.discount" class="form-control" step="0.01" min="0" placeholder="0">
+          </div>
+          <div class="form-group action-cell">
+            <button type="button" class="btn btn-danger btn-sm" (click)="removeManualItem(i)" [disabled]="manualItems().length === 1">🗑 Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Bill Details</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Bill Date</label>
+          <input type="date" [(ngModel)]="manualBillDate" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" [(ngModel)]="manualDueDate" class="form-control">
+        </div>
+      </div>
+      <div class="form-group full-width">
+        <label>Notes</label>
+        <textarea [(ngModel)]="manualNotes" class="form-control" rows="2" placeholder="Additional notes for the bill"></textarea>
+      </div>
+      <div class="form-group full-width">
+        <label>Terms & Conditions</label>
+        <textarea [(ngModel)]="manualTerms" class="form-control" rows="3" placeholder="Custom terms (uses company defaults if empty)"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="generateManualBill()" [disabled]="isLoading()">
+        {{ isLoading() ? 'Generating...' : 'Generate Bill Preview' }}
+      </button>
+      <button class="btn btn-outline" (click)="onManualModeToggle()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- BILL PREVIEW -->
+  <div class="bill-preview-section" *ngIf="billData(); else noBill" #billPreview>
+    <div class="preview-header">
+      <h2>Bill Preview: {{ billData()!.billNumber }}</h2>
+      <div class="preview-actions">
+        <button class="btn btn-secondary" (click)="backToOrders()">← Back to Orders</button>
+        <button class="btn btn-outline no-print" (click)="downloadJSON()">📥 Download JSON</button>
+        <button class="btn btn-primary no-print" (click)="downloadPDF()">🖨 Print / Save as PDF</button>
+      </div>
+    </div>
+
+    <div class="bill-container" id="bill-print-area">
+      <!-- COMPANY HEADER -->
+      <div class="bill-header">
+        <div class="company-info">
+          <img *ngIf="billData()!.company.logoUrl" [src]="billData()!.company.logoUrl" alt="Logo" class="company-logo">
+          <div>
+            <h1 class="company-name">{{ billData()!.company.name }}</h1>
+            <p *ngIf="billData()!.company.gstin" class="gstin">GSTIN: {{ billData()!.company.gstin }}</p>
+            <p *ngIf="billData()!.company.address" class="address">{{ billData()!.company.address }}</p>
+            <p *ngIf="billData()!.company.phone" class="phone">Tel: {{ billData()!.company.phone }}</p>
+            <p *ngIf="billData()!.company.email" class="email">{{ billData()!.company.email }}</p>
+            <p *ngIf="billData()!.company.website" class="website">{{ billData()!.company.website }}</p>
+          </div>
+        </div>
+        <div class="bill-meta">
+          <div class="meta-row"><strong>Bill No:</strong> {{ billData()!.billNumber }}</div>
+          <div class="meta-row"><strong>Date:</strong> {{ billData()!.billDate }}</div>
+          <div class="meta-row"><strong>Due Date:</strong> {{ billData()!.dueDate }}</div>
+        </div>
+      </div>
+
+      <!-- BILL TO -->
+      <div class="bill-to-section">
+        <h4>Bill To:</h4>
+        <div class="customer-details">
+          <p><strong>{{ billData()!.customer.name }}</strong></p>
+          <p *ngIf="billData()!.customer.address">{{ billData()!.customer.address }}</p>
+          <p *ngIf="billData()!.customer.phone">Phone: {{ billData()!.customer.phone }}</p>
+          <p *ngIf="billData()!.customer.email">Email: {{ billData()!.customer.email }}</p>
+          <p *ngIf="billData()!.customer.gstin">GSTIN: {{ billData()!.customer.gstin }}</p>
+        </div>
+      </div>
+
+      <!-- ITEMS TABLE -->
+      <table class="bill-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Description</th>
+            <th>HSN</th>
+            <th>Qty</th>
+            <th>Unit</th>
+            <th>Rate</th>
+            <th>Disc.</th>
+            <th>Taxable</th>
+            <th *ngIf="hasCGST()">CGST (9%)</th>
+            <th *ngIf="hasSGST()">SGST (9%)</th>
+            <th *ngIf="hasIGST()">IGST (18%)</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of billData()!.items">
+            <td>{{ item.srNo }}</td>
+            <td>
+              <strong>{{ item.name }}</strong>
+              <br><small *ngIf="item.description">{{ item.description }}</small>
+              <br><small *ngIf="item.productCode">Code: {{ item.productCode }}</small>
+              <br><small *ngIf="item.size">Size: {{ item.size }}</small>
+            </td>
+            <td>{{ item.hsnCode }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit }}</td>
+            <td>{{ formatCurrency(item.rate) }}</td>
+            <td>{{ formatCurrency(item.discount) }}</td>
+            <td>{{ formatCurrency(item.taxableValue) }}</td>
+            <td *ngIf="hasCGST()">{{ formatCurrency(item.cgst) }}</td>
+            <td *ngIf="hasSGST()">{{ formatCurrency(item.sgst) }}</td>
+            <td *ngIf="hasIGST()">{{ formatCurrency(item.igst) }}</td>
+            <td>{{ formatCurrency(item.total) }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- TOTALS -->
+      <div class="totals-section">
+        <table class="totals-table">
+          <tr><td class="label">Subtotal</td><td>{{ formatCurrency(billData()!.totals.subtotal) }}</td></tr>
+          <tr *ngIf="billData()!.totals.totalDiscount > 0"><td class="label">Less: Discount</td><td>- {{ formatCurrency(billData()!.totals.totalDiscount) }}</td></tr>
+          <tr><td class="label">Taxable Value</td><td>{{ formatCurrency(billData()!.totals.totalTaxable) }}</td></tr>
+          <tr *ngIf="hasCGST()"><td class="label">CGST (9%)</td><td>{{ formatCurrency(billData()!.totals.totalCGST) }}</td></tr>
+          <tr *ngIf="hasSGST()"><td class="label">SGST (9%)</td><td>{{ formatCurrency(billData()!.totals.totalSGST) }}</td></tr>
+          <tr *ngIf="hasIGST()"><td class="label">IGST (18%)</td><td>{{ formatCurrency(billData()!.totals.totalIGST) }}</td></tr>
+          <tr class="total-row"><td class="label">Total Tax</td><td>{{ formatCurrency(billData()!.totals.totalTax) }}</td></tr>
+          <tr *ngIf="billData()!.totals.roundOff !== 0"><td class="label">Round Off</td><td>{{ formatCurrency(billData()!.totals.roundOff) }}</td></tr>
+          <tr class="grand-total"><td class="label">Grand Total</td><td>{{ formatCurrency(billData()!.totals.grandTotal) }}</td></tr>
+        </table>
+        <div class="amount-words">
+          <strong>Amount in Words:</strong> {{ billData()!.totals.amountInWords }}
+        </div>
+      </div>
+
+      <!-- PAYMENT INFO -->
+      <div class="payment-section" *ngIf="billData()!.payment.paidAmount > 0">
+        <h4>Payment Details</h4>
+        <div class="payment-grid">
+          <div><strong>Method:</strong> {{ billData()!.payment.method }}</div>
+          <div *ngIf="billData()!.payment.transactionId"><strong>Transaction ID:</strong> {{ billData()!.payment.transactionId }}</div>
+          <div><strong>Paid:</strong> {{ formatCurrency(billData()!.payment.paidAmount) }}</div>
+          <div *ngIf="billData()!.payment.balanceAmount > 0"><strong>Balance Due:</strong> {{ formatCurrency(billData()!.payment.balanceAmount) }}</div>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="notes-section" *ngIf="billData()!.notes">
+        <h4>Notes</h4>
+        <p>{{ billData()!.notes }}</p>
+      </div>
+
+      <!-- TERMS & CONDITIONS -->
+      <div class="terms-section" *ngIf="billData()!.termsConditions">
+        <h4>Terms & Conditions</h4>
+        <p>{{ billData()!.termsConditions }}</p>
+      </div>
+
+      <!-- FOOTER NOTE -->
+      <div class="footer-note" *ngIf="billData()!.company.footerNote">
+        <p>{{ billData()!.company.footerNote }}</p>
+      </div>
+
+      <!-- SIGNATURE -->
+      <div class="signature-section">
+        <div class="signature-box">
+          <p>Authorized Signatory</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noBill>
+    <div class="empty-state" *ngIf="!isManualMode()">
+      <h3>No Bill Generated</h3>
+      <p>Select an order or switch to Manual Bill mode to create a custom bill.</p>
+    </div>
+  </ng-template>
+
+  <!-- COMPANY SETTINGS MODAL -->
+  <div class="modal-overlay" *ngIf="showSettingsPanel()" (click)="showSettingsPanel.set(false)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Company Bill Settings</h3>
+        <button class="modal-close" (click)="showSettingsPanel.set(false)">×</button>
+      </div>
+      <div class="modal-body" *ngIf="cs; else loadingSettings">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Company Name *</label>
+            <input type="text" [(ngModel)]="cs.name" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>GSTIN</label>
+            <input type="text" [(ngModel)]="cs.gstin" class="form-control" placeholder="27AAAAA0000A1Z5">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" [(ngModel)]="cs.phone" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="cs.email" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Website</label>
+            <input type="url" [(ngModel)]="cs.website" class="form-control" placeholder="https://">
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Address</label>
+          <textarea [(ngModel)]="cs.address" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="form-section">
+          <h4>Bank Details (for payment info on bill)</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Bank Name</label>
+              <input type="text" [(ngModel)]="cs.bankName" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Account Number</label>
+              <input type="text" [(ngModel)]="cs.accountNumber" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>IFSC Code</label>
+              <input type="text" [(ngModel)]="cs.ifscCode" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>UPI ID</label>
+              <input type="text" [(ngModel)]="cs.upiId" class="form-control" placeholder="company@bank">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Logo</h4>
+          <div class="logo-upload">
+            <img *ngIf="cs.logoUrl" [src]="cs.logoUrl" alt="Logo Preview" class="logo-preview">
+            <input type="file" accept="image/*" (change)="onLogoUpload($event)" class="form-control">
+            <small class="form-hint">Upload a logo (PNG/JPG, max 500KB). Stored as data URL.</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Terms & Conditions (default for all bills)</h4>
+          <textarea [(ngModel)]="cs.terms" class="form-control" rows="4"></textarea>
+        </div>
+
+        <div class="form-section">
+          <h4>Footer Note</h4>
+          <textarea [(ngModel)]="cs.footerNote" class="form-control" rows="2"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" (click)="saveCompanySettings()">Save Settings</button>
+          <button class="btn btn-outline" (click)="showSettingsPanel.set(false)">Cancel</button>
+        </div>
+      </div>
+      <ng-template #loadingSettings>
+        <div class="loading">Loading settings...</div>
+      </ng-template>
+    </div>
+  </div>
+
+</div>

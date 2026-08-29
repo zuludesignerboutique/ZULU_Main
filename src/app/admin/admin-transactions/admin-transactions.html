@@ -66,8 +66,15 @@
     <div class="loading-dots"><span></span><span></span><span></span></div>
   </div>
 
+  <!-- Error -->
+  <div class="at-error" *ngIf="errorMessage && !isLoading">
+    <span class="error-icon">⚠</span>
+    <span class="error-text">{{ errorMessage }}</span>
+    <button class="error-retry" (click)="loadOrders()">Retry</button>
+  </div>
+
   <!-- Table -->
-  <div class="at-table-wrap" *ngIf="!isLoading">
+  <div class="at-table-wrap" *ngIf="!isLoading && !errorMessage">
     <table class="at-table">
       <thead>
         <tr>
@@ -83,7 +90,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let o of pagedOrders" class="at-row"
+        <tr *ngFor="let o of orders" class="at-row"
           [ngClass]="{ 'is-cancelled': o.status === 'cancelled' }">
           <td><span class="order-id">#{{ o.id }}</span></td>
           <td>
@@ -107,8 +114,8 @@
             <span class="no-value" *ngIf="!o.penalty_amount">—</span>
           </td>
           <td>
-            <span class="net-amount" [ngClass]="{ negative: (o.total_amount - (o.refund_amount||0) + (o.penalty_amount||0)) < 0 }">
-              ₹{{ (o.total_amount - (o.refund_amount||0) + (o.penalty_amount||0)) | number }}
+            <span class="net-amount" [ngClass]="{ negative: calcNet(o) < 0 }">
+              ₹{{ calcNet(o) | number }}
             </span>
           </td>
           <td>
@@ -122,7 +129,7 @@
           </td>
         </tr>
 
-        <tr *ngIf="pagedOrders.length === 0">
+        <tr *ngIf="orders.length === 0">
           <td colspan="9" class="empty-row">No transactions found.</td>
         </tr>
       </tbody>

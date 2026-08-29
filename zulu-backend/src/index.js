@@ -1023,27 +1023,571 @@ newsletter API
 ========================= */
 // POST /api/newsletter/subscribe
 app.post('/api/newsletter/subscribe', (req, res) => {
-  const { email } = req.body;
+  const { email, name } = req.body;
 
   if (!email || !email.includes('@')) {
     return res.status(400).json({ error: 'Valid email is required' });
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = name ? name.trim() : null;
+  let userId = null;
+
+  // If auth header present, associate with logged-in user
+  const authHeader = req.headers['authorization'];
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    if (token) {
+      jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (!err && user && user.id) userId = user.id;
+      });
+    }
+  }
+
+  const unsubscribeToken = crypto.randomBytes(24).toString('hex');
+
   const sql = `
-    INSERT INTO newsletter_subscribers (email)
-    VALUES (?)
-    ON CONFLICT (email) DO UPDATE SET subscribed_at = now(), is_active = 1
+    INSERT INTO newsletter_subscribers (email, name, user_id, unsubscribe_token)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT (email) DO UPDATE SET
+      is_active = 1,
+      subscribed_at = now(),
+      name = COALESCE(EXCLUDED.name, newsletter_subscribers.name),
+      user_id = COALESCE(EXCLUDED.user_id, newsletter_subscribers.user_id),
+      unsubscribe_token = COALESCE(EXCLUDED.unsubscribe_token, newsletter_subscribers.unsubscribe_token),
+      updated_at = now()
   `;
 
-  db.query(sql, [email.trim().toLowerCase()], (err) => {
+  db.query(sql, [cleanEmail, cleanName, userId, unsubscribeToken], (err) => {
     if (err) {
       console.error('Newsletter subscribe error:', err);
       return res.status(500).json({ error: 'Failed to subscribe' });
     }
-    console.log(`✅ Newsletter subscription: ${email}`);
+    console.log(`✅ Newsletter subscription: ${cleanEmail}`);
     res.json({ message: 'Subscribed successfully' });
   });
 });
+
+// POST /api/newsletter/unsubscribe (public)
+app.post('/api/newsletter/unsubscribe', rateLimiter({ windowMs: 60 * 60 * 1000, max: 10, keyPrefix: 'unsubscribe' }), (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token required' });
+
+  const sql = `
+    UPDATE newsletter_subscribers
+    SET is_active = 0, unsubscribed_at = now(), updated_at = now()
+    WHERE unsubscribe_token = ? AND is_active = 1
+  `;
+
+  db.query(sql, [token], (err, result) => {
+    if (err) {
+      console.error('Unsubscribe error:', err);
+      return res.status(500).json({ error: 'Failed to unsubscribe' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Invalid or expired unsubscribe token' });
+    }
+    console.log(`✅ Unsubscribed via token`);
+    res.json({ message: 'Unsubscribed successfully' });
+  });
+});
+
+// GET /api/newsletter/verify-token — verify unsubscribe token (public)
+app.get('/api/newsletter/verify-token', (req, res) => {
+  const token = req.query.token;
+  if (!token) return res.status(400).json({ error: 'Token required' });
+
+  db.query('SELECT email FROM newsletter_subscribers WHERE unsubscribe_token = ? AND is_active = 1', [token], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Failed to verify token' });
+    if (!rows.length) return res.status(404).json({ error: 'Invalid or expired token' });
+    res.json({ email: rows[0].email });
+  });
+});
+
+/* =========================
+ADMIN NEWSLETTER APIs
+========================= */
+
+// Helper: get newsletter setting
+function getNewsletterSetting(key) {
+  return new Promise((resolve) => {
+    db.query('SELECT value FROM newsletter_settings WHERE key = ?', [key], (err, rows) => {
+      resolve(err || !rows.length ? null : rows[0].value);
+    });
+  });
+}
+
+// Helper: convert a JS array to a Postgres array-literal STRING (e.g. '{1,2,3}').
+// Must be a STRING so db.js (which JSON.stringifies array params) does not turn it
+// into JSON text — an INTEGER[] column needs a real array literal.
+function toPgArray(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return '{}';
+  return '{' + arr.join(',') + '}';
+}
+
+// Build campaign email with unsubscribe link
+function buildCampaignEmail({ contentHtml, unsubscribeUrl }) {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <body style="margin:0;padding:0;background:#faf8f5;font-family:'Georgia',serif;">
+    <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <div style="background:#0d0d0d;padding:32px 40px;text-align:center;">
+        <h1 style="font-size:32px;color:#f0ece4;margin:0;letter-spacing:4px;font-weight:400;">ZULU</h1>
+        <p style="font-size:11px;letter-spacing:2px;color:rgba(240,236,228,0.45);margin:8px 0 0;">DESIGNER BOUTIQUE</p>
+      </div>
+      <div style="height:3px;background:linear-gradient(90deg,#b76e79,#c8a96e,#b76e79);"></div>
+      <div style="padding:32px 40px;">${contentHtml}</div>
+      <div style="background:#faf8f5;padding:24px 40px;border-top:1px solid #efe8dd;text-align:center;">
+        <p style="font-size:12px;color:#9a9080;margin:0 0 16px;">You're receiving this because you subscribed to Zulu Designer Boutique.</p>
+        <a href="${unsubscribeUrl}" style="font-size:12px;color:#c8a96e;text-decoration:underline;">Unsubscribe</a>
+      </div>
+      <div style="background:#0d0d0d;padding:16px 40px;text-align:center;">
+        <p style="font-size:11px;color:rgba(240,236,228,0.4);margin:0;">© 2025 ZULU Boutique</p>
+      </div>
+    </div>
+  </body>
+  </html>`;
+}
+
+// GET /api/admin/users — list all users with pagination + search
+app.get('/api/admin/users', authenticateToken, requireAdmin, (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const search = req.query.search ? req.query.search.trim() : '';
+  const offset = (page - 1) * limit;
+
+  let where = 'WHERE 1=1';
+  const params = [];
+
+  if (search) {
+    where += ` AND (name ILIKE ? OR email ILIKE ? OR id::text ILIKE ? OR phone1 ILIKE ?)`;
+    const term = `%${search}%`;
+    params.push(term, term, term, term);
+  }
+
+  // Count total
+  db.query(`SELECT COUNT(*) as total FROM users ${where}`, params, (err, countRows) => {
+    if (err) return res.status(500).json({ error: 'Failed to count users' });
+    const total = countRows[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    // Fetch users with newsletter status
+    const sql = `
+      SELECT u.id, u.name, u.email, u.phone1, u.phone2, u.address1, u.address2, 
+             u.district, u.state, u.pincode, u.role, u.created_at,
+             CASE WHEN ns.email IS NOT NULL AND ns.is_active = 1 THEN true ELSE false END as newsletter_subscribed
+      FROM users u
+      LEFT JOIN newsletter_subscribers ns ON ns.email = u.email AND ns.is_active = 1
+      ${where}
+      ORDER BY u.created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    params.push(limit, offset);
+
+    db.query(sql, params, (err2, users) => {
+      if (err2) return res.status(500).json({ error: 'Failed to fetch users' });
+      res.json({ users, total, page, totalPages, limit });
+    });
+  });
+});
+
+// GET /api/admin/users/:id — user detail
+app.get('/api/admin/users/:id', authenticateToken, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid user ID' });
+
+  const sql = `
+    SELECT u.id, u.name, u.email, u.phone1, u.phone2, u.address1, u.address2, 
+           u.district, u.state, u.pincode, u.role, u.created_at,
+           CASE WHEN ns.email IS NOT NULL AND ns.is_active = 1 THEN true ELSE false END as newsletter_subscribed,
+           ns.subscribed_at as newsletter_subscribed_at
+    FROM users u
+    LEFT JOIN newsletter_subscribers ns ON ns.email = u.email AND ns.is_active = 1
+    WHERE u.id = ?
+  `;
+
+  db.query(sql, [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch user' });
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    
+    // Get order count
+    db.query('SELECT COUNT(*) as count FROM orders WHERE email = ?', [rows[0].email], (err2, orderRows) => {
+      const user = rows[0];
+      user.order_count = err2 ? 0 : (orderRows[0]?.count || 0);
+      res.json(user);
+    });
+  });
+});
+
+// GET /api/admin/newsletter/subscribers — paginated subscriber list
+app.get('/api/admin/newsletter/subscribers', authenticateToken, requireAdmin, (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const search = req.query.search ? req.query.search.trim() : '';
+  const status = req.query.status; // 'active' | 'unsubscribed' | ''
+  const offset = (page - 1) * limit;
+
+  let where = 'WHERE 1=1';
+  const params = [];
+
+  if (search) {
+    where += ` AND (name ILIKE ? OR email ILIKE ? OR id::text ILIKE ?)`;
+    const term = `%${search}%`;
+    params.push(term, term, term);
+  }
+  if (status === 'active') where += ` AND is_active = 1`;
+  else if (status === 'unsubscribed') where += ` AND is_active = 0`;
+
+  // Count total
+  db.query(`SELECT COUNT(*) as total FROM newsletter_subscribers ${where}`, params, (err, countRows) => {
+    if (err) return res.status(500).json({ error: 'Failed to count subscribers' });
+    const total = countRows[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    // Fetch subscribers
+    const sql = `
+      SELECT ns.id, ns.name, ns.email, ns.user_id, ns.is_active, ns.subscribed_at, ns.unsubscribed_at, ns.created_at,
+             u.name as user_name, u.phone1 as user_phone
+      FROM newsletter_subscribers ns
+      LEFT JOIN users u ON u.id = ns.user_id
+      ${where}
+      ORDER BY ns.subscribed_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    params.push(limit, offset);
+
+    db.query(sql, params, (err2, subscribers) => {
+      if (err2) return res.status(500).json({ error: 'Failed to fetch subscribers' });
+      res.json({ subscribers, total, page, totalPages, limit });
+    });
+  });
+});
+
+// GET /api/admin/newsletter/stats — summary statistics
+app.get('/api/admin/newsletter/stats', authenticateToken, requireAdmin, (req, res) => {
+  const sql = `
+    SELECT 
+      (SELECT COUNT(*) FROM users) as total_users,
+      (SELECT COUNT(*) FROM newsletter_subscribers WHERE is_active = 1) as subscribers,
+      (SELECT COUNT(*) FROM newsletter_subscribers WHERE is_active = 0) as unsubscribed,
+      (SELECT COUNT(*) FROM newsletter_subscribers WHERE is_active = 1) as active
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch stats' });
+    res.json(rows[0] || { total_users: 0, subscribers: 0, unsubscribed: 0, active: 0 });
+  });
+});
+
+/* =========================
+CAMPAIGN CRUD
+========================= */
+
+// POST /api/admin/newsletter/campaigns — create draft
+app.post('/api/admin/newsletter/campaigns', authenticateToken, requireAdmin, (req, res) => {
+  const { name, subject, content_html, audience_type, audience_ids } = req.body;
+  if (!name || !subject || !content_html) {
+    return res.status(400).json({ error: 'Name, subject, and content are required' });
+  }
+  const validAudience = ['all_subscribers', 'selected', 'users_opted_in'];
+  if (!validAudience.includes(audience_type)) {
+    return res.status(400).json({ error: 'Invalid audience type' });
+  }
+
+  const sql = `
+    INSERT INTO newsletter_campaigns (name, subject, content_html, audience_type, audience_ids, created_by)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  const params = [name, subject, content_html, audience_type, toPgArray(audience_ids), req.user.id];
+
+  db.query(sql, params, (err, result) => {
+    if (err) return res.status(500).json({ error: 'Failed to create campaign' });
+    res.json({ message: 'Campaign created', id: result.insertId });
+  });
+});
+
+// GET /api/admin/newsletter/campaigns — list with pagination
+app.get('/api/admin/newsletter/campaigns', authenticateToken, requireAdmin, (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const offset = (page - 1) * limit;
+
+  db.query('SELECT COUNT(*) as total FROM newsletter_campaigns', (err, countRows) => {
+    if (err) return res.status(500).json({ error: 'Failed to count campaigns' });
+    const total = countRows[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const sql = `
+      SELECT c.*, u.name as creator_name
+      FROM newsletter_campaigns c
+      LEFT JOIN users u ON u.id = c.created_by
+      ORDER BY c.created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    db.query(sql, [limit, offset], (err2, campaigns) => {
+      if (err2) return res.status(500).json({ error: 'Failed to fetch campaigns' });
+      res.json({ campaigns, total, page, totalPages, limit });
+    });
+  });
+});
+
+// GET /api/admin/newsletter/campaigns/:id — campaign detail
+app.get('/api/admin/newsletter/campaigns/:id', authenticateToken, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid campaign ID' });
+
+  db.query('SELECT * FROM newsletter_campaigns WHERE id = ?', [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch campaign' });
+    if (!rows.length) return res.status(404).json({ error: 'Campaign not found' });
+    res.json(rows[0]);
+  });
+});
+
+// PATCH /api/admin/newsletter/campaigns/:id — update draft
+app.patch('/api/admin/newsletter/campaigns/:id', authenticateToken, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid campaign ID' });
+
+  const { name, subject, content_html, audience_type, audience_ids, status } = req.body;
+  const updates = [];
+  const params = [];
+
+  if (name !== undefined) { updates.push('name = ?'); params.push(name); }
+  if (subject !== undefined) { updates.push('subject = ?'); params.push(subject); }
+  if (content_html !== undefined) { updates.push('content_html = ?'); params.push(content_html); }
+  if (audience_type !== undefined) { 
+    const validAudience = ['all_subscribers', 'selected', 'users_opted_in'];
+    if (!validAudience.includes(audience_type)) return res.status(400).json({ error: 'Invalid audience type' });
+    updates.push('audience_type = ?'); params.push(audience_type);
+  }
+  if (audience_ids !== undefined) { updates.push('audience_ids = ?'); params.push(toPgArray(audience_ids)); }
+  if (status !== undefined) { 
+    const validStatus = ['draft', 'sending', 'sent', 'failed', 'cancelled'];
+    if (!validStatus.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+    updates.push('status = ?'); params.push(status);
+  }
+
+  if (!updates.length) return res.status(400).json({ error: 'No valid fields to update' });
+
+  params.push(id);
+  db.query(`UPDATE newsletter_campaigns SET ${updates.join(', ')} WHERE id = ?`, params, (err) => {
+    if (err) return res.status(500).json({ error: 'Failed to update campaign' });
+    res.json({ message: 'Campaign updated' });
+  });
+});
+
+// DELETE /api/admin/newsletter/campaigns/:id — delete draft
+app.delete('/api/admin/newsletter/campaigns/:id', authenticateToken, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid campaign ID' });
+
+  db.query('DELETE FROM newsletter_campaigns WHERE id = ?', [id], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Failed to delete campaign' });
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Campaign not found' });
+    res.json({ message: 'Campaign deleted' });
+  });
+});
+
+/* =========================
+CAMPAIGN SEND & TEST
+========================= */
+
+// POST /api/admin/newsletter/campaigns/:id/send
+app.post('/api/admin/newsletter/campaigns/:id/send', authenticateToken, requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid campaign ID' });
+
+  const { audience_type, audience_ids } = req.body;
+
+  // Fetch campaign
+  db.query('SELECT * FROM newsletter_campaigns WHERE id = ?', [id], async (err, campaignRows) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch campaign' });
+    if (!campaignRows.length) return res.status(404).json({ error: 'Campaign not found' });
+    const campaign = campaignRows[0];
+
+    if (campaign.status === 'sent' || campaign.status === 'sending') {
+      return res.status(400).json({ error: 'Campaign already sent or sending' });
+    }
+
+    // Guard: don't send a campaign whose body is empty/whitespace (e.g. a draft
+    // saved without typing anything). This avoids mailing a blank email.
+    const strippedContent = (campaign.content_html || '').replace(/<[^>]*>/g, '').trim();
+    if (!strippedContent) {
+      return res.status(400).json({ error: 'Campaign has no content to send' });
+    }
+
+    // Build recipient list based on audience
+    let where = 'WHERE is_active = 1';
+    const params = [];
+
+    if (audience_type === 'selected' && audience_ids?.length) {
+      where += ` AND id IN (${audience_ids.map(() => '?').join(',')})`;
+      params.push(...audience_ids);
+    } else if (audience_type === 'users_opted_in') {
+      where += ` AND user_id IS NOT NULL`;
+    }
+    // 'all_subscribers' uses just is_active = 1
+
+    // Fetch distinct emails (dedupe)
+    const recipientSql = `SELECT DISTINCT email, name, unsubscribe_token FROM newsletter_subscribers ${where}`;
+    db.query(recipientSql, params, async (err2, recipients) => {
+      if (err2) return res.status(500).json({ error: 'Failed to fetch recipients' });
+      if (!recipients.length) return res.status(400).json({ error: 'No active subscribers for this audience' });
+
+      // Update campaign status to sending
+      await new Promise(r => db.query('UPDATE newsletter_campaigns SET status = ?, recipient_count = ?, sent_at = now() WHERE id = ?', ['sending', recipients.length, id], r));
+
+      // Get settings
+      const batchSize = parseInt(await getNewsletterSetting('batch_size')) || 50;
+      const delayMs = parseInt(await getNewsletterSetting('batch_delay_ms')) || 1000;
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4101';
+
+      let sentCount = 0;
+      let failedCount = 0;
+
+      // Build email HTML
+      const baseUrl = frontendUrl.replace(/\/$/, '');
+
+      // Send in batches
+      for (let i = 0; i < recipients.length; i += batchSize) {
+        const batch = recipients.slice(i, i + batchSize);
+
+        for (const recipient of batch) {
+          try {
+            const html = buildCampaignEmail({
+              contentHtml: campaign.content_html,
+              unsubscribeUrl: `${baseUrl}/unsubscribe?token=${recipient.unsubscribe_token}`
+            });
+            
+            await new Promise((resolve, reject) => {
+              transporter.sendMail({
+                from: `"ZULU Boutique" <${process.env.EMAIL_USER}>`,
+                to: recipient.email,
+                subject: campaign.subject,
+                html
+              }, (mailErr) => mailErr ? reject(mailErr) : resolve());
+            });
+            sentCount++;
+          } catch (mailErr) {
+            console.error(`Failed to send to ${recipient.email}:`, mailErr);
+            failedCount++;
+          }
+        }
+
+        // Update progress
+        await new Promise(r => db.query('UPDATE newsletter_campaigns SET sent_count = ?, failed_count = ? WHERE id = ?', [sentCount, failedCount, id], r));
+
+        if (i + batchSize < recipients.length) {
+          await new Promise(r => setTimeout(r, delayMs));
+        }
+      }
+
+      // Final status
+      const finalStatus = failedCount === recipients.length ? 'failed' : (failedCount > 0 ? 'sent' : 'sent');
+      await new Promise(r => db.query('UPDATE newsletter_campaigns SET status = ?, sent_count = ?, failed_count = ? WHERE id = ?', [finalStatus, sentCount, failedCount, id], r));
+
+      res.json({ 
+        message: finalStatus === 'failed' ? 'Campaign failed' : 'Campaign sent',
+        sent: sentCount,
+        failed: failedCount,
+        total: recipients.length
+      });
+    });
+  });
+});
+
+// POST /api/admin/newsletter/test — send test email
+app.post('/api/admin/newsletter/test', authenticateToken, requireAdmin, (req, res) => {
+  const { subject, content_html, to_email } = req.body;
+  if (!subject || !content_html || !to_email) {
+    return res.status(400).json({ error: 'Subject, content, and recipient email are required' });
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4101';
+  const baseUrl = frontendUrl.replace(/\/$/, '');
+  // Use a dummy token for test emails (they won't actually unsubscribe)
+  const testUnsubscribeUrl = `${baseUrl}/unsubscribe?token=test`;
+  const html = buildCampaignEmail({ contentHtml: content_html, unsubscribeUrl: testUnsubscribeUrl });
+
+  transporter.sendMail({
+    from: `"ZULU Boutique" <${process.env.EMAIL_USER}>`,
+    to: to_email,
+    subject: `[TEST] ${subject}`,
+    html
+  }, (err) => {
+    if (err) {
+      console.error('Test email error:', err);
+      return res.status(500).json({ error: 'Failed to send test email' });
+    }
+    res.json({ message: 'Test email sent' });
+  });
+});
+
+/* =========================
+PUBLIC UNSUBSCRIBE PAGE (GET)
+========================= */
+
+// GET /unsubscribe?token=xyz — render confirmation page
+app.get('/unsubscribe', (req, res) => {
+  const token = req.query.token;
+  if (!token) {
+    return res.status(400).send(`
+      <!DOCTYPE html>
+      <html><body style="font-family:Georgia,serif;max-width:500px;margin:50px auto;padding:20px;text-align:center;">
+        <h2>Invalid Request</h2>
+        <p>No unsubscribe token provided.</p>
+      </body></html>
+    `);
+  }
+
+  // Check if token exists and is active
+  db.query('SELECT email FROM newsletter_subscribers WHERE unsubscribe_token = ? AND is_active = 1', [token], (err, rows) => {
+    if (err || !rows.length) {
+      return res.status(404).send(`
+        <!DOCTYPE html>
+        <html><body style="font-family:Georgia,serif;max-width:500px;margin:50px auto;padding:20px;text-align:center;">
+          <h2>Invalid Token</h2>
+          <p>This unsubscribe link is invalid or has already been used.</p>
+        </body></html>
+      `);
+    }
+
+    const email = rows[0].email;
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Unsubscribe - ZULU Boutique</title>
+      </head>
+      <body style="margin:0;padding:40px 20px;font-family:'Georgia',serif;background:#faf8f5;">
+        <div style="max-width:500px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <div style="background:#0d0d0d;padding:32px 40px;text-align:center;">
+            <h1 style="font-size:32px;color:#f0ece4;margin:0;letter-spacing:4px;font-weight:400;">ZULU</h1>
+            <p style="font-size:11px;letter-spacing:2px;color:rgba(240,236,228,0.45);margin:8px 0 0;">DESIGNER BOUTIQUE</p>
+          </div>
+          <div style="height:3px;background:linear-gradient(90deg,#b76e79,#c8a96e,#b76e79);"></div>
+          <div style="padding:40px;text-align:center;">
+            <h2 style="color:#1a1814;margin:0 0 16px;">Unsubscribe from ZULU emails?</h2>
+            <p style="color:#9a9080;margin:0 0 24px;">We'll remove <strong>${escapeHtml(email)}</strong> from our newsletter list.</p>
+            <form method="POST" action="/api/newsletter/unsubscribe">
+              <input type="hidden" name="token" value="${escapeHtml(token)}">
+              <button type="submit" style="background:#c8a96e;color:#1a1814;padding:14px 32px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Confirm Unsubscribe</button>
+            </form>
+            <p style="color:#9a9080;font-size:12px;margin-top:16px;">If you didn't request this, you can ignore this page.</p>
+          </div>
+          <div style="background:#0d0d0d;padding:16px 40px;text-align:center;">
+            <p style="font-size:11px;color:rgba(240,236,228,0.4);margin:0;">© 2025 ZULU Boutique</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+});
+
 /* =========================
 contact form API
 ========================= */
@@ -2022,9 +2566,9 @@ app.get('/api/orders/user/:email', authenticateToken, (req, res) => {
   });
 });
 
-// GET /api/orders — All orders (admin only, brand-aware)
+// GET /api/orders — All orders (admin only, brand-aware) with pagination
 app.get('/api/orders', authenticateToken, requireAdmin, (req, res) => {
-  const { brand, status, search, startDate, endDate } = req.query;
+  const { brand, status, search, startDate, endDate, page = 1, limit = 30 } = req.query;
   let where = [];
   let params = [];
 
@@ -2038,26 +2582,14 @@ app.get('/api/orders', authenticateToken, requireAdmin, (req, res) => {
 
   const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
 
-  const sql = `
-    SELECT
-      o.id, o.user_name, o.phone, o.email,
-      o.address, o.total_amount, o.status,
-      o.refund_amount, o.penalty_amount, o.created_at,
-      COALESCE(
-        jsonb_agg(
-          jsonb_build_object(
-            'product_id',   oi.product_id,
-            'product_name', COALESCE(p.name, pp.name, pf.name, pa.name, oi.product_code, 'Product'),
-            'image_url',    COALESCE(p.image_url, pp.image_url, pf.image_url, pa.image_url),
-            'quantity',     oi.quantity,
-            'price',        oi.price,
-            'brand',        oi.brand,
-            'product_type', oi.product_type,
-            'product_code', oi.product_code
-          )
-        ) FILTER (WHERE oi.id IS NOT NULL),
-        '[]'::jsonb
-      ) AS items
+  // Pagination
+  const pageNum = Math.max(1, parseInt(page));
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+  const offset = (pageNum - 1) * limitNum;
+
+  // First get total count for pagination
+  const countSql = `
+    SELECT COUNT(DISTINCT o.id) as total
     FROM orders o
     LEFT JOIN order_items oi ON o.id = oi.order_id
     LEFT JOIN products           p  ON p.id  = oi.product_id AND oi.brand = 'zulu'
@@ -2065,12 +2597,55 @@ app.get('/api/orders', authenticateToken, requireAdmin, (req, res) => {
     LEFT JOIN pooboo_fabrics     pf ON pf.id = oi.product_id AND oi.brand = 'pooboo' AND oi.product_type = 'fabric'
     LEFT JOIN pooboo_accessories pa ON pa.id = oi.product_id AND oi.brand = 'pooboo' AND oi.product_type = 'accessory'
     ${whereClause}
-    GROUP BY o.id
-    ORDER BY o.created_at DESC
   `;
-  db.query(sql, params, (err, results) => {
-    if (err) return res.status(500).json({ error: 'Failed to fetch orders' });
-    res.json(results);
+
+  db.query(countSql, params, (countErr, countRows) => {
+    if (countErr) return res.status(500).json({ error: 'Failed to count orders' });
+    const total = countRows[0]?.total || 0;
+    const totalPages = Math.ceil(total / limitNum) || 1;
+
+    // Then fetch paginated orders
+    const sql = `
+      SELECT
+        o.id, o.user_name, o.phone, o.email,
+        o.address, o.total_amount, o.status,
+        o.refund_amount, o.penalty_amount, o.created_at,
+        COALESCE(
+          jsonb_agg(
+            jsonb_build_object(
+              'product_id',   oi.product_id,
+              'product_name', COALESCE(p.name, pp.name, pf.name, pa.name, oi.product_code, 'Product'),
+              'image_url',    COALESCE(p.image_url, pp.image_url, pf.image_url, pa.image_url),
+              'quantity',     oi.quantity,
+              'price',        oi.price,
+              'brand',        oi.brand,
+              'product_type', oi.product_type,
+              'product_code', oi.product_code
+            )
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'::jsonb
+        ) AS items
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN products           p  ON p.id  = oi.product_id AND oi.brand = 'zulu'
+      LEFT JOIN pooboo_products    pp ON pp.id = oi.product_id AND oi.brand = 'pooboo' AND oi.product_type = 'apparel'
+      LEFT JOIN pooboo_fabrics     pf ON pf.id = oi.product_id AND oi.brand = 'pooboo' AND oi.product_type = 'fabric'
+      LEFT JOIN pooboo_accessories pa ON pa.id = oi.product_id AND oi.brand = 'pooboo' AND oi.product_type = 'accessory'
+      ${whereClause}
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    db.query(sql, [...params, limitNum, offset], (err, results) => {
+      if (err) return res.status(500).json({ error: 'Failed to fetch orders' });
+      res.json({
+        orders: results,
+        total,
+        page: pageNum,
+        totalPages,
+        limit: limitNum
+      });
+    });
   });
 });
 
@@ -3464,6 +4039,416 @@ app.get('/api/admin/wishlist', authenticateToken, requireAdmin, (req, res) => {
     }
     res.json(rows);
   });
+});
+
+/* =========================
+   BILL APIs
+========================= */
+
+// Helper: Format number to Indian currency words
+function numberToWords(num) {
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  function toWords(n) {
+    if (n < 20) return a[n];
+    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+    if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' and ' + toWords(n % 100) : '');
+    if (n < 100000) return toWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + toWords(n % 1000) : '');
+    if (n < 10000000) return toWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + toWords(n % 100000) : '');
+    return toWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + toWords(n % 10000000) : '');
+  }
+  return toWords(Math.floor(num)) + ' Rupees Only';
+}
+
+// Helper: Generate bill number
+function generateBillNumber() {
+  const date = new Date();
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `BILL-${year}${month}${day}-${random}`;
+}
+
+// Helper: Calculate GST
+function calculateGST(amount, gstRate, isInterState) {
+  const gstAmount = Math.round((amount * gstRate) / 100 * 100) / 100;
+  if (isInterState) {
+    return { igst: gstAmount, cgst: 0, sgst: 0 };
+  } else {
+    const half = Math.round((gstAmount / 2) * 100) / 100;
+    return { igst: 0, cgst: half, sgst: half };
+  }
+}
+
+// Helper: Number to words for Indian currency
+function amountInWords(amount) {
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  function toWords(n) {
+    if (n < 20) return a[n];
+    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+    if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' and ' + toWords(n % 100) : '');
+    if (n < 100000) return toWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + toWords(n % 1000) : '');
+    if (n < 10000000) return toWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + toWords(n % 100000) : '');
+    return toWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + toWords(n % 10000000) : '');
+  }
+  
+  const rupees = Math.floor(amount);
+  const paise = Math.round((amount - rupees) * 100);
+  
+  let words = toWords(rupees) + ' Rupees';
+  if (paise > 0) {
+    words += ' and ' + toWords(paise) + ' Paise';
+  }
+  return words + ' Only';
+}
+
+// GET /api/admin/company-settings — used by the Custom Bill page's
+// Company Settings panel. Falls back to sensible blank defaults if the
+// row hasn't been created yet (same defaults already used inline by the
+// bill-generation route below).
+app.get('/api/admin/company-settings', authenticateToken, requireAdmin, (req, res) => {
+  db.query('SELECT * FROM company_settings WHERE id = 1', (err, rows) => {
+    if (err) {
+      console.error('Company settings fetch error:', err);
+      return res.status(500).json({ error: 'Failed to fetch company settings' });
+    }
+    const settings = rows[0] || {
+      name: 'ZULU Boutique',
+      gstin: '',
+      address: '',
+      phone: '',
+      email: '',
+      website: '',
+      bankName: '',
+      accountNumber: '',
+      ifscCode: '',
+      upiId: '',
+      terms: '',
+      footerNote: '',
+      logoUrl: ''
+    };
+    res.json(settings);
+  });
+});
+
+// PUT /api/admin/company-settings — upsert the single company_settings row (id = 1)
+app.put('/api/admin/company-settings', authenticateToken, requireAdmin, (req, res) => {
+  const {
+    name, gstin, address, phone, email, website,
+    bankName, accountNumber, ifscCode, upiId, terms, footerNote, logoUrl
+  } = req.body;
+
+  db.query('SELECT id FROM company_settings WHERE id = 1', (errSel, rows) => {
+    if (errSel) {
+      console.error('Company settings lookup error:', errSel);
+      return res.status(500).json({ error: 'Failed to save company settings' });
+    }
+
+    const values = [
+      name || '', gstin || '', address || '', phone || '', email || '', website || '',
+      bankName || '', accountNumber || '', ifscCode || '', upiId || '',
+      terms || '', footerNote || '', logoUrl || ''
+    ];
+
+    if (rows.length) {
+      db.query(
+        `UPDATE company_settings SET
+           name = ?, gstin = ?, address = ?, phone = ?, email = ?, website = ?,
+           "bankName" = ?, "accountNumber" = ?, "ifscCode" = ?, "upiId" = ?,
+           terms = ?, "footerNote" = ?, "logoUrl" = ?
+         WHERE id = 1`,
+        values,
+        (errUpd) => {
+          if (errUpd) {
+            console.error('Company settings update error:', errUpd);
+            return res.status(500).json({ error: 'Failed to save company settings' });
+          }
+          res.json({ success: true });
+        }
+      );
+    } else {
+      db.query(
+        `INSERT INTO company_settings
+           (id, name, gstin, address, phone, email, website,
+            "bankName", "accountNumber", "ifscCode", "upiId", terms, "footerNote", "logoUrl")
+         VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        values,
+        (errIns) => {
+          if (errIns) {
+            console.error('Company settings insert error:', errIns);
+            return res.status(500).json({ error: 'Failed to save company settings' });
+          }
+          res.json({ success: true });
+        }
+      );
+    }
+  });
+});
+
+// GET /api/admin/bill/:orderId — Generate bill for order
+app.get('/api/admin/bill/:orderId', authenticateToken, requireAdmin, (req, res) => {
+  const orderId = parseInt(req.params.orderId);
+  if (!orderId) return res.status(400).json({ error: 'Invalid order ID' });
+
+  // Fetch order with items
+  const orderSql = `
+    SELECT o.*, 
+           COALESCE(
+             jsonb_agg(
+               jsonb_build_object(
+                 'id', oi.id,
+                 'product_id', oi.product_id,
+                 'brand', oi.brand,
+                 'product_type', oi.product_type,
+                 'product_code', oi.product_code,
+                 'quantity', oi.quantity,
+                 'price', oi.price,
+                 'size', oi.size
+               )
+             ) FILTER (WHERE oi.id IS NOT NULL),
+             '[]'::jsonb
+           ) as items_json
+    FROM orders o
+    LEFT JOIN order_items oi ON oi.order_id = o.id
+    WHERE o.id = ?
+    GROUP BY o.id
+  `;
+
+  db.query(orderSql, [orderId], (err, orderRows) => {
+    if (err) {
+      console.error('Bill generation - order fetch error:', err);
+      return res.status(500).json({ error: 'Failed to fetch order' });
+    }
+    if (!orderRows.length) return res.status(404).json({ error: 'Order not found' });
+
+    const order = orderRows[0];
+    // Postgres' pg driver already parses jsonb columns into real JS
+    // arrays/objects (unlike mysql2, which returned a JSON string that
+    // needed JSON.parse). Handle both shapes defensively.
+    let items = [];
+    try {
+      items = (typeof order.items_json === 'string' ? JSON.parse(order.items_json) : order.items_json) || [];
+      items = items.filter(i => i.id);
+    } catch (e) {
+      items = [];
+    }
+
+    // Fetch company settings
+    db.query('SELECT * FROM company_settings WHERE id = 1', (err2, settingsRows) => {
+      if (err2) {
+        console.error('Bill generation - settings fetch error:', err2);
+        return res.status(500).json({ error: 'Failed to fetch company settings' });
+      }
+      const company = settingsRows[0] || {
+        name: 'ZULU Boutique',
+        gstin: '',
+        address: '',
+        phone: '',
+        email: '',
+        website: '',
+        bankName: '',
+        accountNumber: '',
+        ifscCode: '',
+        upiId: '',
+        terms: '',
+        footerNote: '',
+        logoUrl: ''
+      };
+
+      // Build customer info
+      const customer = {
+        name: order.user_name || '',
+        phone: order.phone || '',
+        email: order.email || '',
+        address: order.address || '',
+        gstin: ''
+      };
+
+      // Build bill items
+      const billItems = items.map((item, index) => {
+        const qty = parseInt(item.quantity) || 1;
+        const rate = parseFloat(item.price) || 0;
+        const discount = 0;
+        const taxable = qty * rate;
+        const gstRate = 18; // Default 18% GST
+        const isInterState = false; // Default to intra-state
+        const gst = calculateGST(taxable, gstRate, false);
+        
+        return {
+          srNo: index + 1,
+          name: item.product_code || `Product ${item.product_id}`,
+          description: '',
+          hsnCode: '9999',
+          quantity: qty,
+          unit: 'PCS',
+          rate: rate,
+          discount: 0,
+          taxableValue: Math.round(taxable * 100) / 100,
+          cgst: gst.cgst,
+          sgst: gst.sgst,
+          igst: gst.igst,
+          total: Math.round((taxable + gst.cgst + gst.sgst + gst.igst) * 100) / 100,
+          productCode: item.product_code || '',
+          size: item.size || ''
+        };
+      });
+
+      // Calculate totals
+      const subtotal = billItems.reduce((sum, item) => sum + item.taxableValue, 0);
+      const totalDiscount = billItems.reduce((sum, item) => sum + item.discount, 0);
+      const totalTaxable = subtotal - totalDiscount;
+      const totalCGST = Math.round(billItems.reduce((sum, item) => sum + item.cgst, 0) * 100) / 100;
+      const totalSGST = Math.round(billItems.reduce((sum, item) => sum + item.sgst, 0) * 100) / 100;
+      const totalIGST = Math.round(billItems.reduce((sum, item) => sum + item.igst, 0) * 100) / 100;
+      const totalTax = Math.round((totalCGST + totalSGST + totalIGST) * 100) / 100;
+      const grandTotal = Math.round((totalTaxable + totalTax) * 100) / 100;
+      const roundOff = Math.round(grandTotal) - grandTotal;
+      const finalTotal = Math.round(grandTotal);
+
+      const billNumber = generateBillNumber();
+      const billDate = new Date().toISOString().split('T')[0];
+      const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      const billData = {
+        billNumber,
+        billDate,
+        dueDate,
+        company,
+        customer: {
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+          gstin: customer.gstin
+        },
+        items: billItems,
+        totals: {
+          subtotal: Math.round(subtotal * 100) / 100,
+          totalDiscount: Math.round(totalDiscount * 100) / 100,
+          totalTaxable: Math.round(totalTaxable * 100) / 100,
+          totalCGST: Math.round(totalCGST * 100) / 100,
+          totalSGST: Math.round(totalSGST * 100) / 100,
+          totalIGST: Math.round(totalIGST * 100) / 100,
+          totalTax: Math.round(totalTax * 100) / 100,
+          grandTotal: finalTotal,
+          roundOff: Math.round(roundOff * 100) / 100,
+          amountInWords: amountInWords(finalTotal)
+        },
+        payment: {
+          method: order.payment_id ? 'Online' : 'COD',
+          transactionId: order.payment_id || '',
+          paidAmount: finalTotal,
+          balanceAmount: 0
+        },
+        notes: '',
+        termsConditions: company.terms || 'Thank you for your business!'
+      };
+
+      res.json(billData);
+    });
+  });
+});
+
+// POST /api/admin/bill/preview — Preview manual bill
+app.post('/api/admin/bill/preview', authenticateToken, requireAdmin, (req, res) => {
+  const { company, customer, items, notes, termsConditions, billDate, dueDate } = req.body;
+
+  if (!items || !items.length) {
+    return res.status(400).json({ error: 'At least one item is required' });
+  }
+
+  // Validate items
+  for (const item of items) {
+    if (!item.name || !item.rate || item.rate <= 0) {
+      return res.status(400).json({ error: 'All items must have name and valid rate' });
+    }
+  }
+
+  // Use provided company or fetch defaults
+  let companyData = company;
+  if (!companyData) {
+    return res.status(400).json({ error: 'Company settings required' });
+  }
+
+  // Build bill items
+  const billItems = items.map((item, index) => {
+    const qty = parseInt(item.quantity) || 1;
+    const rate = parseFloat(item.rate) || 0;
+    const discount = parseFloat(item.discount) || 0;
+    const taxable = Math.round((qty * rate - discount) * 100) / 100;
+    const gstRate = parseFloat(item.gstRate) || 18;
+    const isInterState = item.isInterState || false;
+    const gst = calculateGST(taxable, gstRate, isInterState);
+    
+    return {
+      srNo: index + 1,
+      name: item.name || '',
+      description: item.description || '',
+      hsnCode: item.hsnCode || '9999',
+      quantity: qty,
+      unit: item.unit || 'PCS',
+      rate: rate,
+      discount: Math.round(discount * 100) / 100,
+      taxableValue: taxable,
+      cgst: gst.cgst,
+      sgst: gst.sgst,
+      igst: gst.igst,
+      total: Math.round((taxable + gst.cgst + gst.sgst + gst.igst) * 100) / 100,
+      productCode: item.productCode || '',
+      size: item.size || ''
+    };
+  });
+
+  // Calculate totals
+  const subtotal = billItems.reduce((sum, item) => sum + item.rate * item.quantity, 0);
+  const totalDiscount = billItems.reduce((sum, item) => sum + item.discount, 0);
+  const totalTaxable = billItems.reduce((sum, item) => sum + item.taxableValue, 0);
+  const totalCGST = Math.round(billItems.reduce((sum, item) => sum + item.cgst, 0) * 100) / 100;
+  const totalSGST = Math.round(billItems.reduce((sum, item) => sum + item.sgst, 0) * 100) / 100;
+  const totalIGST = Math.round(billItems.reduce((sum, item) => sum + item.igst, 0) * 100) / 100;
+  const totalTax = Math.round((totalCGST + totalSGST + totalIGST) * 100) / 100;
+  const grandTotal = Math.round((totalTaxable + totalTax) * 100) / 100;
+  const roundOff = Math.round(grandTotal) - grandTotal;
+  const finalTotal = Math.round(grandTotal);
+
+  const billNumber = generateBillNumber();
+  const billDateFinal = billDate || new Date().toISOString().split('T')[0];
+  const dueDateFinal = dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  const billData = {
+    billNumber,
+    billDate: billDateFinal,
+    dueDate: dueDateFinal,
+    company: companyData,
+    customer: customer || { name: '', phone: '', email: '', address: '', gstin: '' },
+    items: billItems,
+    totals: {
+      subtotal: Math.round(subtotal * 100) / 100,
+      totalDiscount: Math.round(totalDiscount * 100) / 100,
+      totalTaxable: Math.round(totalTaxable * 100) / 100,
+      totalCGST: Math.round(totalCGST * 100) / 100,
+      totalSGST: Math.round(totalSGST * 100) / 100,
+      totalIGST: Math.round(totalIGST * 100) / 100,
+      totalTax: Math.round(totalTax * 100) / 100,
+      grandTotal: finalTotal,
+      roundOff: Math.round(roundOff * 100) / 100,
+      amountInWords: amountInWords(finalTotal)
+    },
+    payment: {
+      method: 'Manual',
+      transactionId: '',
+      paidAmount: finalTotal,
+      balanceAmount: 0
+    },
+    notes: notes || '',
+    termsConditions: termsConditions || ''
+  };
+
+  res.json(billData);
 });
 
 /* =========================

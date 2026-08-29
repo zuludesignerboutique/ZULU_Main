@@ -13,22 +13,27 @@
 
   <!-- Summary Cards -->
   <div class="dash-cards">
+<a routerLink="/admin/products" style="text-decoration: none;">
     <div class="dash-card">
       <div class="card-icon products-icon">◫</div>
       <div class="card-body">
         <span class="card-value">{{ totalProducts }}</span>
-        <span class="card-label">Products</span>
+        <span class="card-label">Products </span>
       </div>
     </div>
+</a>
 
+<a routerLink="/admin/users" style="text-decoration: none;">
     <div class="dash-card">
       <div class="card-icon users-icon">👤</div>
       <div class="card-body">
         <span class="card-value">{{ totalUsers }}</span>
-        <span class="card-label">Users</span>
+        <span class="card-label">Users </span>
       </div>
     </div>
+</a>
 
+<a routerLink="/admin/orders" style="text-decoration: none;">
     <div class="dash-card">
       <div class="card-icon orders-icon">◑</div>
       <div class="card-body">
@@ -36,22 +41,28 @@
         <span class="card-label">Orders</span>
       </div>
     </div>
+</a>
 
-    <div class="dash-card">
+<a routerLink="/admin/transactions" style="text-decoration: none;">
+    <div class="dash-card" >
       <div class="card-icon revenue-icon">₹</div>
       <div class="card-body">
         <span class="card-value">₹{{ totalRevenue | number:'1.0-0' }}</span>
         <span class="card-label">Revenue</span>
       </div>
     </div>
+  </a>
 
-    <div class="dash-card warn">
+    <a routerLink="/admin/stock" style="text-decoration: none;">
+  <div class="dash-card warn">
       <div class="card-icon stock-icon">▤</div>
       <div class="card-body">
         <span class="card-value">{{ lowStockCount }}</span>
-        <span class="card-label">Low Stock</span>
+        <span class="card-label">Low Stock </span>
       </div>
     </div>
+</a>
+
   </div>
 
   <!-- Quick Actions -->

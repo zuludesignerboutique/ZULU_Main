@@ -1,0 +1,63 @@
+<div class="unsubscribe-page">
+  <div class="unsubscribe-container">
+    <div class="unsubscribe-card">
+      <div class="unsubscribe-header">
+        <h1>ZULU</h1>
+        <p>DESIGNER BOUTIQUE</p>
+      </div>
+
+      <div class="unsubscribe-divider"></div>
+
+      <div class="unsubscribe-body">
+        <ng-container *ngIf="!submitted; else successTemplate">
+          <ng-container *ngIf="loading; else confirmTemplate">
+            <div class="loading-state">
+              <div class="spinner-border text-gold" role="status">
+                <span class="visually-hidden">Verifying...</span>
+              </div>
+              <p class="mt-3 text-muted">Verifying unsubscribe link...</p>
+            </div>
+          </ng-container>
+
+          <ng-template #confirmTemplate>
+            <div *ngIf="error" class="error-state">
+              <div class="error-icon">⚠</div>
+              <h2>Invalid Link</h2>
+              <p>{{ error }}</p>
+              <p class="text-muted small">If you believe this is an error, please contact our support team.</p>
+            </div>
+
+            <div *ngIf="!error && email" class="confirm-state">
+              <h2>Unsubscribe from ZULU emails?</h2>
+              <p>We'll remove <strong>{{ email }}</strong> from our newsletter list.</p>
+              <p class="text-muted small">You will no longer receive promotional emails from Zulu Designer Boutique.</p>
+
+              <form (ngSubmit)="confirmUnsubscribe()">
+                <button type="submit" class="btn btn-gold" [disabled]="loading">
+                  <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                  Confirm Unsubscribe
+                </button>
+              </form>
+
+              <p class="text-muted small mt-3">If you didn't request this, you can safely ignore this page.</p>
+            </div>
+          </ng-template>
+        </ng-container>
+
+        <ng-template #successTemplate>
+          <div class="success-state">
+            <div class="success-icon">✓</div>
+            <h2>Unsubscribed Successfully</h2>
+            <p>{{ email }} has been removed from our newsletter list.</p>
+            <p class="text-muted small">You will no longer receive promotional emails from Zulu Designer Boutique.</p>
+            <p class="text-muted small">If you change your mind, you can always resubscribe on our website.</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="unsubscribe-footer">
+        <p>&copy; 2025 ZULU Boutique</p>
+      </div>
+    </div>
+  </div>
+</div>
