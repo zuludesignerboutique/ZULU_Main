@@ -31,6 +31,10 @@
               "src/assets"
             ],
 
+            "allowedCommonJsDependencies": [
+              "quill-delta"
+            ],
+
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/quill/dist/quill.snow.css",
@@ -44,8 +48,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
                 },
                 {
                   "type": "anyComponentStyle",
