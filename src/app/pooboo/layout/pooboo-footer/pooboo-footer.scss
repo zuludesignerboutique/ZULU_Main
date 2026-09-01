@@ -220,3 +220,31 @@ $white:  #ffffff;
     }
   }
 }
+
+
+
+// new
+
+// Variables
+$font-color: #ffffff;
+
+
+.pixel-serif {
+  // Font styling
+  font-family: "Times New Roman", Times, Baskerville, Georgia, serif;
+  font-weight: bold;
+  font-size: 5rem; 
+  letter-spacing: 0.15em;
+  color: $font-color;
+  
+  
+  // Padding to mimic the image framing
+  padding: 2rem;
+  display: inline-block;
+
+  // The secret sauce: removes modern font smoothing to create pixelated edges
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+}

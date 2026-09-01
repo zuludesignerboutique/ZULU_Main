@@ -151,7 +151,7 @@ body {
   animation: fadeInUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: 0.35s;
   color: $tinny-tin;
-  font-style: italic;
+  // font-style: italic;
   position: relative;
   display: inline-block;
 
@@ -165,6 +165,12 @@ body {
     background: linear-gradient(90deg, transparent, $tinny-tin-light 20%, $tinny-tin-light 80%, transparent);
     border-radius: 3px;
   }
+}
+.line-2{
+  font-family: "Times New Roman", Times, Baskerville, Georgia, serif;
+  font-weight: bold;
+ 
+  letter-spacing: 0.15em;
 }
 .line-3 { animation: fadeInUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.5s; }
 
