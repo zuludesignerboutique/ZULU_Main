@@ -292,6 +292,45 @@ CREATE TABLE IF NOT EXISTS company_settings (
 INSERT INTO company_settings (id, name) VALUES (1, 'ZULU Boutique')
 ON CONFLICT (id) DO NOTHING;
 
+-- ─────────────────────────────────────────────────────────────────────
+-- CATEGORY LANDING PAGE — configurable card settings + images
+-- ─────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS category_landing_config (
+  id            SERIAL PRIMARY KEY,
+  category_slug VARCHAR(50)  NOT NULL,
+  title         VARCHAR(100) NOT NULL,
+  subtitle      TEXT         NOT NULL DEFAULT '',
+  button_text   VARCHAR(100) NOT NULL DEFAULT '',
+  button_link   VARCHAR(255) NOT NULL DEFAULT '',
+  display_order INTEGER      NOT NULL DEFAULT 0,
+  is_active     SMALLINT     NOT NULL DEFAULT 1,
+  created_at    TIMESTAMP    NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMP    NOT NULL DEFAULT now(),
+  CONSTRAINT uniq_category_landing_slug UNIQUE (category_slug)
+);
+
+CREATE TABLE IF NOT EXISTS category_landing_images (
+  id            SERIAL PRIMARY KEY,
+  category_id   INTEGER     NOT NULL REFERENCES category_landing_config(id) ON DELETE CASCADE,
+  image_url     VARCHAR(255) NOT NULL,
+  display_order INTEGER     NOT NULL DEFAULT 1,
+  created_at    TIMESTAMP   NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_category_landing_images_cat ON category_landing_images (category_id);
+CREATE INDEX IF NOT EXISTS idx_category_landing_images_order ON category_landing_images (category_id, display_order);
+
+-- ─────────────────────────────────────────────────────────────────────
+-- SEED DEFAULT DATA — three brand cards
+-- ─────────────────────────────────────────────────────────────────────
+
+INSERT INTO category_landing_config (category_slug, title, subtitle, button_text, button_link, display_order)
+VALUES
+  ('zulu',  'Zulu',  'Elegant. Modern. Timeless.',  'Enter Zulu →',  '/home',   1),
+  ('pooboo','Pooboo','Cute. Colorful. Playful.',    'Enter Pooboo →','/pooboo', 2),
+  ('aurium','Aurium','Shine with Grace.',            'Coming Soon',   '',        3)
+ON CONFLICT (category_slug) DO NOTHING;
+
 -- Resync sequences after a data import (explicit ids do not advance SERIAL).
 -- SELECT setval(pg_get_serial_sequence('users','id'),        (SELECT COALESCE(MAX(id),1) FROM users));
 -- SELECT setval(pg_get_serial_sequence('categories','id'),   (SELECT COALESCE(MAX(id),1) FROM categories));
@@ -309,3 +348,5 @@ ON CONFLICT (id) DO NOTHING;
 -- SELECT setval(pg_get_serial_sequence('wishlist','id'),     (SELECT COALESCE(MAX(id),1) FROM wishlist));
 -- SELECT setval(pg_get_serial_sequence('gallery_images','id'),(SELECT COALESCE(MAX(id),1) FROM gallery_images));
 -- SELECT setval(pg_get_serial_sequence('newsletter_subscribers','id'),(SELECT COALESCE(MAX(id),1) FROM newsletter_subscribers));
+-- SELECT setval(pg_get_serial_sequence('category_landing_config','id'),(SELECT COALESCE(MAX(id),1) FROM category_landing_config));
+-- SELECT setval(pg_get_serial_sequence('category_landing_images','id'),(SELECT COALESCE(MAX(id),1) FROM category_landing_images));

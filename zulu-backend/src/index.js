@@ -92,7 +92,7 @@ app.use(cors({
     if (!ALLOWED_ORIGINS.length || !origin || ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
-    return callback(null, false);
+    return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true
 }));
@@ -663,9 +663,9 @@ function sendCancellationRequestedEmail(order, items) {
 function sendCancellationApprovedEmail(order, refundAmount, penaltyAmount) {
   const penaltyLine = penaltyAmount > 0
     ? `<p style="font-size:13px;color:#9a9080;line-height:1.7;margin:0 0 12px;">
-         As per our cancellation policy, since this order was already confirmed, a 25% cancellation fee
-         of <strong>₹${Number(penaltyAmount).toLocaleString('en-IN')}</strong> has been applied.
-       </p>`
+         As per our cancellation policy, since this order was already confirmed, a 30% cancellation fee
+          of <strong>₹${Number(penaltyAmount).toLocaleString('en-IN')}</strong> has been applied.
+        </p>`
     : '';
 
   const items = Array.isArray(order.items) ? order.items : [];
@@ -2690,7 +2690,7 @@ app.patch('/api/orders/:id/status', authenticateToken, requireAdmin, (req, res) 
 // survives a reload. The actual cancellation only happens once an admin approves
 // it from the admin dashboard notification panel.
 // 'pending'   -> full refund
-// 'confirmed' -> 25% cancellation fee, 75% refunded
+// 'confirmed' -> 30% cancellation fee, 70% refunded
 app.patch('/api/orders/:id/cancel', authenticateToken, (req, res) => {
   const { id } = req.params;
 
@@ -2714,7 +2714,7 @@ app.patch('/api/orders/:id/cancel', authenticateToken, (req, res) => {
       return res.status(400).json({ error: `Order cannot be cancelled once it is ${order.status}` });
     }
 
-    const penaltyPercent = order.status === 'confirmed' ? 25 : 0;
+    const penaltyPercent = order.status === 'confirmed' ? 30 : 0;
     const refundAmount   = Math.round(order.total_amount * (100 - penaltyPercent) / 100);
     const penaltyAmount  = order.total_amount - refundAmount;
     const preCancelStatus = order.status;
@@ -4449,6 +4449,166 @@ app.post('/api/admin/bill/preview', authenticateToken, requireAdmin, (req, res) 
   };
 
   res.json(billData);
+});
+
+/* =========================
+   CATEGORY LANDING PAGE
+========================= */
+
+// Disable ETags for API routes to prevent 304 empty-body responses
+app.set('etag', false);
+
+// Helper: fetch cards + their images
+function fetchCategoryLandingCards(whereClause, params, cb) {
+  db.query(
+    `SELECT * FROM category_landing_config ${whereClause} ORDER BY display_order ASC`,
+    params,
+    (err, cards) => {
+      if (err) return cb(err);
+      if (!cards.length) return cb(null, []);
+      db.query(
+        'SELECT * FROM category_landing_images ORDER BY display_order ASC',
+        (imgErr, images) => {
+          if (imgErr) return cb(imgErr);
+          const byCat = {};
+          (images || []).forEach(img => {
+            if (!byCat[img.category_id]) byCat[img.category_id] = [];
+            byCat[img.category_id].push(img);
+          });
+          const result = cards.map(c => ({
+            ...c,
+            images: (byCat[c.id] || []).map(img => ({ ...img, image_url: `/uploads/${img.image_url}` }))
+          }));
+          cb(null, result);
+        }
+      );
+    }
+  );
+}
+
+// Public: get all active cards with images
+app.get('/api/category-landing', (req, res) => {
+  fetchCategoryLandingCards('WHERE is_active = 1', [], (err, cards) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    res.json({ cards });
+  });
+});
+
+// Admin: get all cards (including inactive)
+app.get('/api/admin/category-landing', authenticateToken, requireAdmin, (req, res) => {
+  fetchCategoryLandingCards('', [], (err, cards) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    res.json({ cards });
+  });
+});
+
+// Admin: update card settings
+app.put('/api/admin/category-landing/cards/:slug', authenticateToken, requireAdmin, (req, res) => {
+  const { slug } = req.params;
+  const { title, subtitle, button_text, button_link, is_active, display_order } = req.body;
+
+  db.query(
+    `UPDATE category_landing_config
+     SET title = COALESCE(?, title),
+         subtitle = COALESCE(?, subtitle),
+         button_text = COALESCE(?, button_text),
+         button_link = COALESCE(?, button_link),
+         is_active = COALESCE(?, is_active),
+         display_order = COALESCE(?, display_order),
+         updated_at = NOW()
+     WHERE category_slug = ?`,
+    [title, subtitle, button_text, button_link, is_active, display_order, slug],
+    (err) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
+      res.json({ message: 'Card updated successfully' });
+    }
+  );
+});
+
+// Admin: upload images for a card (max 5, 600KB limit)
+app.post('/api/admin/category-landing/cards/:slug/images', authenticateToken, requireAdmin,
+  upload.array('images', 5), persistUploads(), (req, res) => {
+  const { slug } = req.params;
+  const files = req.files || [];
+
+  if (!files.length) return res.status(400).json({ error: 'No image files were uploaded.' });
+
+  // Validate file sizes (600KB max)
+  for (const f of files) {
+    if (f.size > 600 * 1024) {
+      return res.status(400).json({ error: 'Image size must be 600 KB or less.' });
+    }
+  }
+
+  db.query('SELECT id FROM category_landing_config WHERE category_slug = ?', [slug], (selErr, rows) => {
+    if (selErr) return res.status(500).json({ error: 'Database error' });
+    if (!rows.length) return res.status(404).json({ error: 'Category not found' });
+
+    const catId = rows[0].id;
+
+    db.query('SELECT COUNT(*) AS cnt FROM category_landing_images WHERE category_id = ?', [catId], (cErr, cRes) => {
+      if (cErr) return res.status(500).json({ error: 'Database error' });
+      const existingCount = parseInt(cRes[0]?.cnt || '0');
+
+      if (existingCount + files.length > 5) {
+        return res.status(400).json({ error: 'Maximum of 5 images allowed per card.' });
+      }
+
+      db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM category_landing_images WHERE category_id = ?', [catId], (mErr, mRes) => {
+        const start = mErr ? 0 : (parseInt(mRes[0]?.mx) || 0);
+        const rows2 = files.map((file, i) => [catId, file.filename, start + i + 1]);
+        db.query(
+          'INSERT INTO category_landing_images (category_id, image_url, display_order) VALUES ?',
+          [rows2],
+          (insErr) => {
+            if (insErr) return res.status(500).json({ error: 'Image upload failed' });
+            res.json({ message: 'Image(s) uploaded successfully', count: files.length });
+          }
+        );
+      });
+    });
+  });
+});
+
+// Admin: delete a card image
+app.delete('/api/admin/category-landing/cards/:slug/images/:imageId', authenticateToken, requireAdmin, (req, res) => {
+  const { imageId } = req.params;
+
+  db.query('SELECT image_url FROM category_landing_images WHERE id = ?', [imageId], (selErr, rows) => {
+    if (selErr) return res.status(500).json({ error: 'Database error' });
+    if (!rows.length) return res.status(404).json({ error: 'Image not found' });
+
+    db.query('DELETE FROM category_landing_images WHERE id = ?', [imageId], (delErr) => {
+      if (delErr) return res.status(500).json({ error: 'Database error' });
+      deleteStoredImages(rows.map(r => r.image_url)).then(() => {
+        res.json({ message: 'Image deleted successfully' });
+      });
+    });
+  });
+});
+
+// Admin: reorder images
+app.post('/api/admin/category-landing/cards/:slug/images/reorder', authenticateToken, requireAdmin, (req, res) => {
+  const orderedIds = Array.isArray(req.body?.orderedIds) ? req.body.orderedIds : null;
+  if (!orderedIds || !orderedIds.length) {
+    return res.status(400).json({ error: 'orderedIds array is required.' });
+  }
+
+  let pending = orderedIds.length;
+  let failed = false;
+  orderedIds.forEach((imageId, index) => {
+    db.query(
+      'UPDATE category_landing_images SET display_order = ? WHERE id = ?',
+      [index + 1, imageId],
+      (uErr) => {
+        if (uErr) { console.error('Reorder category_landing_images error:', uErr); failed = true; }
+        if (--pending === 0) {
+          if (failed) return res.status(500).json({ error: 'Failed to update image order' });
+          res.json({ message: 'Order updated successfully' });
+        }
+      }
+    );
+  });
 });
 
 /* =========================

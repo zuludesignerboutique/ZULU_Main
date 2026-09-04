@@ -1,0 +1,77 @@
+<div class="edit-layout">
+  <div class="el-header">
+    <h2 class="el-title">Edit Layout</h2>
+    <p class="el-sub">Manage the Category Landing Page — cards, images, and text</p>
+  </div>
+
+  <div class="el-toast" *ngIf="saveMessage">{{ saveMessage }}</div>
+  <div class="el-toast el-toast-error" *ngIf="saveError">{{ saveError }}</div>
+
+  <div class="el-loading" *ngIf="isLoading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="el-card" *ngFor="let card of cards">
+      <div class="el-card-header">
+        <h3 class="el-card-name">{{ card.title }}</h3>
+        <label class="el-toggle">
+          <input type="checkbox" [checked]="card.is_active === 1"
+                 (change)="card.is_active = $any($event.target).checked ? 1 : 0">
+          <span class="el-toggle-slider"></span>
+          <span class="el-toggle-label">{{ card.is_active ? 'Active' : 'Inactive' }}</span>
+        </label>
+      </div>
+
+      <div class="el-card-body">
+        <div class="el-images-section">
+          <label class="el-file-picker" [class.el-uploading]="uploadingSlug === card.category_slug">
+            <input type="file" accept="image/webp,image/jpeg,image/png" multiple
+                   (change)="onFilesSelected($event, card.category_slug)"
+                   [disabled]="uploadingSlug === card.category_slug || card.images.length >= 5">
+            <span class="el-file-icon">+</span>
+            <span *ngIf="uploadingSlug !== card.category_slug">Add Images</span>
+            <span *ngIf="uploadingSlug === card.category_slug">Uploading...</span>
+          </label>
+          <span class="el-image-count">{{ card.images.length }}/5 images</span>
+
+          <div class="el-images-grid" *ngIf="card.images.length">
+            <div class="el-image-card" *ngFor="let img of card.images; let i = index">
+              <img [src]="img.image_url" alt="Card image">
+              <div class="el-image-actions">
+                <button class="el-icon-btn" (click)="moveUp(card.category_slug, i)" [disabled]="i === 0" title="Move up">↑</button>
+                <button class="el-icon-btn" (click)="moveDown(card.category_slug, i)" [disabled]="i === card.images.length - 1" title="Move down">↓</button>
+                <button class="el-icon-btn el-icon-danger" (click)="deleteImage(card.category_slug, img.id)" title="Delete">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="el-fields">
+          <div class="el-field">
+            <label>Title</label>
+            <input type="text" [(ngModel)]="card.title" maxlength="100">
+          </div>
+          <div class="el-field">
+            <label>Subtitle</label>
+            <input type="text" [(ngModel)]="card.subtitle" maxlength="200">
+          </div>
+          <div class="el-field">
+            <label>Button Text</label>
+            <input type="text" [(ngModel)]="card.button_text" maxlength="100">
+          </div>
+          <div class="el-field">
+            <label>Button Link</label>
+            <input type="text" [(ngModel)]="card.button_link" maxlength="255" placeholder="/home">
+          </div>
+        </div>
+
+        <div class="el-card-footer">
+          <button class="el-btn-save" (click)="saveCard(card)" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

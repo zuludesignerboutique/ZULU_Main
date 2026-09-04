@@ -1,3 +1,4 @@
+@use "sass:color";
 $gold:   #c8a96e;
 $ink:    #1a1814;
 $muted:  #9a9080;
@@ -130,7 +131,7 @@ $border: rgba(0,0,0,0.07);
     transition: background 0.2s;
 
     &:hover {
-      background: darken(#c53030, 10%);
+      background: color.adjust(#c53030, $lightness: -10%);
     }
   }
 }
@@ -167,7 +168,7 @@ $border: rgba(0,0,0,0.07);
 .brand-pill {
   display: inline-block; padding: 3px 10px; border-radius: 40px;
   font-size: 10px; font-weight: 700; text-transform: uppercase;
-  &.zulu { background: rgba(200,169,110,0.15); color: darken(#c8a96e, 10%); }
+  &.zulu { background: rgba(200,169,110,0.15); color: color.adjust(#c8a96e, $lightness: -10%); }
   &.pooboo { background: rgba(255,107,157,0.12); color: #d6336c; }
 }
 
@@ -181,7 +182,7 @@ $border: rgba(0,0,0,0.07);
 
 .refund { font-size: 13px; color: #c0392b; font-weight: 600; }
 .penalty { font-size: 13px; color: #e67e22; font-weight: 600; }
-.no-value { font-size: 13px; color: lighten($muted, 15%); }
+.no-value { font-size: 13px; color: color.adjust($muted, $lightness: 15%); }
 
 .net-amount {
   font-weight: 700; font-size: 14px; color: #27ae60;
@@ -191,7 +192,7 @@ $border: rgba(0,0,0,0.07);
 .status-pill {
   display: inline-block; padding: 4px 12px; border-radius: 40px;
   font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  &.status-pending   { background:rgba(200,169,110,0.12); color:darken(#c8a96e,10%); }
+  &.status-pending   { background:rgba(200,169,110,0.12); color:color.adjust(#c8a96e, $lightness: -10%); }
   &.status-confirmed { background:rgba(52,152,219,0.12);  color:#2980b9; }
   &.status-shipped   { background:rgba(155,89,182,0.12);  color:#8e44ad; }
   &.status-delivered { background:rgba(39,174,96,0.12);   color:#27ae60; }
@@ -199,7 +200,7 @@ $border: rgba(0,0,0,0.07);
 }
 
 .date { display: block; font-size: 12px; color: $muted; }
-.date-time { display: block; font-size: 10px; color: lighten($muted, 15%); margin-top: 2px; }
+.date-time { display: block; font-size: 10px; color: color.adjust($muted, $lightness: 15%); margin-top: 2px; }
 
 // ── PAGINATION ───────────────────────────────────
 .at-pagination {

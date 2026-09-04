@@ -122,7 +122,7 @@ describe('CustomBillComponent', () => {
     error: vi.fn()
   };
   const httpClientSpy = {
-    get: vi.fn().mockReturnValue(of(mockOrders))
+    get: vi.fn().mockReturnValue(of({ orders: mockOrders }))
   };
 
   beforeEach(async () => {
@@ -153,7 +153,7 @@ describe('CustomBillComponent', () => {
   });
 
   it('should load orders on init', () => {
-    expect(httpClientSpy.get).toHaveBeenCalledWith('/api/orders');
+    expect(httpClientSpy.get).toHaveBeenCalledWith('/api/orders?limit=1000');
     expect(component.orders()).toEqual(mockOrders);
   });
 

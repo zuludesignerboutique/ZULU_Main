@@ -1,3 +1,4 @@
+@use "sass:color";
 $gold:   #c8a96e;
 $ink:    #1a1814;
 $muted:  #9a9080;
@@ -87,7 +88,7 @@ $border: rgba(0,0,0,0.07);
   font-size: 20px;
   flex-shrink: 0;
 
-  &.products-icon { background: rgba(200,169,110,0.12); color: darken(#c8a96e, 10%); }
+  &.products-icon { background: rgba(200,169,110,0.12); color: color.adjust(#c8a96e, $lightness: -10%); }
   &.users-icon { background: rgba(52,152,219,0.10); color: #2980b9; }
   &.orders-icon { background: rgba(155,89,182,0.10); color: #8e44ad; }
   &.revenue-icon { background: rgba(39,174,96,0.10); color: #27ae60; }
@@ -238,7 +239,7 @@ $border: rgba(0,0,0,0.07);
 .customer-name { font-weight: 600; display: block; }
 .customer-email { font-size: 11px; color: $muted; }
 
-.amount { font-weight: 700; color: darken(#c8a96e, 10%); }
+.amount { font-weight: 700; color: color.adjust(#c8a96e, $lightness: -10%); }
 
 .status-pill {
   display: inline-block;
@@ -249,7 +250,7 @@ $border: rgba(0,0,0,0.07);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 
-  &.status-pending   { background:rgba(200,169,110,0.12); color:darken(#c8a96e,10%); }
+  &.status-pending   { background:rgba(200,169,110,0.12); color:color.adjust(#c8a96e, $lightness: -10%); }
   &.status-confirmed { background:rgba(52,152,219,0.12);  color:#2980b9; }
   &.status-shipped   { background:rgba(155,89,182,0.12);  color:#8e44ad; }
   &.status-delivered { background:rgba(39,174,96,0.12);   color:#27ae60; }

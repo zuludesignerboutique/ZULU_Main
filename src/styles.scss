@@ -18,6 +18,12 @@ app-user-dashboard {
   padding-top: 85px;
 }
 app-home,
+app-wishlist,
+app-category-landing {
+  display: block;
+}
+
+app-home,
 app-wishlist {
   padding-top: 120px;
   display: block;

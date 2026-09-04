@@ -28,59 +28,41 @@
     <!-- CATEGORY CARDS -->
     <div class="row category-row">
 
-      <!-- ZULU -->
-      <div class="col-md-4 mb-4">
-        <div class="category-card zulu" (click)="navigateTo('home')">
+      <div class="col-md-4 mb-4" *ngFor="let card of cards">
+        <div class="category-card"
+             [ngClass]="card.category_slug"
+             (click)="navigateTo(card.button_link)">
+
           <div class="card-shimmer"></div>
-          <div class="card-bg"></div>
+
+          <!-- Carousel for multiple images -->
+          <div class="card-bg" *ngIf="hasCarousel(card)">
+            <app-image-carousel
+              [images]="getCardImages(card)"
+              [altText]="card.title">
+            </app-image-carousel>
+          </div>
+
+          <!-- Static background for 0-1 images -->
+          <div class="card-bg card-bg-static"
+               *ngIf="!hasCarousel(card)"
+               [style.background-image]="getCardImages(card).length ? '' : 'url(' + getDefaultImage(card.category_slug) + ')'">
+            <img *ngIf="getCardImages(card).length === 1"
+                 [src]="getCardImages(card)[0]"
+                 [alt]="card.title"
+                 class="card-bg-img">
+          </div>
+
           <div class="card-content">
-            <div class="card-icon">✦</div>
-            <h3>Zulu</h3>
-            <p>Elegant. Modern. Timeless.</p>
-            <button class="btn-enter">
-              <span>Enter Zulu</span>
+            <div class="card-icon">{{ getIcon(card.category_slug) }}</div>
+            <h3>{{ card.title }}</h3>
+            <p>{{ card.subtitle }}</p>
+            <button class="btn-enter"
+                    [class.btn-soon]="!card.button_link"
+                    [disabled]="!card.button_link">
+              <span>{{ card.button_text }}</span>
               <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
-          <div class="card-border-glow"></div>
-        </div>
-      </div>
-
-      <!-- POOBOO -->
-      <div class="col-md-4 mb-4">
-        <div class="category-card pooboo" (click)="navigateTo('pooboo')">
-          <div class="card-shimmer"></div>
-          <div class="card-bg"></div>
-          <div class="card-content">
-            <div class="card-icon">✿</div>
-            <h3>Pooboo</h3>
-            <p>Cute. Colorful. Playful.</p>
-            <button class="btn-enter">
-              <span>Enter Pooboo</span>
-              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
-          <div class="card-border-glow"></div>
-        </div>
-      </div>
-
-      <!-- AURUM -->
-      <div class="col-md-4 mb-4">
-        <div class="category-card aurum" (click)="navigateTo('aurum')">
-          <div class="card-shimmer"></div>
-          <div class="card-bg"></div>
-          <div class="card-content">
-            <div class="card-icon">◈</div>
-            <h3>Aurum</h3>
-            <p>Shine with Grace.</p>
-            <button class="btn-enter btn-soon">
-              <span>Coming Soon</span>
-              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 5v14M5 12l7 7 7-7"/>
               </svg>
             </button>
           </div>

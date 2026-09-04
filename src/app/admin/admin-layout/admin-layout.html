@@ -49,6 +49,9 @@
       <a routerLink="/admin/gallery" routerLinkActive="active" class="sidebar-link">
         <span class="sidebar-icon">🖼</span> Gallery
       </a>
+      <a routerLink="/admin/edit-layout" routerLinkActive="active" class="sidebar-link">
+        <span class="sidebar-icon">⊞</span> Edit Layout
+      </a>
 
       <div class="sidebar-section-label">POOBOO</div>
 
@@ -115,7 +118,7 @@
                 <div class="notif-refund">
                   Refund ₹{{ o.refund_amount | number }}
                   <ng-container *ngIf="o.penalty_amount > 0">
-                    &nbsp;· 25% fee ₹{{ o.penalty_amount | number }}
+                    &nbsp;· 30% fee ₹{{ o.penalty_amount | number }}
                   </ng-container>
                 </div>
                 <div class="notif-hint">Click to review in Orders →</div>

@@ -1,3 +1,4 @@
+@use "sass:color";
 // ─── Zulu Admin — Design Tokens ───────────────────────────────────────────────
 $bg-page:        #f0ede8;   // warm off-white content area
 $bg-card:        #ffffff;
@@ -299,7 +300,7 @@ $font-mono:      'JetBrains Mono', 'Courier New', monospace;
   @extend %btn-base;
   background: $danger-light;
   color: $danger;
-  border: 1px solid lighten($danger, 40%);
+  border: 1px solid color.adjust($danger, $lightness: 40%);
 
   &:hover {
     background: $danger;

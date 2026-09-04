@@ -1,3 +1,4 @@
+@use "sass:color";
 $gold:   #c8a96e;
 $ink:    #1a1814;
 $muted:  #9a9080;
@@ -225,7 +226,7 @@ $border: rgba(0,0,0,0.07);
   font-weight: 700;
   text-transform: uppercase;
 
-  &.zulu { background: rgba(200,169,110,0.15); color: darken(#c8a96e, 10%); }
+  &.zulu { background: rgba(200,169,110,0.15); color: color.adjust(#c8a96e, $lightness: -10%); }
   &.pooboo { background: rgba(255,107,157,0.12); color: #d6336c; }
 }
 
@@ -263,7 +264,7 @@ $border: rgba(0,0,0,0.07);
 
   &.stock-out { background: rgba(192,57,43,0.10); color: #c0392b; }
   &.stock-low { background: rgba(230,126,34,0.12); color: #e67e22; }
-  &.stock-medium { background: rgba(200,169,110,0.12); color: darken(#c8a96e, 10%); }
+  &.stock-medium { background: rgba(200,169,110,0.12); color: color.adjust(#c8a96e, $lightness: -10%); }
   &.stock-high { background: rgba(39,174,96,0.10); color: #27ae60; }
 }
 

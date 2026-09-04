@@ -1,3 +1,4 @@
+@use "sass:color";
 
 $gold:   #c8a96e;
 $ink:    #1a1814;
@@ -138,7 +139,7 @@ $success:#27ae60;
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0.04em;
-    color: lighten(#9a9080, 10%);
+    color: color.adjust(#9a9080, $lightness: 10%);
   }
 
   input, select, textarea {
@@ -179,7 +180,7 @@ $success:#27ae60;
 
 .field-note {
   font-size: 11px;
-  color: lighten(#9a9080, 10%);
+  color: color.adjust(#9a9080, $lightness: 10%);
   margin: 2px 0 0;
   line-height: 1.5;
 }
@@ -396,7 +397,7 @@ $success:#27ae60;
 
   .upload-icon { font-size: 26px; opacity: 0.4; }
   p { font-size: 12px; color: $muted; margin: 0; font-weight: 600; }
-  small { font-size: 11px; color: lighten(#9a9080, 10%); }
+  small { font-size: 11px; color: color.adjust(#9a9080, $lightness: 10%); }
 }
 
 .gallery-save-row {
@@ -414,7 +415,7 @@ $success:#27ae60;
     cursor: pointer;
     transition: 0.2s ease;
 
-    &:hover:not(:disabled) { background: darken(#c8a96e, 8%); }
+    &:hover:not(:disabled) { background: color.adjust(#c8a96e, $lightness: -8%); }
     &:disabled { opacity: 0.6; cursor: not-allowed; }
   }
 }
@@ -462,7 +463,7 @@ $success:#27ae60;
 
   .upload-icon { font-size: 36px; opacity: 0.4; }
   p { font-size: 14px; color: $muted; margin: 0; font-weight: 500; }
-  small { font-size: 12px; color: lighten(#9a9080, 10%); }
+  small { font-size: 12px; color: color.adjust(#9a9080, $lightness: 10%); }
 }
 
 .image-preview {

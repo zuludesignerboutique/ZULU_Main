@@ -47,7 +47,7 @@ export class App implements OnDestroy {
 
         const url = event.urlAfterRedirects;
 
-        if (isPlatformBrowser(this.platformId)) {
+        if (isPlatformBrowser(this.platformId) && typeof window.gtag === 'function') {
           window.gtag('config', 'G-69PXLMZ9XL', { page_path: url });
         }
 

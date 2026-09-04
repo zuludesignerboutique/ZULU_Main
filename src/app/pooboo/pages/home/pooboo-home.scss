@@ -1,3 +1,4 @@
+@use "sass:color";
 // ── POOBOO Design Tokens ────────────────────────
 $coral:   #FF6B35;
 $yellow:  #FFD600;
@@ -458,7 +459,7 @@ $soft-bg: #FFF8F5;
   cursor: pointer;
   transition: background 0.2s;
 
-  &:hover { background: darken($coral, 8%); }
+  &:hover { background: color.adjust($coral, $lightness: -8%); }
 }
 
 // Explore button

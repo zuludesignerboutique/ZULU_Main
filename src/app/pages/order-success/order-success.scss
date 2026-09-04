@@ -1,3 +1,4 @@
+@use "sass:color";
 
 $gold: #c8a96e;
 $ink:  #0d0d0d;
@@ -190,7 +191,7 @@ $muted: #9a9080;
   .ss-amount {
     font-weight: 700;
     font-size: 15px;
-    color: darken(#c8a96e, 10%);
+    color: color.adjust(#c8a96e, $lightness: -10%);
   }
 }
 

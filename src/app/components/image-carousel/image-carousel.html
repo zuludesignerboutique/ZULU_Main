@@ -1,0 +1,22 @@
+<div class="carousel"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()">
+
+  <div class="carousel-slides">
+    <img *ngFor="let img of images; let i = index"
+         [src]="img"
+         [alt]="altText"
+         class="carousel-slide"
+         [class.active]="i === currentIndex"
+         loading="lazy">
+  </div>
+
+  <div class="carousel-dots" *ngIf="images.length > 1">
+    <button *ngFor="let img of images; let i = index"
+            class="carousel-dot"
+            [class.active]="i === currentIndex"
+            (click)="goTo(i)"
+            [attr.aria-label]="'Go to slide ' + (i + 1)">
+    </button>
+  </div>
+</div>

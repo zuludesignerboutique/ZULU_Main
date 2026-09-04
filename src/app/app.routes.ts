@@ -113,6 +113,11 @@ export const routes: Routes = [
           import('./admin/admin-gallery/admin-gallery').then(m => m.AdminGallery)
       },
       {
+        path: 'edit-layout',
+        loadComponent: () =>
+          import('./admin/edit-layout/edit-layout').then(m => m.EditLayout)
+      },
+      {
         path: 'custom-bill',
         loadComponent: () =>
           import('./admin/custom-bill/custom-bill').then(m => m.CustomBillComponent)

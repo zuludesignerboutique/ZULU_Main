@@ -1,3 +1,4 @@
+@use "sass:color";
 
 $gold:    #c8a96e;
 $ink:     #0d0d0d;
@@ -97,7 +98,7 @@ $border:  rgba(0,0,0,0.08);
   cursor: pointer;
   transition: all 0.25s ease;
 
-  &:hover { border-color: $gold; color: darken(#c8a96e, 8%); }
+  &:hover { border-color: $gold; color: color.adjust(#c8a96e, $lightness: -8%); }
 
   &.active {
     background: $ink;
@@ -199,5 +200,5 @@ $border:  rgba(0,0,0,0.08);
 
   .empty-icon { font-size: 48px; color: rgba(0,0,0,0.08); }
   p { font-size: 16px; color: $muted; margin: 0; }
-  small { font-size: 12px; color: lighten(#9a9080, 10%); }
+  small { font-size: 12px; color: color.adjust(#9a9080, $lightness: 10%); }
 }

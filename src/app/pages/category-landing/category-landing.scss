@@ -46,14 +46,17 @@ body {
 //  HERO SECTION — biscuit background, green type
 // ─────────────────────────────────────────────
 
+:host { display: block; }
+
 .landing-container {
   position: relative;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 80px 20px 60px;
-  overflow: hidden;
+  overflow: visible;
   background: linear-gradient(165deg, $grain-brown 0%, $vast-desert 100%);
 }
 
@@ -190,8 +193,27 @@ body {
 // ─────────────────────────────────────────────
 
 .category-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -12px;
+  margin-right: -12px;
+  width: calc(100% + 24px);
   animation: fadeInUp 1s ease both;
   animation-delay: 0.8s;
+}
+
+.category-row > .col-md-4 {
+  flex: 0 0 33.333%;
+  max-width: 33.333%;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .category-row > .col-md-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }
 
 .category-card {
@@ -274,11 +296,30 @@ body {
   background-repeat: no-repeat;
 }
 
-.zulu .card-bg {
-  background-image: url('/assets/images/zulu-model2.jpg');
+.card-bg-static {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
-.pooboo .card-bg {
-  background-image: url('/assets/images/pooboo-model.jpeg');
+
+.card-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+}
+
+.card-bg app-image-carousel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.card-bg app-image-carousel .carousel {
+  border-radius: 0;
+  height: 100%;
 }
 
 // Aurum has no live photography yet — a biscuit weave pattern instead

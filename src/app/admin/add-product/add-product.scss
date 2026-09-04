@@ -1,3 +1,4 @@
+@use "sass:color";
 
 $gold:   #c8a96e;
 $ink:    #1a1814;
@@ -225,7 +226,7 @@ $success:#27ae60;
     cursor: pointer;
     transition: 0.2s ease;
 
-    &:hover:not(:disabled) { background: darken(#c8a96e, 8%); }
+    &:hover:not(:disabled) { background: color.adjust(#c8a96e, $lightness: -8%); }
     &:disabled { opacity: 0.6; cursor: not-allowed; }
   }
 }
@@ -383,7 +384,7 @@ $success:#27ae60;
 
   .upload-icon { font-size: 28px; opacity: 0.4; }
   p { font-size: 13px; color: $muted; margin: 0; font-weight: 600; }
-  small { font-size: 11px; color: lighten(#9a9080, 10%); }
+  small { font-size: 11px; color: color.adjust(#9a9080, $lightness: 10%); }
 }
 
 .image-hint {
@@ -401,7 +402,7 @@ $success:#27ae60;
 
   .upload-icon { font-size: 36px; opacity: 0.4; }
   p { font-size: 14px; color: $muted; margin: 0; font-weight: 500; }
-  small { font-size: 12px; color: lighten(#9a9080, 10%); }
+  small { font-size: 12px; color: color.adjust(#9a9080, $lightness: 10%); }
 }
 
 .image-preview {
@@ -628,7 +629,7 @@ $success:#27ae60;
     font-weight: 700;
     cursor: pointer;
 
-    &:hover:not(:disabled) { background: darken(#c8a96e, 8%); }
+    &:hover:not(:disabled) { background: color.adjust(#c8a96e, $lightness: -8%); }
     &:disabled { opacity: 0.6; cursor: not-allowed; }
   }
 
@@ -704,7 +705,7 @@ $success:#27ae60;
 .cg-danger-btn {
   background: $error !important;
 
-  &:hover:not(:disabled) { background: darken(#c0392b, 8%) !important; }
+  &:hover:not(:disabled) { background: color.adjust(#c0392b, $lightness: -8%) !important; }
 }
 
 .cat-guide-subs {

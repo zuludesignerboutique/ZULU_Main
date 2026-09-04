@@ -110,9 +110,9 @@ export class OrderHistoryComponent implements OnInit {
     return status.charAt(0).toUpperCase() + status.slice(1);
   }
 
-  // ✅ No penalty while still "pending"; 25% penalty once the order has moved to "confirmed"
+  // ✅ No penalty while still "pending"; 30% penalty once the order has moved to "confirmed"
   getCancelPenaltyPercent(status: string): number {
-    return status === 'confirmed' ? 25 : 0;
+    return status === 'confirmed' ? 30 : 0;
   }
 
   async cancelOrder(order: any) {
@@ -125,7 +125,7 @@ export class OrderHistoryComponent implements OnInit {
     // it doesn't cancel the order outright.
     const message = penaltyPercent === 0
       ? `Request cancellation for Order #${order.id}?\n\nOnce approved by our team, you'll receive a full refund of ₹${refundAmount}.`
-      : `Request cancellation for Order #${order.id}?\n\nThis order has already been confirmed, so a 25% cancellation fee (₹${penaltyAmount}) will apply once approved. You'd be refunded ₹${refundAmount} of ₹${order.total_amount}.`;
+       : `Request cancellation for Order #${order.id}?\n\nThis order has already been confirmed, so a 30% cancellation fee (₹${penaltyAmount}) will apply once approved. You'd be refunded ₹${refundAmount} of ₹${order.total_amount}.`;
 
     // ✅ Store-themed confirmation popup before requesting
     const confirmed = await this.toast.confirm({

@@ -1,3 +1,4 @@
+@use "sass:color";
 $gold:   #c8a96e;
 $ink:    #1a1814;
 $muted:  #9a9080;
@@ -242,7 +243,7 @@ $border: rgba(0,0,0,0.07);
     transition: background 0.2s;
 
     &:hover {
-      background: darken(#c53030, 10%);
+      background: color.adjust(#c53030, $lightness: -10%);
     }
   }
 }
@@ -305,7 +306,7 @@ $border: rgba(0,0,0,0.07);
 
   &.zulu {
     background: rgba(200,169,110,0.15);
-    color: darken(#c8a96e, 10%);
+    color: color.adjust(#c8a96e, $lightness: -10%);
   }
 
   &.pooboo {
@@ -383,14 +384,14 @@ $border: rgba(0,0,0,0.07);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: darken($gold, 5%);
+    color: color.adjust($gold, $lightness: -5%);
   }
 }
 
 .amount {
   font-weight: 700;
   font-size: 14px;
-  color: darken(#c8a96e, 10%);
+  color: color.adjust(#c8a96e, $lightness: -10%);
 }
 
 // ── REFUND / PENALTY ──────────────────────────────
@@ -414,7 +415,7 @@ $border: rgba(0,0,0,0.07);
 
 .no-refund {
   font-size: 12px;
-  color: lighten($muted, 15%);
+  color: color.adjust($muted, $lightness: 15%);
 }
 
 // ── DATE ──────────────────────────────────────────
@@ -427,7 +428,7 @@ $border: rgba(0,0,0,0.07);
 .date-time {
   display: block;
   font-size: 10px;
-  color: lighten($muted, 15%);
+  color: color.adjust($muted, $lightness: 15%);
   margin-top: 2px;
 }
 
@@ -441,7 +442,7 @@ $border: rgba(0,0,0,0.07);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 
-  &.status-pending   { background:rgba(200,169,110,0.12); color:darken(#c8a96e,10%); }
+  &.status-pending   { background:rgba(200,169,110,0.12); color:color.adjust(#c8a96e, $lightness: -10%); }
   &.status-confirmed { background:rgba(52,152,219,0.12);  color:#2980b9; }
   &.status-shipped   { background:rgba(155,89,182,0.12);  color:#8e44ad; }
   &.status-delivered { background:rgba(39,174,96,0.12);   color:#27ae60; }
@@ -525,7 +526,7 @@ $border: rgba(0,0,0,0.07);
   &.approve {
     background: #27ae60;
     color: #fff;
-    &:hover:not(:disabled) { background: darken(#27ae60, 6%); }
+    &:hover:not(:disabled) { background: color.adjust(#27ae60, $lightness: -6%); }
   }
 
   &.reject {

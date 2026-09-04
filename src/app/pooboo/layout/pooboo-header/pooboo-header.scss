@@ -1,3 +1,4 @@
+@use "sass:color";
 // ── POOBOO Design Tokens ────────────────────────
 $coral:   #FF6B35;
 $yellow:  #FFD600;
@@ -217,7 +218,7 @@ $soft-bg: #FFF8F5;
   box-shadow: 0 4px 14px rgba($coral, 0.3);
 
   &:hover {
-    background: darken($coral, 8%);
+    background: color.adjust($coral, $lightness: -8%);
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba($coral, 0.4);
     color: $white;
