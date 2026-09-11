@@ -3,6 +3,10 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { PoobooAccessoryService } from '../../services/pooboo-accessory.service';
+import { ToastService } from '../../../services/toast.service';
+
+interface NewImage { file: File; preview: string; label: string; }
 
 type AccessoryTab = 'baby-ornaments' | 'bands' | 'hair-clips';
 
@@ -18,7 +22,6 @@ export class PoobooEditAccessory implements OnInit {
   private api = '';
   private productId!: number;
 
-  // ── Page state ─────────────────────────────────────────
   loading = true;
   error   = '';
 
@@ -28,7 +31,6 @@ export class PoobooEditAccessory implements OnInit {
     { key: 'hair-clips',     label: 'Hair Clips',     emoji: '🩷' },
   ];
 
-  // ── Edit-form fields ───────────────────────────────────
   a_name              = '';
   a_description       = '';
   a_price             = '';
@@ -37,16 +39,22 @@ export class PoobooEditAccessory implements OnInit {
   a_product_code      = '';
   a_colour            = '';
   a_accessoryCategory : AccessoryTab = 'baby-ornaments';
-  a_selectedFile      : File | null = null;
-  a_imagePreview      : string | null = null;
-  a_existingImage     : string | null = null;
 
-  // 🏷️ Tags — preset badges + custom free-text tags, merged into one array
+  readonly maxImages = 4;
+  readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  existingImages: any[] = [];
+  newImages: NewImage[] = [];
+  imageBusy = false;
+  imageMsg = '';
+  imageMsgError = false;
+  imageBase = '/uploads/';
+  get totalImageCount(): number { return this.existingImages.length + this.newImages.length; }
+  get canAddMoreImages(): boolean { return this.totalImageCount < this.maxImages; }
+
   presetTags     = ['New', 'Bestseller', 'Sale'];
   selectedTags   : string[] = [];
   customTagInput = '';
 
-  // ── UI state ────────────────────────────────────────────
   submitting = false;
   successMsg = '';
   errorMsg   = '';
@@ -57,31 +65,23 @@ export class PoobooEditAccessory implements OnInit {
     private route: ActivatedRoute,
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
+    private accessoryService: PoobooAccessoryService,
+    private toast: ToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
     const idParam = this.route.snapshot.paramMap.get('id');
-    if (!idParam) {
-      this.error = 'No accessory id provided';
-      this.loading = false;
-      return;
-    }
+    if (!idParam) { this.error = 'No accessory id provided'; this.loading = false; return; }
     this.productId = +idParam;
     this.loadAccessory();
   }
 
-  // ── Load existing accessory ────────────────────────────
   loadAccessory() {
-    if (!isPlatformBrowser(this.platformId)) {
-      this.loading = false;
-      return;
-    }
+    if (!isPlatformBrowser(this.platformId)) { this.loading = false; return; }
     this.loading = true;
-    console.log('[EditAccessory] loading id:', this.productId);
     this.http.get<any>(`${this.api}/api/pooboo/accessories/${this.productId}`).subscribe({
       next: (p) => {
-        console.log('[EditAccessory] loaded:', p);
         this.zone.run(() => {
           this.a_name              = p.name ?? '';
           this.a_description       = p.description ?? '';
@@ -91,115 +91,110 @@ export class PoobooEditAccessory implements OnInit {
           this.a_product_code      = p.product_code ?? '';
           this.a_colour            = p.colour ?? '';
           this.a_accessoryCategory = (p.accessory_type as AccessoryTab) ?? 'baby-ornaments';
-          this.a_existingImage     = p.image_url ?? null;
           this.selectedTags        = Array.isArray(p.tags) ? [...p.tags] : [];
+          this.existingImages = Array.isArray(p.images) ? [...p.images].sort((a:any,b:any)=>a.display_order-b.display_order) : [];
           this.loading = false;
           this.cdr.detectChanges();
         });
       },
-      error: (err) => {
-        console.error('[EditAccessory] error:', err);
-        this.zone.run(() => {
-          this.error   = 'Failed to load accessory';
-          this.loading = false;
-          this.cdr.detectChanges();
-        });
+      error: () => {
+        this.zone.run(() => { this.error='Failed to load accessory'; this.loading=false; this.cdr.detectChanges(); });
       }
     });
   }
 
-  // ── Image handling ──────────────────────────────────────
-  onAccFileChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.a_selectedFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => this.a_imagePreview = e.target?.result as string;
-      reader.readAsDataURL(this.a_selectedFile);
-    }
+  onNewFilesChange(event:any){
+    const input=event.target as HTMLInputElement;
+    const files=Array.from(input.files||[]);
+    if(!files.length) return;
+    const remaining=this.maxImages - this.totalImageCount;
+    if(remaining<=0){ this.setImageMsg(`You can upload a maximum of ${this.maxImages} images per accessory.`, true); input.value=''; this.zone.run(()=>this.cdr.detectChanges()); return; }
+    const toAdd=files.slice(0,remaining);
+    if(toAdd.length < files.length) this.setImageMsg(`Only ${this.maxImages} images are allowed per accessory. ${toAdd.length} image(s) added.`, true); else this.imageMsg='';
+    toAdd.forEach(file=>{
+      const reader=new FileReader();
+      reader.onload=(e:any)=>{ this.newImages.push({ file, preview: e.target.result, label: '' }); this.zone.run(()=>this.cdr.detectChanges()); };
+      reader.readAsDataURL(file);
+    });
+    input.value=''; this.zone.run(()=>this.cdr.detectChanges());
   }
-
-  removeAccImage() {
-    this.a_selectedFile  = null;
-    this.a_imagePreview  = null;
-    this.a_existingImage = null;
+  removeNewImage(index:number){ this.newImages.splice(index,1); this.imageMsg=''; this.zone.run(()=>this.cdr.detectChanges()); }
+  addPendingImages(){
+    if(!this.newImages.length || !this.productId) return;
+    this.imageBusy=true; this.imageMsg=''; this.imageMsgError=false;
+    this.uploadPendingImages(this.productId).subscribe({
+      next: ()=>{ this.imageBusy=false; this.newImages=[]; this.setImageMsg('Image(s) added successfully.', false); this.reloadGallery(); },
+      error: (err)=>{ this.imageBusy=false; this.setImageMsg(err?.error?.error || 'Failed to add images. Please try again.', true); }
+    });
   }
+  private uploadPendingImages(productId:number){ return this.accessoryService.addImages(productId, this.newImages.map(n=>n.file), this.newImages.map(n=>n.label)); }
+  async deleteImage(image:any){
+    if(!this.productId || !image?.id) return;
+    const confirmed=await this.toast.confirm({ title: 'Delete image?', message: 'Delete this image? This can\'t be undone.', confirmLabel: 'Delete' });
+    if(!confirmed) return;
+    this.imageBusy=true; this.imageMsg=''; this.imageMsgError=false;
+    this.accessoryService.deleteImage(this.productId, image.id).subscribe({
+      next: ()=>{ this.imageBusy=false; this.existingImages=this.existingImages.filter(i=>i.id!==image.id); this.setImageMsg('Image deleted successfully.', false); this.zone.run(()=>this.cdr.detectChanges()); },
+      error: (err)=>{ this.imageBusy=false; this.setImageMsg(err?.error?.error || 'Failed to delete image. Please try again.', true); }
+    });
+  }
+  moveImage(index:number, direction:-1|1){
+    const target=index+direction; if(target<0||target>=this.existingImages.length) return;
+    const arr=[...this.existingImages]; [arr[index],arr[target]]=[arr[target],arr[index]]; this.existingImages=arr; this.saveOrderAndLabels();
+  }
+  saveOrderAndLabels(){
+    if(!this.productId || !this.existingImages.length) return;
+    const orderedIds=this.existingImages.map(i=>i.id);
+    const labels:Record<number,string>={}; this.existingImages.forEach(i=>{ labels[i.id]=i.label||''; });
+    this.imageBusy=true; this.imageMsg=''; this.imageMsgError=false;
+    this.accessoryService.reorderImages(this.productId, orderedIds, labels).subscribe({
+      next: ()=>{ this.imageBusy=false; this.setImageMsg('Image order saved.', false); this.zone.run(()=>this.cdr.detectChanges()); },
+      error: (err)=>{ this.imageBusy=false; this.setImageMsg(err?.error?.error || 'Failed to save image order.', true); }
+    });
+  }
+  private reloadGallery(){
+    this.http.get<any>(`${this.api}/api/pooboo/accessories/${this.productId}`).subscribe(data=>{
+      this.existingImages=Array.isArray(data.images)?[...data.images].sort((a:any,b:any)=>a.display_order-b.display_order):[];
+      this.zone.run(()=>this.cdr.detectChanges());
+    });
+  }
+  private setImageMsg(msg:string,isError:boolean){ this.imageMsg=msg; this.imageMsgError=isError; this.zone.run(()=>this.cdr.detectChanges()); }
 
-  // 🏷️ Toggle a preset badge on/off
   togglePresetTag(tag: string) {
-    this.selectedTags = this.selectedTags.includes(tag)
-      ? this.selectedTags.filter(t => t !== tag)
-      : [...this.selectedTags, tag];
+    this.selectedTags = this.selectedTags.includes(tag) ? this.selectedTags.filter(t => t !== tag) : [...this.selectedTags, tag];
   }
+  isTagSelected(tag: string): boolean { return this.selectedTags.includes(tag); }
+  addCustomTag() { const tag = this.customTagInput.trim(); if (tag && !this.selectedTags.includes(tag)) this.selectedTags = [...this.selectedTags, tag]; this.customTagInput=''; }
+  removeTag(tag: string) { this.selectedTags = this.selectedTags.filter(t => t !== tag); }
 
-  isTagSelected(tag: string): boolean {
-    return this.selectedTags.includes(tag);
-  }
-
-  // 🏷️ Add a custom tag from the text input (Enter key or Add button)
-  addCustomTag() {
-    const tag = this.customTagInput.trim();
-    if (tag && !this.selectedTags.includes(tag)) {
-      this.selectedTags = [...this.selectedTags, tag];
-    }
-    this.customTagInput = '';
-  }
-
-  removeTag(tag: string) {
-    this.selectedTags = this.selectedTags.filter(t => t !== tag);
-  }
-
-  // ── Save changes ─────────────────────────────────────────
   saveAccessory() {
-    if (!this.a_name || !this.a_price) {
-      this.errorMsg = 'Name and price are required.';
-      return;
-    }
-
-    this.submitting = true;
-    this.errorMsg   = '';
-    this.successMsg = '';
-
+    if (!this.a_name || !this.a_price) { this.errorMsg = 'Name and price are required.'; return; }
+    this.submitting = true; this.errorMsg=''; this.successMsg='';
     const formData = new FormData();
     formData.append('name',           this.a_name);
     formData.append('description',    this.a_description);
     formData.append('price',          this.a_price);
-    formData.append('accessory_type', this.a_accessoryCategory); // baby-ornaments / bands / hair-clips
+    formData.append('accessory_type', this.a_accessoryCategory);
     formData.append('stock',          this.a_stock);
     formData.append('balance_stock',  this.a_balance_stock);
     formData.append('product_code',   this.a_product_code);
     formData.append('colour',         this.a_colour);
     formData.append('tags',           JSON.stringify(this.selectedTags));
-
-    if (this.a_selectedFile) {
-      formData.append('image', this.a_selectedFile);
-    }
-
     this.http.put(`${this.api}/api/pooboo/accessories/${this.productId}`, formData).subscribe({
       next: () => {
-        this.zone.run(() => {
-          this.successMsg = '✅ Accessory updated successfully!';
-          this.submitting = false;
-          this.cdr.detectChanges();
-          setTimeout(() => this.router.navigate(['/admin/pooboo/accessories']), 800);
-        });
+        if (this.newImages.length) {
+          this.uploadPendingImages(this.productId).subscribe({
+            next: ()=>{ this.zone.run(()=>{ this.successMsg='✅ Accessory updated successfully!'; this.submitting=false; this.cdr.detectChanges(); setTimeout(()=>this.router.navigate(['/admin/pooboo/accessories']),800); }); },
+            error: (err)=>{ this.zone.run(()=>{ this.submitting=false; this.toast.error('Accessory details were saved, but the new images failed to upload: ' + (err?.error?.error || 'please try "Upload new images" again.')); this.cdr.detectChanges(); }); }
+          });
+          return;
+        }
+        this.zone.run(()=>{ this.successMsg='✅ Accessory updated successfully!'; this.submitting=false; this.cdr.detectChanges(); setTimeout(()=>this.router.navigate(['/admin/pooboo/accessories']),800); });
       },
-      error: () => {
-        this.zone.run(() => {
-          this.errorMsg   = '❌ Failed to update accessory. Please try again.';
-          this.submitting = false;
-          this.cdr.detectChanges();
-        });
-      }
+      error: () => { this.zone.run(()=>{ this.errorMsg='❌ Failed to update accessory. Please try again.'; this.submitting=false; this.cdr.detectChanges(); }); }
     });
   }
 
-  cancel() {
-    this.router.navigate(['/admin/pooboo/accessories']);
-  }
-
-  getImageUrl(img: string | null): string {
-    if (!img) return 'assets/images/placeholder.png';
-    return img.startsWith('http') ? img : `${this.api}/uploads/${img}`;
-  }
+  cancel() { this.router.navigate(['/admin/pooboo/accessories']); }
+  getImageUrl(img: string | null): string { if (!img) return 'assets/images/placeholder.png'; return img.startsWith('http') ? img : `${this.api}/uploads/${img}`; }
 }

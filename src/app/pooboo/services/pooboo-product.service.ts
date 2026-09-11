@@ -10,9 +10,10 @@ export class PoobooProductService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(filters?: { age_group?: string; gender?: string; category?: string; tag?: string }): Observable<PoobooProduct[]> {
+  getAll(filters?: { age_group?: string; age_groups?: string[]; gender?: string; category?: string; tag?: string }): Observable<PoobooProduct[]> {
     let params = new HttpParams();
-    if (filters?.age_group) params = params.set('age_group', filters.age_group);
+    if (filters?.age_groups?.length) params = params.set('age_groups', JSON.stringify(filters.age_groups));
+    else if (filters?.age_group) params = params.set('age_group', filters.age_group);
     if (filters?.gender)    params = params.set('gender', filters.gender);
     if (filters?.category)  params = params.set('category', filters.category);
     if (filters?.tag)       params = params.set('tag', filters.tag);
@@ -33,5 +34,20 @@ export class PoobooProductService {
 
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.base}/${id}`);
+  }
+
+  // ── Multi-image gallery (admin) ──
+  private adminBase = '/api/admin/pooboo/products';
+  addImages(productId: number, files: File[], labels: string[] = []): Observable<any> {
+    const fd = new FormData();
+    files.forEach(f => fd.append('images', f));
+    fd.append('labels', JSON.stringify(labels));
+    return this.http.post(`${this.adminBase}/${productId}/images`, fd);
+  }
+  deleteImage(productId: number, imageId: number): Observable<any> {
+    return this.http.delete(`${this.adminBase}/${productId}/images/${imageId}`);
+  }
+  reorderImages(productId: number, orderedIds: number[], labels: Record<number, string> = {}): Observable<any> {
+    return this.http.post(`${this.adminBase}/${productId}/images/reorder`, { orderedIds, labels });
   }
 }

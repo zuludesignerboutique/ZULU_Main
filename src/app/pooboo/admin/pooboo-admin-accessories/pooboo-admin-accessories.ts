@@ -5,6 +5,12 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
 
+interface SelectedImage {
+  file: File;
+  preview: string;
+  label: string;
+}
+
 type AccessoryTab = 'baby-ornaments' | 'bands' | 'hair-clips';
 
 @Component({
@@ -47,8 +53,11 @@ export class PoobooAdminAccessories implements OnInit {
   a_product_code      = '';
   a_colour            = '';
   a_accessoryCategory : AccessoryTab = 'baby-ornaments';
-  a_selectedFile      : File | null = null;
-  a_imagePreview      : string | null = null;
+
+  // Images — multi (max 4)
+  readonly maxImages = 4;
+  readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  a_selectedImages: SelectedImage[] = [];
 
   // 🏷️ Tags — preset badges + custom free-text tags, merged into one array
   presetTags     = ['New', 'Bestseller', 'Sale'];
@@ -78,7 +87,6 @@ export class PoobooAdminAccessories implements OnInit {
   toggleForm() {
     this.showForm = !this.showForm;
     if (this.showForm) {
-      // Pre-select the currently viewed tab's type
       this.a_accessoryCategory = this.activeTab;
     } else {
       this.resetForm();
@@ -87,11 +95,6 @@ export class PoobooAdminAccessories implements OnInit {
 
   // ── Load accessories ──────────────────────────────────
   loadAccessories() {
-    // Only show the big "Loading accessories..." state when we truly have
-    // nothing on screen yet (first load). On any later call — SSR hydration
-    // re-fetch, delete refresh, add-accessory refresh — keep showing the
-    // existing rows and just swap them once the fresh data arrives. This
-    // stops the table from blanking out during SSR/hydration timing races.
     const isFirstLoad = this.allProducts.length === 0;
     if (isFirstLoad) {
       this.loading = true;
@@ -99,13 +102,6 @@ export class PoobooAdminAccessories implements OnInit {
 
     this.http.get<any[]>(`${this.api}/api/pooboo/accessories/all`).subscribe({
       next: (data) => {
-        // zone.run() + detectChanges() guarantees Angular repaints the view
-        // right away. Without detectChanges(), during SSR/hydration this
-        // callback can resolve outside a change-detection window (the
-        // transfer-cache response comes back synchronously), so
-        // `loading`/`allProducts` update in memory but the DOM keeps
-        // showing "Loading accessories..." until some unrelated click
-        // forces change detection.
         this.zone.run(() => {
           this.allProducts = data;
           this.loading     = false;
@@ -115,9 +111,6 @@ export class PoobooAdminAccessories implements OnInit {
       },
       error: () => {
         this.zone.run(() => {
-          // Only surface the error state if we have nothing to show at all.
-          // If we already have data on screen, silently keep it rather than
-          // replacing it with an error message.
           if (isFirstLoad) {
             this.error = 'Failed to load accessories';
           }
@@ -133,8 +126,6 @@ export class PoobooAdminAccessories implements OnInit {
     this.activeTab = tab;
   }
 
-  // Matches the search query against name / product_code. Empty query
-  // matches everything, so this doubles as the "no search active" case.
   private matchesSearch(p: any): boolean {
     const q = this.searchQuery.trim().toLowerCase();
     if (!q) return true;
@@ -142,13 +133,10 @@ export class PoobooAdminAccessories implements OnInit {
            (p.product_code || '').toLowerCase().includes(q);
   }
 
-  // Products for a tab, WITHOUT the search filter applied — used for the
-  // tab count badges so tab counts stay stable while typing.
   getTabProductsAll(tab: AccessoryTab): any[] {
     return this.allProducts.filter(p => p.accessory_type === tab);
   }
 
-  // Products for a tab WITH the search filter applied — used for the table.
   getTabProducts(tab: AccessoryTab): any[] {
     return this.allProducts.filter(p => p.accessory_type === tab && this.matchesSearch(p));
   }
@@ -162,43 +150,41 @@ export class PoobooAdminAccessories implements OnInit {
   }
 
   // ── Image handling ────────────────────────────────────
-  a_imageUploading = false;
-
-  onAccUploadClick(input: HTMLInputElement): void {
-    if (this.a_imageUploading) return;
-    input.click();
-  }
-
-  onAccFileChange(event: Event): void {
+  onAccFilesChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    this.a_imageUploading = true;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.zone.run(() => {
-        this.a_imagePreview   = e.target?.result as string;
-        this.a_selectedFile   = file;
-        this.a_imageUploading = false;
-        input.value = '';        // allow re-selecting the same file later
-      });
-    };
-    reader.onerror = () => {
-      this.zone.run(() => {
-        this.a_imageUploading = false;
-        this.errorMsg = 'Failed to read image. Please try again.';
-        input.value = '';
-      });
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+    const remaining = this.maxImages - this.a_selectedImages.length;
+    if (remaining <= 0) {
+      this.errorMsg = `You can upload a maximum of ${this.maxImages} images per accessory.`;
+      input.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length < files.length) {
+      this.errorMsg = `Only ${this.maxImages} images are allowed per accessory. ${toAdd.length} image(s) added.`;
+    } else {
+      this.errorMsg = '';
+    }
+    toAdd.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.zone.run(() => {
+          this.a_selectedImages.push({ file, preview: e.target?.result as string || '', label: '' });
+          this.cdr.detectChanges();
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    input.value = '';
+    this.cdr.detectChanges();
   }
 
-  removeAccImage(): void {
-    this.a_imagePreview   = null;
-    this.a_selectedFile   = null;
-    this.a_imageUploading = false;
+  removeAccImage(index: number): void {
+    this.a_selectedImages.splice(index, 1);
+    this.errorMsg = '';
+    this.cdr.detectChanges();
   }
 
   // 🏷️ Toggle a preset badge on/off
@@ -212,7 +198,6 @@ export class PoobooAdminAccessories implements OnInit {
     return this.selectedTags.includes(tag);
   }
 
-  // 🏷️ Add a custom tag from the text input (Enter key or Add button)
   addCustomTag() {
     const tag = this.customTagInput.trim();
     if (tag && !this.selectedTags.includes(tag)) {
@@ -240,26 +225,23 @@ export class PoobooAdminAccessories implements OnInit {
     formData.append('name',           this.a_name);
     formData.append('description',    this.a_description);
     formData.append('price',          this.a_price);
-    formData.append('accessory_type', this.a_accessoryCategory); // baby-ornaments / bands / hair-clips
+    formData.append('accessory_type', this.a_accessoryCategory);
     formData.append('stock',          this.a_stock);
     formData.append('balance_stock',  this.a_balance_stock);
     formData.append('product_code',   this.a_product_code);
     formData.append('colour',         this.a_colour);
     formData.append('tags',           JSON.stringify(this.selectedTags));
 
-    if (this.a_selectedFile) {
-      formData.append('image', this.a_selectedFile);
-    }
+    this.a_selectedImages.forEach(img => formData.append('images', img.file));
+    formData.append('labels', JSON.stringify(this.a_selectedImages.map(img => img.label)));
 
     this.http.post(`${this.api}/api/pooboo/accessories`, formData).subscribe({
       next: () => {
         this.successMsg = '✅ Accessory added successfully!';
         this.submitting = false;
-        // Switch to the tab of what was just added
+        this.cdr.detectChanges();
         this.activeTab  = this.a_accessoryCategory;
         this.loadAccessories();
-        // give the user a moment to see the success message before the
-        // form resets and closes
         setTimeout(() => {
           this.resetForm();
           this.showForm = false;
@@ -267,13 +249,9 @@ export class PoobooAdminAccessories implements OnInit {
       },
       error: (err) => {
         console.error('Add accessory error:', err);
-        // Show the backend's actual message when it sends one, instead of
-        // hiding it behind a generic string — makes issues like this one
-        // (a missing DB column) visible immediately instead of needing devtools.
-        this.errorMsg   = err?.error?.error
-          ? `❌ ${err.error.error}`
-          : '❌ Failed to add accessory. Please try again.';
+        this.errorMsg   = err?.error?.error ? `❌ ${err.error.error}` : '❌ Failed to add accessory. Please try again.';
         this.submitting = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -288,8 +266,7 @@ export class PoobooAdminAccessories implements OnInit {
     this.a_product_code      = '';
     this.a_colour            = '';
     this.a_accessoryCategory = this.activeTab;
-    this.a_selectedFile      = null;
-    this.a_imagePreview      = null;
+    this.a_selectedImages    = [];
     this.selectedTags        = [];
     this.customTagInput      = '';
     this.errorMsg            = '';

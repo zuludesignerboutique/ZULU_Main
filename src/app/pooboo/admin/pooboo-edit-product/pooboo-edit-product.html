@@ -54,9 +54,8 @@
         </div>
       </div>
 
-      <!-- ROW 4: Category (conditional) + Age Group + Gender -->
-      <div class="form-row three-col">
-
+      <!-- ROW: Category (conditional) + Gender -->
+      <div class="form-row">
         <!-- Apparel category -->
         <div class="form-group" *ngIf="productType === 'apparel'">
           <label>Category</label>
@@ -65,7 +64,6 @@
             <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
           </select>
         </div>
-
         <!-- Accessory sub-category -->
         <div class="form-group" *ngIf="productType === 'accessory'">
           <label>Accessory Type</label>
@@ -73,19 +71,22 @@
             <option *ngFor="let a of accessoryCategories" [value]="a.value">{{ a.label }}</option>
           </select>
         </div>
-
-        <div class="form-group">
-          <label>Age Group</label>
-          <select [(ngModel)]="age_group" name="age_group">
-            <option value="">Select age group</option>
-            <option *ngFor="let a of ageGroups" [value]="a">{{ a }}</option>
-          </select>
-        </div>
         <div class="form-group">
           <label>Gender</label>
           <select [(ngModel)]="gender" name="gender">
             <option *ngFor="let g of genders" [value]="g">{{ g | titlecase }}</option>
           </select>
+        </div>
+      </div>
+
+      <!-- Age Groups — tick box (multi, preset 8) -->
+      <div class="form-group full-width">
+        <label>Age Groups <span class="hint">— tick all that apply</span></label>
+        <div class="preset-tags-row" style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button type="button" *ngFor="let age of presetAgeGroups" class="preset-tag-btn" [class.active]="isAgeSelected(age)" (click)="toggleAgeGroup(age)">{{ age }}</button>
+        </div>
+        <div class="selected-tags-row" *ngIf="selectedAgeGroups.length" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+          <span class="selected-tag-chip" *ngFor="let age of selectedAgeGroups" style="background:#f0ece4;padding:4px 8px;border-radius:12px;font-size:12px;">{{ age }} <button type="button" (click)="toggleAgeGroup(age)" style="margin-left:4px;">✕</button></span>
         </div>
       </div>
 
@@ -148,29 +149,56 @@
         </div>
       </div>
 
-      <!-- Image -->
+      <!-- Images — gallery (max 4) -->
       <div class="form-group full-width">
-        <label>Product Image</label>
+        <label>Product Images <span class="hint">— {{ existingImages.length + newImages.length }}/{{ maxImages }}</span></label>
 
-        <!-- Existing image -->
-        <div *ngIf="existingImage && !imagePreview" class="existing-image-wrap">
-          <img [src]="getImageUrl(existingImage)" alt="Current image" class="existing-img" />
-          <p class="existing-label">Current image — upload a new one to replace it</p>
+        <div *ngIf="imageMsg" class="alert" [class.error]="imageMsgError" [class.success]="!imageMsgError" style="margin-bottom:8px;padding:6px 10px;border-radius:6px;font-size:12px;">{{ imageMsg }}</div>
+
+        <!-- Existing gallery -->
+        <div class="image-grid" *ngIf="existingImages.length" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:12px;">
+          <div class="image-tile" *ngFor="let img of existingImages; let i = index" style="position:relative;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+            <div style="position:relative;">
+              <img [src]="imageBase + img.image_url" alt="Image {{ i + 1 }}" style="width:100%;height:120px;object-fit:cover;" />
+              <span style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;">0{{ i + 1 }}</span>
+              <button type="button" (click)="deleteImage(img)" title="Delete" style="position:absolute;top:4px;right:4px;background:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;" [disabled]="imageBusy">✕</button>
+            </div>
+            <div style="display:flex;gap:4px;padding:4px;">
+              <button type="button" (click)="moveImage(i,-1)" [disabled]="i===0 || imageBusy" style="flex:1;padding:2px;font-size:11px;">↑</button>
+              <button type="button" (click)="moveImage(i,1)" [disabled]="i===existingImages.length-1 || imageBusy" style="flex:1;padding:2px;font-size:11px;">↓</button>
+            </div>
+            <select [(ngModel)]="img.label" name="existingLabel-{{img.id}}" (change)="saveOrderAndLabels()" style="width:100%;padding:4px;font-size:11px;">
+              <option value="">No label</option>
+              <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+            </select>
+          </div>
+        </div>
+        <p *ngIf="!existingImages.length" style="font-size:12px;color:#888;margin-bottom:8px;">No images yet — add up to {{ maxImages }}.</p>
+
+        <!-- Pending new images -->
+        <div class="image-grid" *ngIf="newImages.length" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:12px;">
+          <div class="image-tile" *ngFor="let img of newImages; let i = index" style="position:relative;border:1px dashed #c8a96e;border-radius:8px;overflow:hidden;">
+            <div style="position:relative;">
+              <img [src]="img.preview" alt="New {{ i + 1 }}" style="width:100%;height:120px;object-fit:cover;opacity:0.9;" />
+              <span style="position:absolute;top:4px;left:4px;background:#c8a96e;color:#000;padding:2px 6px;border-radius:4px;font-size:10px;">NEW</span>
+              <button type="button" (click)="removeNewImage(i)" title="Remove" style="position:absolute;top:4px;right:4px;background:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;">✕</button>
+            </div>
+            <select [(ngModel)]="img.label" name="newLabel-{{i}}" style="width:100%;padding:4px;font-size:11px;">
+              <option value="">No label</option>
+              <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+            </select>
+          </div>
         </div>
 
-        <!-- New image upload area -->
-        <div class="image-upload-area" (click)="fileInput.click()">
-          <div *ngIf="!imagePreview" class="upload-placeholder">
-            <span class="upload-icon">📷</span>
-            <span>{{ existingImage ? 'Click to replace image' : 'Click to upload image' }}</span>
+        <!-- Add pending -->
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div *ngIf="canAddMoreImages" (click)="fileInput.click()" style="border:2px dashed #ccc;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input #fileInput type="file" accept="image/*" multiple (change)="onNewFilesChange($event)" hidden />
+            <span>📷</span><span style="font-size:13px;">Add images</span><small>{{ totalImageCount }}/{{ maxImages }}</small>
           </div>
-          <div *ngIf="imagePreview" class="image-preview-wrap">
-            <img [src]="imagePreview" class="image-preview" alt="New preview" />
-            <button type="button" class="remove-img"
-                    (click)="$event.stopPropagation(); removeNewImage()">✕</button>
-          </div>
+          <button type="button" *ngIf="newImages.length" (click)="addPendingImages()" [disabled]="imageBusy" style="padding:6px 12px;font-size:12px;background:#0d0d0d;color:#fff;border:none;border-radius:6px;cursor:pointer;">Upload new images</button>
         </div>
-        <input #fileInput type="file" accept="image/*" (change)="onFileChange($event)" hidden />
+        <p class="image-hint" style="font-size:11px;color:#888;margin-top:6px;">Add up to {{ maxImages }} images (Front, Back, Side, Full). First image is thumbnail. Use ↑↓ to reorder.</p>
       </div>
 
       <!-- Toggles -->

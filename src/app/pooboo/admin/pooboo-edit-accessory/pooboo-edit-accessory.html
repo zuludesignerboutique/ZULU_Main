@@ -114,31 +114,49 @@
         </div>
       </div>
 
-      <!-- Image Upload -->
+      <!-- Images — gallery (max 4) -->
       <div class="form-group full-width">
-        <label>Product Image</label>
-        <div class="image-upload-area" (click)="accFileInput.click()">
-
-          <div *ngIf="!a_imagePreview && !a_existingImage" class="upload-placeholder">
-            <span class="upload-icon">📷</span>
-            <span>Click to upload image</span>
+        <label>Product Images <span class="hint">— {{ existingImages.length + newImages.length }}/{{ maxImages }}</span></label>
+        <div *ngIf="imageMsg" class="alert" [class.error]="imageMsgError" [class.success]="!imageMsgError" style="margin-bottom:8px;padding:6px 10px;border-radius:6px;font-size:12px;">{{ imageMsg }}</div>
+        <div class="image-grid" *ngIf="existingImages.length" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:12px;">
+          <div class="image-tile" *ngFor="let img of existingImages; let i = index" style="position:relative;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+            <div style="position:relative;">
+              <img [src]="imageBase + img.image_url" alt="Image {{ i + 1 }}" style="width:100%;height:120px;object-fit:cover;" />
+              <span style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;">0{{ i + 1 }}</span>
+              <button type="button" (click)="deleteImage(img)" title="Delete" style="position:absolute;top:4px;right:4px;background:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;" [disabled]="imageBusy">✕</button>
+            </div>
+            <div style="display:flex;gap:4px;padding:4px;">
+              <button type="button" (click)="moveImage(i,-1)" [disabled]="i===0 || imageBusy" style="flex:1;padding:2px;font-size:11px;">↑</button>
+              <button type="button" (click)="moveImage(i,1)" [disabled]="i===existingImages.length-1 || imageBusy" style="flex:1;padding:2px;font-size:11px;">↓</button>
+            </div>
+            <select [(ngModel)]="img.label" name="accExistingLabel-{{img.id}}" (change)="saveOrderAndLabels()" style="width:100%;padding:4px;font-size:11px;">
+              <option value="">No label</option>
+              <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+            </select>
           </div>
-
-          <div *ngIf="a_imagePreview" class="image-preview-wrap">
-            <img [src]="a_imagePreview" class="image-preview" alt="Preview" />
-            <button type="button" class="remove-img"
-                    (click)="$event.stopPropagation(); removeAccImage()">✕</button>
-          </div>
-
-          <div *ngIf="!a_imagePreview && a_existingImage" class="image-preview-wrap">
-            <img [src]="getImageUrl(a_existingImage)" class="image-preview" alt="Current image" />
-            <button type="button" class="remove-img"
-                    (click)="$event.stopPropagation(); removeAccImage()">✕</button>
-          </div>
-
         </div>
-        <input #accFileInput type="file" accept="image/*"
-               (change)="onAccFileChange($event)" hidden />
+        <p *ngIf="!existingImages.length" style="font-size:12px;color:#888;margin-bottom:8px;">No images yet — add up to {{ maxImages }}.</p>
+        <div class="image-grid" *ngIf="newImages.length" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:12px;">
+          <div class="image-tile" *ngFor="let img of newImages; let i = index" style="position:relative;border:1px dashed #c8a96e;border-radius:8px;overflow:hidden;">
+            <div style="position:relative;">
+              <img [src]="img.preview" alt="New {{ i + 1 }}" style="width:100%;height:120px;object-fit:cover;opacity:0.9;" />
+              <span style="position:absolute;top:4px;left:4px;background:#c8a96e;color:#000;padding:2px 6px;border-radius:4px;font-size:10px;">NEW</span>
+              <button type="button" (click)="removeNewImage(i)" title="Remove" style="position:absolute;top:4px;right:4px;background:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;">✕</button>
+            </div>
+            <select [(ngModel)]="img.label" name="accNewLabel-{{i}}" style="width:100%;padding:4px;font-size:11px;">
+              <option value="">No label</option>
+              <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div *ngIf="canAddMoreImages" (click)="accFileInput.click()" style="border:2px dashed #ccc;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input #accFileInput type="file" accept="image/*" multiple (change)="onNewFilesChange($event)" hidden />
+            <span>📷</span><span style="font-size:13px;">Add images</span><small>{{ totalImageCount }}/{{ maxImages }}</small>
+          </div>
+          <button type="button" *ngIf="newImages.length" (click)="addPendingImages()" [disabled]="imageBusy" style="padding:6px 12px;font-size:12px;background:#0d0d0d;color:#fff;border:none;border-radius:6px;cursor:pointer;">Upload new images</button>
+        </div>
+        <p class="image-hint" style="font-size:11px;color:#888;margin-top:6px;">Add up to {{ maxImages }} images (Front, Back, Side, Full). First image is thumbnail. Use ↑↓ to reorder.</p>
       </div>
 
       <!-- Actions -->

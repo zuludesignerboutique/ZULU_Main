@@ -6,6 +6,7 @@ import { CartService } from '../../services/cart.service';
 import { WishlistService } from '../../services/wishlist.service';
 import { Product } from '../../core/models/product.model';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-product-card',
@@ -24,6 +25,11 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   justToggled = false; // briefly true right after a click, drives the pop animation
   private wishlistSub?: Subscription;
   private popTimeout?: any;
+
+  // ── Size gate (Home grid) — only shown when product has sizes ──
+  selectedSize: string | null = null;
+  sizeError = false;
+  showSizeSelector = false;
 
   // Known tag → colour mapping (see .tag-badge modifiers in the scss).
   // Anything not in this list falls back to a neutral style — new tag
@@ -50,7 +56,8 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private wishlistService: WishlistService,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -87,12 +94,38 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     });
   }
 
+  getAvailableSizes(): string[] {
+    const p: any = this.product as any;
+    if (Array.isArray(p?.sizes) && p.sizes.length) return p.sizes;
+    if (typeof p?.sizes === 'string' && p.sizes.trim()) {
+      return p.sizes.split(',').map((s: string) => s.trim()).filter(Boolean);
+    }
+    if (typeof p?.size === 'string' && p.size.trim()) {
+      return p.size.split(',').map((s: string) => s.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
+  selectSize(size: string) {
+    this.selectedSize = size;
+    this.sizeError = false;
+  }
+
   addToCart(product: Product) {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/dashboard/cart' } });
       return;
     }
-    this.cartService.add(product);
+    const availableSizes = this.getAvailableSizes();
+    if (availableSizes.length > 0 && !this.selectedSize) {
+      this.showSizeSelector = true;
+      this.sizeError = true;
+      this.toast.error('Please select a size');
+      return;
+    }
+    this.cartService.add(product, this.selectedSize ?? undefined);
+    this.sizeError = false;
+    this.toast.success(`${product.name}${this.selectedSize ? ' – Size ' + this.selectedSize : ''} added to cart`);
   }
 
   toggleWishlist(product: Product) {

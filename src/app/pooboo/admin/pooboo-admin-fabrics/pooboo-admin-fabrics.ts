@@ -5,6 +5,12 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
 
+interface SelectedImage {
+  file: File;
+  preview: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-pooboo-admin-fabrics',
   standalone: true,
@@ -45,8 +51,11 @@ export class PoobooAdminFabrics implements OnInit {
   f_balance_stock    = '';
   f_product_code     = '';
   f_colour           = '';
-  f_selectedFile     : File | null = null;
-  f_imagePreview     : string | null = null;
+
+  // Images — multi (max 4)
+  readonly maxImages = 4;
+  readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  f_selectedImages: SelectedImage[] = [];
 
   // ── Tags ────────────────────────────────────────────────
   f_tags: string[] = [];
@@ -114,12 +123,6 @@ export class PoobooAdminFabrics implements OnInit {
     this.loading = true;
     this.http.get<any[]>(`${this.api}/api/pooboo/fabrics/all`).subscribe({
       next: (data) => {
-        // zone.run() + detectChanges() guarantees Angular repaints the view
-        // right away. Without this, during SSR/hydration this callback can
-        // resolve outside a change-detection window (the transfer-cache
-        // response comes back synchronously), so `loading`/`products`
-        // update in memory but the DOM keeps showing "Loading fabrics..."
-        // until some unrelated click forces change detection.
         this.zone.run(() => {
           this.products = data;
           this.loading  = false;
@@ -137,43 +140,44 @@ export class PoobooAdminFabrics implements OnInit {
   }
 
   // ── Image handling ────────────────────────────────────
-  f_imageUploading = false;
-
-  onFabricUploadClick(input: HTMLInputElement): void {
-    if (this.f_imageUploading) return;
-    input.click();
-  }
-
-  onFabricFileChange(event: Event): void {
+  onFabricFilesChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
 
-    this.f_imageUploading = true;   // ← show spinner
+    const remaining = this.maxImages - this.f_selectedImages.length;
+    if (remaining <= 0) {
+      this.errorMsg = `You can upload a maximum of ${this.maxImages} images per fabric.`;
+      input.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.zone.run(() => {
-        this.f_imagePreview   = e.target?.result as string;
-        this.f_selectedFile   = file;
-        this.f_imageUploading = false;
-        input.value = '';          // allow re-selecting the same file later
-      });
-    };
-    reader.onerror = () => {
-      this.zone.run(() => {
-        this.f_imageUploading = false;
-        this.errorMsg = 'Failed to read image. Please try again.';
-        input.value = '';
-      });
-    };
-    reader.readAsDataURL(file);
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length < files.length) {
+      this.errorMsg = `Only ${this.maxImages} images are allowed per fabric. ${toAdd.length} image(s) added.`;
+    } else {
+      this.errorMsg = '';
+    }
+
+    toAdd.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.zone.run(() => {
+          this.f_selectedImages.push({ file, preview: e.target?.result as string || '', label: '' });
+          this.cdr.detectChanges();
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    input.value = '';
+    this.cdr.detectChanges();
   }
 
-  removeFabricImage(): void {
-    this.f_imagePreview   = null;
-    this.f_selectedFile   = null;
-    this.f_imageUploading = false;
+  removeFabricImage(index: number): void {
+    this.f_selectedImages.splice(index, 1);
+    this.errorMsg = '';
+    this.cdr.detectChanges();
   }
 
   // ── Submit add-fabric form ────────────────────────────
@@ -198,25 +202,24 @@ export class PoobooAdminFabrics implements OnInit {
     formData.append('colour',          this.f_colour);
     formData.append('tags',            JSON.stringify(this.f_tags));
 
-    if (this.f_selectedFile) {
-      formData.append('image', this.f_selectedFile);
-    }
+    this.f_selectedImages.forEach(img => formData.append('images', img.file));
+    formData.append('labels', JSON.stringify(this.f_selectedImages.map(img => img.label)));
 
     this.http.post(`${this.api}/api/pooboo/fabrics`, formData).subscribe({
       next: () => {
         this.successMsg = '✅ Fabric added successfully!';
         this.submitting = false;
+        this.cdr.detectChanges();
         this.loadFabrics();
-        // give the user a moment to see the success message before the
-        // form resets and closes
         setTimeout(() => {
           this.resetForm();
           this.showForm = false;
         }, 800);
       },
-      error: () => {
-        this.errorMsg   = '❌ Failed to add fabric. Please try again.';
+      error: (err) => {
+        this.errorMsg   = err?.error?.error || '❌ Failed to add fabric. Please try again.';
         this.submitting = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -231,8 +234,7 @@ export class PoobooAdminFabrics implements OnInit {
     this.f_balance_stock    = '';
     this.f_product_code     = '';
     this.f_colour           = '';
-    this.f_selectedFile     = null;
-    this.f_imagePreview     = null;
+    this.f_selectedImages   = [];
     this.f_tags             = [];
     this.f_customTag        = '';
     this.errorMsg           = '';

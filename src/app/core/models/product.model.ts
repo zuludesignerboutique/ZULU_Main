@@ -24,6 +24,7 @@ export interface Product {
   product_code?: string;
   tag?: string;
   size?: string;
+  sizes?: string[] | string;
   colour?: string;
   qty?: number;
 }

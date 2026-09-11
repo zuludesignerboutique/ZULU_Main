@@ -21,7 +21,14 @@ export class PoobooProductDetail implements OnInit {
   error          = '';
   selectedSize   = '';
   selectedColour = '';
+  selectedAgeGroup = '';
+  sizeError = false;
+  ageError = false;
   addedToCart    = false;
+
+  // Gallery state — mirrors ZULU's product-view thumbnail-strip pattern.
+  galleryImages  : string[] = [];
+  selectedImage  = '';
 
   constructor(
     private http  : HttpClient,
@@ -37,10 +44,32 @@ export class PoobooProductDetail implements OnInit {
     this.http.get<any>(`${this.api}/api/pooboo/products/${id}`).subscribe({
       next: (data) => {
         this.product       = data;
-        if (data.sizes?.length)   this.selectedSize   = data.sizes[0];
+        // normalize age_groups: array from new column, fallback to legacy single
+        if (!Array.isArray(this.product.age_groups) || !this.product.age_groups.length) {
+          if (this.product.age_group) this.product.age_groups = [String(this.product.age_group)];
+          else this.product.age_groups = [];
+        }
+        // Build the gallery list from product.images[] (new multi-image table),
+        // falling back to the legacy single image_url if no gallery rows exist.
+        if (Array.isArray(this.product.images) && this.product.images.length) {
+          this.galleryImages = this.product.images
+            .slice()
+            .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+            .map((img: any) => img.image_url);
+        } else if (this.product.image_url) {
+          this.galleryImages = [this.product.image_url];
+        } else {
+          this.galleryImages = [];
+        }
+        this.selectedImage = this.galleryImages[0] || '';
+        // Auto-select only if single option (strict >1 enforcement)
+        if (data.sizes?.length === 1) this.selectedSize = data.sizes[0];
+        else this.selectedSize = '';
+        if (this.product.age_groups?.length === 1) this.selectedAgeGroup = this.product.age_groups[0];
+        else this.selectedAgeGroup = '';
         if (data.colours?.length) this.selectedColour = data.colours[0];
         this.loading = false;
-        this.cdr.detectChanges(); // ← forces Angular to re-render
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.log('Error:', err);
@@ -56,10 +85,20 @@ export class PoobooProductDetail implements OnInit {
     return img.startsWith('http') ? img : `${this.api}/uploads/${img}`;
   }
 
-  // ✅ Pooboo product tables are separate from ZULU's, so items are tagged brand: 'pooboo'
-  // to avoid id collisions once they land in the shared cart (see CartService)
+  selectImage(img: string) { this.selectedImage = img; this.cdr.detectChanges(); }
+
+  selectSize(s: string) { this.selectedSize = s; this.sizeError = false; this.cdr.detectChanges(); }
+  selectAge(a: string) { this.selectedAgeGroup = a; this.ageError = false; this.cdr.detectChanges(); }
+  selectColour(c: string) { this.selectedColour = c; this.cdr.detectChanges(); }
+
   addToCart() {
     if (!this.product) return;
+    const sizes = this.product.sizes || [];
+    const ageGroups = this.product.age_groups || [];
+    // strict >1 enforcement per user request
+    if (sizes.length > 1 && !this.selectedSize) { this.sizeError = true; this.cdr.detectChanges(); return; }
+    if (ageGroups.length > 1 && !this.selectedAgeGroup) { this.ageError = true; this.cdr.detectChanges(); return; }
+    this.sizeError = false; this.ageError = false;
     this.cartService.add(
       {
         id: this.product.id,
@@ -79,7 +118,7 @@ export class PoobooProductDetail implements OnInit {
     setTimeout(() => (this.addedToCart = false), 2000);
   }
 
-goToEnquiry() {
+  goToEnquiry() {
   this.router.navigate(['/pooboo/enquiry'], {
     queryParams: {
       productName:     this.product.name,

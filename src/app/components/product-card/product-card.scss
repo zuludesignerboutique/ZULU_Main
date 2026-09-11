@@ -306,6 +306,61 @@
   }
 }
 
+// ── SIZE SELECTOR (inline chips, Home grid) ───────
+.size-selector {
+  margin-bottom: 10px;
+  animation: fadeIn 0.22s var(--ease);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.size-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.size-chip {
+  min-width: 38px;
+  padding: 6px 12px;
+  border-radius: 50px;
+  border: 1px solid rgba(200,169,110,.32);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+
+  &:hover {
+    border-color: rgba(200,169,110,.6);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+
+  &.selected {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+    box-shadow: 0 3px 12px rgba(200,169,110,0.35);
+  }
+}
+
+.size-error {
+  margin: 7px 0 0;
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e05c5c;
+  letter-spacing: .02em;
+}
+
 // ── ACTIONS (Add to Cart) ────────────────────────
 .actions {
   display: flex;

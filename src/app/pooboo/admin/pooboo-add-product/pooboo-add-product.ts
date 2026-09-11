@@ -1,10 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
+
+interface SelectedImage {
+  file: File;
+  preview: string;
+  label: string;
+}
 
 @Component({
   selector: 'app-pooboo-add-product',
@@ -22,12 +28,15 @@ export class PoobooAddProduct {
   description   = '';
   price         = '';
   category      = '';
-  age_group     = '';
   gender        = 'unisex';
   stock         = '';
   product_code  = '';
   is_customizable = false;
   is_active     = true;
+
+  // Age Groups — tick-box multi (preset 8, no custom)
+  selectedAgeGroups: string[] = [];
+  readonly presetAgeGroups = ['0-6 months', '6-12 months', '1-2 years', '2-3 years', '3-5 years', '5-7 years', '7-10 years', '10-12 years'];
 
   // Sizes & colours as comma-separated input
   sizesInput    = '';
@@ -41,9 +50,10 @@ export class PoobooAddProduct {
   selectedTags  : string[] = [];
   customTagInput = '';
 
-  // Image
-  selectedFile: File | null = null;
-  imagePreview: string | null = null;
+  // Images — multi (max 4)
+  readonly maxImages = 4;
+  readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  selectedImages: SelectedImage[] = [];
 
   // UI state
   submitting = false;
@@ -52,7 +62,6 @@ export class PoobooAddProduct {
 
   // Dropdown options
   categories = ['Clothing', 'Footwear', 'Innerwear', 'Nightwear'];
-  ageGroups  = ['0-6 months', '6-12 months', '1-2 years', '2-3 years', '3-5 years', '5-7 years', '7-10 years', '10-12 years'];
   genders    = ['unisex', 'boy', 'girl'];
 
   // NEW: product type (apparel / fabric / accessory)
@@ -64,22 +73,50 @@ export class PoobooAddProduct {
     { value: 'hair-clips',     label: '🩷 Hair Clips' },
   ];
 
-  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute) {}
+  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
 
 
-  onFileChange(event: Event) {
+  onFilesChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.selectedFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => this.imagePreview = e.target?.result as string;
-      reader.readAsDataURL(this.selectedFile);
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
+    const remaining = this.maxImages - this.selectedImages.length;
+    if (remaining <= 0) {
+      this.errorMsg = `You can upload a maximum of ${this.maxImages} images per product.`;
+      input.value = '';
+      this.cdr.detectChanges();
+      return;
     }
+
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length < files.length) {
+      this.errorMsg = `Only ${this.maxImages} images are allowed per product. ${toAdd.length} image(s) added.`;
+    } else {
+      this.errorMsg = '';
+    }
+
+    toAdd.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.selectedImages.push({
+          file,
+          preview: (e.target?.result as string) || '',
+          label: ''
+        });
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    input.value = '';
+    this.cdr.detectChanges();
   }
 
-  removeImage() {
-    this.selectedFile = null;
-    this.imagePreview = null;
+  removeImage(index: number) {
+    this.selectedImages.splice(index, 1);
+    this.errorMsg = '';
+    this.cdr.detectChanges();
   }
 
   // 🏷️ Toggle a preset badge on/off
@@ -91,6 +128,15 @@ export class PoobooAddProduct {
 
   isTagSelected(tag: string): boolean {
     return this.selectedTags.includes(tag);
+  }
+
+  toggleAgeGroup(age: string) {
+    this.selectedAgeGroups = this.selectedAgeGroups.includes(age)
+      ? this.selectedAgeGroups.filter(a => a !== age)
+      : [...this.selectedAgeGroups, age];
+  }
+  isAgeSelected(age: string): boolean {
+    return this.selectedAgeGroups.includes(age);
   }
 
   // 🏷️ Add a custom tag from the text input (Enter key or Add button)
@@ -130,7 +176,7 @@ export class PoobooAddProduct {
     }
     formData.append('category',        finalCategory);
 
-    formData.append('age_group',       this.age_group);
+    formData.append('age_groups',       JSON.stringify(this.selectedAgeGroups));
     formData.append('gender',          this.gender);
     formData.append('stock',           this.stock);
     formData.append('product_code',    this.product_code);
@@ -152,19 +198,20 @@ export class PoobooAddProduct {
     // Tags → JSON array (preset badges + custom, already merged in selectedTags)
     formData.append('tags', JSON.stringify(this.selectedTags));
 
-    if (this.selectedFile) {
-      formData.append('image', this.selectedFile);
-    }
+    this.selectedImages.forEach(img => formData.append('images', img.file));
+    formData.append('labels', JSON.stringify(this.selectedImages.map(img => img.label)));
 
     this.http.post(`${this.api}/api/pooboo/products`, formData).subscribe({
       next: () => {
         this.successMsg = '✅ Product added successfully!';
         this.submitting = false;
+        this.cdr.detectChanges();
         setTimeout(() => this.router.navigate(['/admin/pooboo/products']), 1200);
       },
-      error: () => {
-        this.errorMsg   = '❌ Failed to add product. Please try again.';
+      error: (err) => {
+        this.errorMsg   = err?.error?.error || '❌ Failed to add product. Please try again.';
         this.submitting = false;
+        this.cdr.detectChanges();
       }
     });
   }

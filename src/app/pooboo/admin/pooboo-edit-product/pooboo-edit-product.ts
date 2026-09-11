@@ -3,6 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { PoobooProductService } from '../../services/pooboo-product.service';
+import { ToastService } from '../../../services/toast.service';
+
+interface NewImage {
+  file: File;
+  preview: string;
+  label: string;
+}
 
 @Component({
   selector: 'app-pooboo-edit-product',
@@ -21,7 +29,6 @@ export class PoobooEditProduct implements OnInit {
   description     = '';
   price           = '';
   category        = '';
-  age_group       = '';
   gender          = 'unisex';
   stock           = '';
   product_code    = '';
@@ -31,15 +38,23 @@ export class PoobooEditProduct implements OnInit {
   coloursInput    = '';
   detailsInput    = '';
 
-  // 🏷️ Tags — preset badges + custom free-text tags, merged into one array
+  // Age Groups — tick-box multi (preset 8, no custom)
+  selectedAgeGroups: string[] = [];
+  readonly presetAgeGroups = ['0-6 months', '6-12 months', '1-2 years', '2-3 years', '3-5 years', '5-7 years', '7-10 years', '10-12 years'];
+
   presetTags      = ['New', 'Bestseller', 'Sale'];
   selectedTags    : string[] = [];
   customTagInput  = '';
 
-  // Image
-  existingImage   : string | null = null;
-  selectedFile    : File | null = null;
-  imagePreview    : string | null = null;
+  // Images — multi (max 4)
+  readonly maxImages = 4;
+  readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
+  existingImages: any[] = [];
+  newImages: NewImage[] = [];
+  imageBusy = false;
+  imageMsg = '';
+  imageMsgError = false;
+  imageBase = '/uploads/';
 
   // UI state
   loading    = true;
@@ -47,12 +62,9 @@ export class PoobooEditProduct implements OnInit {
   successMsg = '';
   errorMsg   = '';
 
-  // Dropdown options
   categories = ['Clothing', 'Footwear', 'Innerwear', 'Nightwear'];
-  ageGroups  = ['0-6 months', '6-12 months', '1-2 years', '2-3 years', '3-5 years', '5-7 years', '7-10 years', '10-12 years'];
   genders    = ['unisex', 'boy', 'girl'];
 
-  // NEW: product type (apparel / fabric / accessory)
   productType: 'apparel' | 'fabric' | 'accessory' = 'apparel';
   accessoryCategory = 'baby-ornaments';
   accessoryCategories = [
@@ -61,12 +73,17 @@ export class PoobooEditProduct implements OnInit {
     { value: 'hair-clips',     label: '🩷 Hair Clips' },
   ];
 
+  get totalImageCount(): number { return this.existingImages.length + this.newImages.length; }
+  get canAddMoreImages(): boolean { return this.totalImageCount < this.maxImages; }
+
   constructor(
     private http   : HttpClient,
     private router : Router,
     private route  : ActivatedRoute,
     private cd     : ChangeDetectorRef,
-    private ngZone : NgZone
+    private ngZone : NgZone,
+    private productService: PoobooProductService,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -82,15 +99,16 @@ export class PoobooEditProduct implements OnInit {
           this.description     = p.description    || '';
           this.price           = p.price          || '';
           this.category        = p.category       || '';
-          this.age_group       = p.age_group      || '';
           this.gender          = p.gender         || 'unisex';
+          // age_groups is array; fallback to legacy single age_group
+          if (Array.isArray(p.age_groups) && p.age_groups.length) this.selectedAgeGroups = [...p.age_groups];
+          else if (p.age_group) this.selectedAgeGroups = [String(p.age_group)];
+          else this.selectedAgeGroups = [];
           this.stock           = p.stock          || '';
           this.product_code    = p.product_code   || '';
           this.is_customizable = p.is_customizable === 1 || p.is_customizable === true;
           this.is_active       = p.is_active      != 0;
-          this.existingImage   = p.image_url      || null;
 
-          // Derive product type + sub-category from the stored category value
           const accessoryValues = this.accessoryCategories.map(a => a.value);
           if (p.category === 'fabric') {
             this.productType = 'fabric';
@@ -101,11 +119,11 @@ export class PoobooEditProduct implements OnInit {
             this.productType = 'apparel';
           }
 
-          // Arrays → comma separated strings for input fields
           this.sizesInput   = Array.isArray(p.sizes)   ? p.sizes.join(', ')   : '';
           this.coloursInput = Array.isArray(p.colours) ? p.colours.join(', ') : '';
           this.detailsInput = Array.isArray(p.details) ? p.details.join('\n') : '';
           this.selectedTags = Array.isArray(p.tags)    ? [...p.tags]          : [];
+          this.existingImages = Array.isArray(p.images) ? [...p.images].sort((a,b)=>a.display_order-b.display_order) : [];
 
           this.loading = false;
           this.cd.detectChanges();
@@ -126,49 +144,147 @@ export class PoobooEditProduct implements OnInit {
     return img.startsWith('http') ? img : `${this.api}/uploads/${img}`;
   }
 
-  onFileChange(event: Event) {
+  // ── Upload new images ──
+  onNewFilesChange(event: any) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.selectedFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.ngZone.run(() => {
-          this.imagePreview = e.target?.result as string;
-          this.cd.detectChanges();
-        });
-      };
-      reader.readAsDataURL(this.selectedFile);
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+    const remaining = this.maxImages - this.totalImageCount;
+    if (remaining <= 0) {
+      this.setImageMsg(`You can upload a maximum of ${this.maxImages} images per product.`, true);
+      input.value = '';
+      this.ngZone.run(() => this.cd.detectChanges());
+      return;
     }
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length < files.length) {
+      this.setImageMsg(`Only ${this.maxImages} images are allowed per product. ${toAdd.length} image(s) added.`, true);
+    } else {
+      this.imageMsg = '';
+    }
+    toAdd.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.newImages.push({ file, preview: e.target.result, label: '' });
+        this.ngZone.run(() => this.cd.detectChanges());
+      };
+      reader.readAsDataURL(file);
+    });
+    input.value = '';
+    this.ngZone.run(() => this.cd.detectChanges());
   }
 
-  removeNewImage() {
-    this.selectedFile = null;
-    this.imagePreview = null;
+  removeNewImage(index: number) {
+    this.newImages.splice(index, 1);
+    this.imageMsg = '';
+    this.ngZone.run(() => this.cd.detectChanges());
   }
 
-  // 🏷️ Toggle a preset badge on/off
+  addPendingImages() {
+    if (!this.newImages.length || !this.productId) return;
+    this.imageBusy = true;
+    this.imageMsg = '';
+    this.imageMsgError = false;
+    this.uploadPendingImages(this.productId).subscribe({
+      next: () => {
+        this.imageBusy = false;
+        this.newImages = [];
+        this.setImageMsg('Image(s) added successfully.', false);
+        this.reloadGallery();
+      },
+      error: (err) => {
+        this.imageBusy = false;
+        this.setImageMsg(err?.error?.error || 'Failed to add images. Please try again.', true);
+      }
+    });
+  }
+
+  private uploadPendingImages(productId: number) {
+    return this.productService.addImages(productId, this.newImages.map(n=>n.file), this.newImages.map(n=>n.label));
+  }
+
+  async deleteImage(image: any) {
+    if (!this.productId || !image?.id) return;
+    const confirmed = await this.toast.confirm({ title: 'Delete image?', message: 'Delete this image? This can\'t be undone.', confirmLabel: 'Delete' });
+    if (!confirmed) return;
+    this.imageBusy = true;
+    this.imageMsg = '';
+    this.imageMsgError = false;
+    this.productService.deleteImage(this.productId, image.id).subscribe({
+      next: () => {
+        this.imageBusy = false;
+        this.existingImages = this.existingImages.filter(i => i.id !== image.id);
+        this.setImageMsg('Image deleted successfully.', false);
+        this.ngZone.run(() => this.cd.detectChanges());
+      },
+      error: (err) => {
+        this.imageBusy = false;
+        this.setImageMsg(err?.error?.error || 'Failed to delete image. Please try again.', true);
+      }
+    });
+  }
+
+  moveImage(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= this.existingImages.length) return;
+    const arr = [...this.existingImages];
+    [arr[index], arr[target]] = [arr[target], arr[index]];
+    this.existingImages = arr;
+    this.saveOrderAndLabels();
+  }
+
+  saveOrderAndLabels() {
+    if (!this.productId || !this.existingImages.length) return;
+    const orderedIds = this.existingImages.map(i => i.id);
+    const labels: Record<number, string> = {};
+    this.existingImages.forEach(i => { labels[i.id] = i.label || ''; });
+    this.imageBusy = true;
+    this.imageMsg = '';
+    this.imageMsgError = false;
+    this.productService.reorderImages(this.productId, orderedIds, labels).subscribe({
+      next: () => {
+        this.imageBusy = false;
+        this.setImageMsg('Image order saved.', false);
+        this.ngZone.run(() => this.cd.detectChanges());
+      },
+      error: (err) => {
+        this.imageBusy = false;
+        this.setImageMsg(err?.error?.error || 'Failed to save image order.', true);
+      }
+    });
+  }
+
+  private reloadGallery() {
+    this.http.get<any>(`${this.api}/api/pooboo/products/${this.productId}`).subscribe(data => {
+      this.existingImages = Array.isArray(data.images) ? [...data.images].sort((a,b)=>a.display_order-b.display_order) : [];
+      this.ngZone.run(() => this.cd.detectChanges());
+    });
+  }
+
+  private setImageMsg(msg: string, isError: boolean) {
+    this.imageMsg = msg;
+    this.imageMsgError = isError;
+    this.ngZone.run(() => this.cd.detectChanges());
+  }
+
   togglePresetTag(tag: string) {
     this.selectedTags = this.selectedTags.includes(tag)
       ? this.selectedTags.filter(t => t !== tag)
       : [...this.selectedTags, tag];
   }
-
-  isTagSelected(tag: string): boolean {
-    return this.selectedTags.includes(tag);
+  isTagSelected(tag: string): boolean { return this.selectedTags.includes(tag); }
+  toggleAgeGroup(age: string) {
+    this.selectedAgeGroups = this.selectedAgeGroups.includes(age)
+      ? this.selectedAgeGroups.filter(a => a !== age)
+      : [...this.selectedAgeGroups, age];
   }
-
-  // 🏷️ Add a custom tag from the text input (Enter key or Add button)
+  isAgeSelected(age: string): boolean { return this.selectedAgeGroups.includes(age); }
   addCustomTag() {
     const tag = this.customTagInput.trim();
-    if (tag && !this.selectedTags.includes(tag)) {
-      this.selectedTags = [...this.selectedTags, tag];
-    }
+    if (tag && !this.selectedTags.includes(tag)) this.selectedTags = [...this.selectedTags, tag];
     this.customTagInput = '';
   }
-
-  removeTag(tag: string) {
-    this.selectedTags = this.selectedTags.filter(t => t !== tag);
-  }
+  removeTag(tag: string) { this.selectedTags = this.selectedTags.filter(t => t !== tag); }
 
   onSubmit() {
     if (!this.name || !this.price) {
@@ -184,17 +300,11 @@ export class PoobooEditProduct implements OnInit {
     formData.append('name',            this.name);
     formData.append('description',     this.description);
     formData.append('price',           this.price);
-
-    // Determine final category based on product type
     let finalCategory = this.category;
-    if (this.productType === 'fabric') {
-      finalCategory = 'fabric';
-    } else if (this.productType === 'accessory') {
-      finalCategory = this.accessoryCategory;
-    }
+    if (this.productType === 'fabric') finalCategory = 'fabric';
+    else if (this.productType === 'accessory') finalCategory = this.accessoryCategory;
     formData.append('category',        finalCategory);
-
-    formData.append('age_group',       this.age_group);
+    formData.append('age_groups',       JSON.stringify(this.selectedAgeGroups));
     formData.append('gender',          this.gender);
     formData.append('stock',           this.stock);
     formData.append('product_code',    this.product_code);
@@ -210,12 +320,28 @@ export class PoobooEditProduct implements OnInit {
     formData.append('details', JSON.stringify(detailsArr));
     formData.append('tags',    JSON.stringify(this.selectedTags));
 
-    if (this.selectedFile) {
-      formData.append('image', this.selectedFile);
-    }
-
     this.http.put(`${this.api}/api/pooboo/products/${this.productId}`, formData).subscribe({
       next: () => {
+        if (this.newImages.length) {
+          this.uploadPendingImages(this.productId).subscribe({
+            next: () => {
+              this.ngZone.run(() => {
+                this.successMsg = '✅ Product updated successfully!';
+                this.submitting = false;
+                this.cd.detectChanges();
+                setTimeout(() => this.router.navigate(['/admin/pooboo/products']), 1200);
+              });
+            },
+            error: (err) => {
+              this.ngZone.run(() => {
+                this.submitting = false;
+                this.toast.error('Product details were saved, but the new images failed to upload: ' + (err?.error?.error || 'please try "Upload new images" again.'));
+                this.cd.detectChanges();
+              });
+            }
+          });
+          return;
+        }
         this.ngZone.run(() => {
           this.successMsg = '✅ Product updated successfully!';
           this.submitting = false;

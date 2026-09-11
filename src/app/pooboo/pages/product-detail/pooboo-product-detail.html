@@ -11,11 +11,21 @@
 
     <div class="detail-grid">
 
-      <!-- LEFT: Image -->
+      <!-- LEFT: Image + thumbnail strip -->
       <div class="detail-image-col">
         <div class="image-frame">
-          <img [src]="getImageUrl(product.image_url)" [alt]="product.name" class="detail-img" />
+          <img [src]="getImageUrl(selectedImage)" [alt]="product.name" class="detail-img" />
           <div *ngIf="product.is_customizable" class="custom-badge">✂ Customizable</div>
+        </div>
+
+        <!-- Thumbnail strip — only shown when there's more than one image -->
+        <div class="thumbnail-strip" *ngIf="galleryImages.length > 1">
+          <button *ngFor="let img of galleryImages"
+                  class="thumb"
+                  [class.active]="selectedImage === img"
+                  (click)="selectImage(img)">
+            <img [src]="getImageUrl(img)" [alt]="product.name" />
+          </button>
         </div>
       </div>
 
@@ -28,7 +38,8 @@
 
         <!-- Meta tags -->
         <div class="detail-tags">
-          <span *ngIf="product.age_group" class="tag">👶 {{ product.age_group }}</span>
+          <span *ngIf="product.age_groups?.length" class="tag">👶 {{ product.age_groups.join(', ') }}</span>
+          <span *ngIf="!product.age_groups?.length && product.age_group" class="tag">👶 {{ product.age_group }}</span>
           <span *ngIf="product.gender"    class="tag">{{ product.gender | titlecase }}</span>
           <span *ngIf="product.product_code" class="tag">Code: {{ product.product_code }}</span>
         </div>
@@ -36,15 +47,28 @@
         <!-- Description -->
         <p class="detail-desc" *ngIf="product.description">{{ product.description }}</p>
 
-        <!-- Sizes -->
+        <!-- Age Groups (if multiple, must pick one) -->
+        <div class="option-group" *ngIf="product.age_groups?.length">
+          <label>Age Group <span *ngIf="product.age_groups.length > 1" style="color:#e05c5c;font-size:10px;">* required</span></label>
+          <div class="option-chips" [style.outline]="ageError ? '2px solid #e05c5c' : 'none'" style="border-radius:8px;padding:4px;">
+            <button *ngFor="let a of product.age_groups"
+                    class="chip"
+                    [class.selected]="selectedAgeGroup === a"
+                    (click)="selectAge(a)">{{ a }}</button>
+          </div>
+          <p class="size-error" *ngIf="ageError" style="color:#e05c5c;font-size:12px;margin-top:4px;">⚠ Please select an age group</p>
+        </div>
+
+        <!-- Sizes (if multiple >1, must pick one) -->
         <div class="option-group" *ngIf="product.sizes?.length">
-          <label>Size</label>
-          <div class="option-chips">
+          <label>Size <span *ngIf="product.sizes.length > 1" style="color:#e05c5c;font-size:10px;">* required</span></label>
+          <div class="option-chips" [style.outline]="sizeError ? '2px solid #e05c5c' : 'none'" style="border-radius:8px;padding:4px;">
             <button *ngFor="let s of product.sizes"
                     class="chip"
                     [class.selected]="selectedSize === s"
-                    (click)="selectedSize = s">{{ s }}</button>
+                    (click)="selectSize(s)">{{ s }}</button>
           </div>
+          <p class="size-error" *ngIf="sizeError" style="color:#e05c5c;font-size:12px;margin-top:4px;">⚠ Please select a size</p>
         </div>
 
         <!-- Colours -->
@@ -54,7 +78,7 @@
             <button *ngFor="let c of product.colours"
                     class="chip colour-chip"
                     [class.selected]="selectedColour === c"
-                    (click)="selectedColour = c">{{ c }}</button>
+                    (click)="selectColour(c)">{{ c }}</button>
           </div>
         </div>
 

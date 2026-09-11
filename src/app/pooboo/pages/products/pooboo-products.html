@@ -83,7 +83,8 @@
           <div class="card-badges">
             <span *ngFor="let tag of p.tags" class="badge tag" [class.preset]="isPresetTag(tag)">{{ tag }}</span>
             <span *ngIf="p.is_customizable" class="badge customizable">✂️ Custom</span>
-            <span *ngIf="p.age_group" class="badge age">{{ p.age_group }}</span>
+            <span *ngIf="p.age_groups?.length" class="badge age">{{ p.age_groups.join(', ') }}</span>
+            <span *ngIf="!p.age_groups?.length && p.age_group" class="badge age">{{ p.age_group }}</span>
           </div>
 
           <button

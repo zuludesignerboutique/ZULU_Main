@@ -243,14 +243,23 @@ function persistUploads() {
   };
 }
 
-// Extract stored filenames from image_url rows (/uploads/<name>) and delete
-// the files from storage (Supabase or local ./uploads). Used when products,
-// gallery rows, etc. are removed so orphaned files are cleaned up too.
+// Extract stored filenames from image_url rows and delete the files from
+// storage (Supabase or local ./uploads). Accepts both bare filenames
+// (as stored in most tables) and `/uploads/<name>` prefixed URLs.
 function deleteStoredImages(imageUrls) {
   const names = (imageUrls || [])
-    .filter((u) => typeof u === 'string' && u.startsWith('/uploads/'))
-    .map((u) => u.replace(/^\/uploads\//, ''));
-  return Promise.all(names.map((n) => storageApi.deleteFile(n).catch(() => {})));
+    .filter((u) => typeof u === 'string' && u.trim().length > 0)
+    .map((u) => {
+      const trimmed = u.trim();
+      if (trimmed.startsWith('/uploads/')) return trimmed.replace(/^\/uploads\//, '');
+      // bare filename or full URL — take last segment
+      if (trimmed.includes('/')) return trimmed.split('/').pop();
+      return trimmed;
+    })
+    .filter((n) => n && !n.includes('..') && !n.includes('/') && !n.includes('\\'));
+  // dedupe
+  const unique = [...new Set(names)];
+  return Promise.all(unique.map((n) => storageApi.deleteFile(n).catch(() => {})));
 }
 
 // Serve uploaded images. In cloud mode (Supabase configured) redirect to the
@@ -910,6 +919,18 @@ function normalizeDetails(details) {
   }
 }
 
+// Normalize age_groups — JSON array or comma string; always return string[] for JSONB.
+// Preset 8 only, no custom free-text; trimming + filter(Boolean) suffices.
+function normalizeAgeGroups(groups) {
+  if (!groups) return [];
+  if (Array.isArray(groups)) return groups.map(s => String(s).trim()).filter(Boolean);
+  try {
+    const parsed = JSON.parse(groups);
+    if (Array.isArray(parsed)) return parsed.map(s => String(s).trim()).filter(Boolean);
+  } catch {}
+  return String(groups).split(',').map(s => s.trim()).filter(Boolean);
+}
+
 // ── Multi-image helpers ──────────────────────────────────────────────
 // Fetch gallery rows for a set of product ids in one query and return a
 // { productId: [ { id, image_url, display_order, label }, ... ] } map,
@@ -1016,6 +1037,124 @@ function refreshThumbnail(productId, callback) {
       });
     }
   );
+}
+
+// ── Pooboo multi-image helpers (Option B — separate tables per type) ────
+// Each set mirrors the ZULU product_images helpers but targets its own table.
+
+function fetchPoobooProductImages(productIds, callback) {
+  if (!productIds || !productIds.length) return callback({});
+  db.query(
+    `SELECT id, product_id, image_url, display_order, label
+       FROM pooboo_product_images
+      WHERE product_id IN (?)
+      ORDER BY display_order ASC, id ASC`,
+    [productIds],
+    (err, rows) => {
+      if (err) { console.error('fetchPoobooProductImages error:', err); return callback({}); }
+      const map = {}; rows.forEach(r => {
+        if (!map[r.product_id]) map[r.product_id] = [];
+        map[r.product_id].push({ id: r.id, image_url: r.image_url, display_order: r.display_order, label: r.label });
+      }); callback(map);
+    }
+  );
+}
+function attachImagesToPoobooProducts(products, callback) {
+  fetchPoobooProductImages(products.map(p => p.id), (imgMap) => {
+    products.forEach(p => { p.images = imgMap[p.id] || []; }); callback(products);
+  });
+}
+function refreshThumbnailForPoobooProduct(productId, callback) {
+  db.query(`SELECT image_url FROM pooboo_product_images WHERE product_id = ? ORDER BY display_order ASC, id ASC LIMIT 1`, [productId], (err, rows) => {
+    if (err) return callback();
+    const first = rows && rows.length ? rows[0].image_url : null;
+    db.query('UPDATE pooboo_products SET image_url = ? WHERE id = ?', [first, productId], (uErr) => {
+      if (uErr) console.error('refreshThumbnailForPoobooProduct error:', uErr);
+      // keep unified mirror in sync
+      db.query('SELECT product_code FROM pooboo_products WHERE id = ?', [productId], (selErr, selRows) => {
+        if (!selErr && selRows && selRows.length && selRows[0].product_code) {
+          db.query(`UPDATE products SET image_url = ? WHERE brand='pooboo' AND product_type='apparel' AND product_code = ?`, [first, selRows[0].product_code], () => {});
+        }
+        callback();
+      });
+    });
+  });
+}
+
+function fetchPoobooFabricImages(productIds, callback) {
+  if (!productIds || !productIds.length) return callback({});
+  db.query(
+    `SELECT id, product_id, image_url, display_order, label
+       FROM pooboo_fabric_images
+      WHERE product_id IN (?)
+      ORDER BY display_order ASC, id ASC`,
+    [productIds],
+    (err, rows) => {
+      if (err) { console.error('fetchPoobooFabricImages error:', err); return callback({}); }
+      const map = {}; rows.forEach(r => {
+        if (!map[r.product_id]) map[r.product_id] = [];
+        map[r.product_id].push({ id: r.id, image_url: r.image_url, display_order: r.display_order, label: r.label });
+      }); callback(map);
+    }
+  );
+}
+function attachImagesToPoobooFabrics(products, callback) {
+  fetchPoobooFabricImages(products.map(p => p.id), (imgMap) => {
+    products.forEach(p => { p.images = imgMap[p.id] || []; }); callback(products);
+  });
+}
+function refreshThumbnailForPoobooFabric(productId, callback) {
+  db.query(`SELECT image_url FROM pooboo_fabric_images WHERE product_id = ? ORDER BY display_order ASC, id ASC LIMIT 1`, [productId], (err, rows) => {
+    if (err) return callback();
+    const first = rows && rows.length ? rows[0].image_url : null;
+    db.query('UPDATE pooboo_fabrics SET image_url = ? WHERE id = ?', [first, productId], (uErr) => {
+      if (uErr) console.error('refreshThumbnailForPoobooFabric error:', uErr);
+      db.query('SELECT product_code FROM pooboo_fabrics WHERE id = ?', [productId], (selErr, selRows) => {
+        if (!selErr && selRows && selRows.length && selRows[0].product_code) {
+          db.query(`UPDATE products SET image_url = ? WHERE brand='pooboo' AND product_type='fabric' AND product_code = ?`, [first, selRows[0].product_code], () => {});
+        }
+        callback();
+      });
+    });
+  });
+}
+
+function fetchPoobooAccessoryImages(productIds, callback) {
+  if (!productIds || !productIds.length) return callback({});
+  db.query(
+    `SELECT id, product_id, image_url, display_order, label
+       FROM pooboo_accessory_images
+      WHERE product_id IN (?)
+      ORDER BY display_order ASC, id ASC`,
+    [productIds],
+    (err, rows) => {
+      if (err) { console.error('fetchPoobooAccessoryImages error:', err); return callback({}); }
+      const map = {}; rows.forEach(r => {
+        if (!map[r.product_id]) map[r.product_id] = [];
+        map[r.product_id].push({ id: r.id, image_url: r.image_url, display_order: r.display_order, label: r.label });
+      }); callback(map);
+    }
+  );
+}
+function attachImagesToPoobooAccessories(products, callback) {
+  fetchPoobooAccessoryImages(products.map(p => p.id), (imgMap) => {
+    products.forEach(p => { p.images = imgMap[p.id] || []; }); callback(products);
+  });
+}
+function refreshThumbnailForPoobooAccessory(productId, callback) {
+  db.query(`SELECT image_url FROM pooboo_accessory_images WHERE product_id = ? ORDER BY display_order ASC, id ASC LIMIT 1`, [productId], (err, rows) => {
+    if (err) return callback();
+    const first = rows && rows.length ? rows[0].image_url : null;
+    db.query('UPDATE pooboo_accessories SET image_url = ? WHERE id = ?', [first, productId], (uErr) => {
+      if (uErr) console.error('refreshThumbnailForPoobooAccessory error:', uErr);
+      db.query('SELECT product_code FROM pooboo_accessories WHERE id = ?', [productId], (selErr, selRows) => {
+        if (!selErr && selRows && selRows.length && selRows[0].product_code) {
+          db.query(`UPDATE products SET image_url = ? WHERE brand='pooboo' AND product_type='accessory' AND product_code = ?`, [first, selRows[0].product_code], () => {});
+        }
+        callback();
+      });
+    });
+  });
 }
 
 /* =========================
@@ -1843,7 +1982,8 @@ app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ n
     }
     if (!result.length) return res.status(404).json({ error: 'Product not found' });
 
-    const finalImage = legacyFile ? legacyFile.filename : result[0].image_url;
+    const oldImage = result[0].image_url;
+    const finalImage = legacyFile ? legacyFile.filename : oldImage;
 
     // Keep sellable balance in sync with the entered total: raising stock adds
     // the difference to balance_stock (GREATEST(...,0) guards against going
@@ -1885,10 +2025,16 @@ app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ n
 
         // Legacy single-file replace — keep thumbnail + first gallery slot in sync
         if (legacyFile) {
-          db.query('SELECT id FROM product_images WHERE product_id = ? AND display_order = 1', [id], (eErr, eRes) => {
+          db.query('SELECT id, image_url FROM product_images WHERE product_id = ? AND display_order = 1', [id], (eErr, eRes) => {
+            const oldGalleryImage = eRes && eRes.length ? eRes[0].image_url : null;
             if (eRes && eRes.length) {
               db.query('UPDATE product_images SET image_url = ? WHERE id = ?', [legacyFile.filename, eRes[0].id], (upErr) => {
                 if (upErr) console.error('Update product_images thumbnail row error:', upErr);
+                // Cleanup old files after DB update succeeds (non-blocking)
+                const toDelete = [];
+                if (oldImage && oldImage !== legacyFile.filename) toDelete.push(oldImage);
+                if (oldGalleryImage && oldGalleryImage !== legacyFile.filename && oldGalleryImage !== oldImage) toDelete.push(oldGalleryImage);
+                if (toDelete.length) deleteStoredImages(toDelete).catch(() => {});
                 res.json({ message: "Product updated successfully" });
               });
             } else {
@@ -1897,6 +2043,7 @@ app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ n
                 [id, legacyFile.filename, labels[0] || ''],
                 (inErr) => {
                   if (inErr) console.error('Insert product_images thumbnail row error:', inErr);
+                  if (oldImage && oldImage !== legacyFile.filename) deleteStoredImages([oldImage]).catch(() => {});
                   res.json({ message: "Product updated successfully" });
                 }
               );
@@ -2936,13 +3083,18 @@ function normalizeTags(tags) {
 
 /* ── Helper: parse pooboo product JSON fields ── */
 function parsePoobooProduct(p) {
-  ['sizes', 'colours', 'details', 'tags'].forEach(field => {
+  ['sizes', 'colours', 'details', 'tags', 'age_groups'].forEach(field => {
     if (p[field] && typeof p[field] === 'string') {
       try { p[field] = JSON.parse(p[field]); } catch { p[field] = []; }
     } else if (!p[field]) {
       p[field] = [];
     }
+    if (!Array.isArray(p[field])) p[field] = [];
   });
+  // Backward compat: legacy single age_group string → age_groups array
+  if ((!p.age_groups || !p.age_groups.length) && p.age_group) {
+    p.age_groups = [String(p.age_group)];
+  }
   // Convenience singular field for fabrics/accessories forms (first colour in the array)
   p.colour = Array.isArray(p.colours) && p.colours.length ? p.colours[0] : '';
   return p;
@@ -3010,13 +3162,24 @@ function backfillSellableBalances() {
 
 // GET /api/pooboo/products — all active products (storefront)
 app.get('/api/pooboo/products', (req, res) => {
-  const { category, age_group, gender, tag } = req.query;
+  const { category, age_group, age_groups, gender, tag } = req.query;
 
   let sql = 'SELECT * FROM pooboo_products WHERE is_active = 1';
   const params = [];
 
   if (category)  { sql += ' AND category = ?';  params.push(category); }
-  if (age_group) { sql += ' AND age_group = ?';  params.push(age_group); }
+  // age_groups is JSONB array — filter by containment; keep legacy age_group fallback
+  const ageFilter = age_groups || age_group;
+  if (ageFilter) {
+    // support single value or JSON array string
+    let val = ageFilter;
+    try {
+      const parsed = JSON.parse(ageFilter);
+      if (Array.isArray(parsed) && parsed.length) val = parsed[0];
+    } catch {}
+    sql += ' AND (age_groups @> to_jsonb(?::text) OR age_group = ?)';
+    params.push(String(val), String(val));
+  }
   if (gender)    { sql += ' AND gender = ?';     params.push(gender); }
   if (tag)       { sql += ' AND tags @> to_jsonb(?::text)'; params.push(tag); }
 
@@ -3027,7 +3190,8 @@ app.get('/api/pooboo/products', (req, res) => {
       console.error('POOBOO fetch products error:', err);
       return res.status(500).json({ error: 'Database error' });
     }
-    res.json(results.map(parsePoobooProduct));
+    const parsed = results.map(parsePoobooProduct);
+    attachImagesToPoobooProducts(parsed, (withImages) => res.json(withImages));
   });
 });
 
@@ -3052,7 +3216,8 @@ app.get('/api/pooboo/products/tags/list', (req, res) => {
 app.get('/api/pooboo/products/all', authenticateToken, requireAdmin, (req, res) => {
   db.query('SELECT * FROM pooboo_products ORDER BY created_at DESC', (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    res.json(results.map(parsePoobooProduct));
+    const parsed = results.map(parsePoobooProduct);
+    attachImagesToPoobooProducts(parsed, (withImages) => res.json(withImages));
   });
 });
 
@@ -3061,15 +3226,19 @@ app.get('/api/pooboo/products/:id', (req, res) => {
   db.query('SELECT * FROM pooboo_products WHERE id = ?', [req.params.id], (err, result) => {
     if (err)            return res.status(500).json({ error: 'Database error' });
     if (!result.length) return res.status(404).json({ error: 'Product not found' });
-    res.json(parsePoobooProduct(result[0]));
+    const parsed = parsePoobooProduct(result[0]);
+    fetchPoobooProductImages([parsed.id], (imgMap) => {
+      parsed.images = imgMap[parsed.id] || [];
+      res.json(parsed);
+    });
   });
 });
 
 // POST /api/pooboo/products — add apparel product (admin only)
-app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.single('image'), persistUploads(), (req, res) => {
+app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
   const {
     name, description, price,
-    category, age_group, gender,
+    category, age_group, age_groups, gender,
     sizes, colours, details, tags,
     stock, product_code, is_customizable, is_active
   } = req.body;
@@ -3078,23 +3247,30 @@ app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.single(
     return res.status(400).json({ error: 'Name and price are required' });
   }
 
-  const image       = req.file ? req.file.filename : null;
+  const uploaded = collectUploadedFiles(req);
+  if (uploaded.length > 4) {
+    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  }
+  const labels = parseImageLabels(req.body.labels);
+  const image       = uploaded.length ? uploaded[0].filename : null;
   const sizesJson   = normalizeSizes(sizes);
   const coloursJson = normalizeColours(colours);
   const detailsJson = normalizeDetails(details);
   const tagsJson    = normalizeTags(tags);
+  const ageGroupsJson = normalizeAgeGroups(age_groups != null ? age_groups : age_group);
+  const unifiedAgeGroup = ageGroupsJson[0] || '';
 
   const sql = `
     INSERT INTO pooboo_products
-    (name, description, price, category, age_group, gender,
+    (name, description, price, category, age_group, age_groups, gender,
      sizes, colours, details, tags, image_url, stock, balance_stock, product_code,
      is_customizable, is_active)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(sql, [
     name, description || '', parseFloat(price) || 0,
-    category || '', age_group || '', gender || 'unisex',
+    category || '', '', ageGroupsJson, gender || 'unisex',
     sizesJson, coloursJson, detailsJson, tagsJson,
     image, parseInt(stock) || 0, parseInt(stock) || 0, product_code || '',
     Number(is_customizable) === 1 ? 1 : 0,
@@ -3104,28 +3280,40 @@ app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.single(
       console.error('POOBOO add product error:', err);
       return res.status(500).json({ error: 'Failed to add product' });
     }
-    // Also write to unified products table
+    // Also write to unified products table (keep legacy single mirror)
     db.query(
       `INSERT INTO products (brand, product_type, name, description, price, category, image_url, stock, balance_stock, product_code, sizes, details, tags, age_group, gender, colours, is_customizable, is_active)
        VALUES ('pooboo', 'apparel', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, description || '', parseFloat(price) || 0, category || '', image, parseInt(stock) || 0,
        parseInt(stock) || 0,
-       product_code || '', sizesJson, detailsJson, tagsJson, age_group || '', gender || 'unisex',
+       product_code || '', sizesJson, detailsJson, tagsJson, unifiedAgeGroup, gender || 'unisex',
        coloursJson, Number(is_customizable) === 1 ? 1 : 0,
        Number(is_active) === 0 ? 0 : 1],
       (errU) => { if (errU) console.error('POOBOO unified product sync error:', errU.message); }
     );
-    console.log(`✅ POOBOO product added: ${name}`);
-    res.status(201).json({ message: 'Product added successfully', id: result.insertId });
+    const productId = result.insertId;
+    if (!uploaded.length) {
+      console.log(`✅ POOBOO product added: ${name}`);
+      return res.status(201).json({ message: 'Product added successfully', id: productId });
+    }
+    const rows = uploaded.map((file, i) => [productId, file.filename, i + 1, labels[i] || '']);
+    db.query('INSERT INTO pooboo_product_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+      if (imgErr) {
+        console.error('Insert pooboo_product_images error:', imgErr);
+        return res.status(500).json({ error: 'Product created but image gallery save failed' });
+      }
+      console.log(`✅ POOBOO product added: ${name}`);
+      res.status(201).json({ message: 'Product added successfully', id: productId });
+    });
   });
 });
 
 // PUT /api/pooboo/products/:id — update apparel product (admin only)
-app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.single('image'), persistUploads(), (req, res) => {
+app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
   const { id } = req.params;
   const {
     name, description, price,
-    category, age_group, gender,
+    category, age_group, age_groups, gender,
     sizes, colours, details, tags,
     stock, product_code, is_customizable, is_active
   } = req.body;
@@ -3134,11 +3322,22 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.sing
   const coloursJson = normalizeColours(colours);
   const detailsJson = normalizeDetails(details);
   const tagsJson    = normalizeTags(tags);
+  const ageGroupsJson = normalizeAgeGroups(age_groups != null ? age_groups : age_group);
+  const unifiedAgeGroup = ageGroupsJson[0] || '';
+
+  const uploaded = collectUploadedFiles(req);
+  if (uploaded.length > 4) {
+    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  }
+  const legacyFile = Array.isArray(req.files?.image) ? req.files.image[0] : null;
+  const newFiles = Array.isArray(req.files?.images) ? req.files.images : [];
+  const labels = parseImageLabels(req.body.labels);
 
   db.query('SELECT image_url, stock FROM pooboo_products WHERE id = ?', [id], (err, result) => {
     if (err || !result.length) return res.status(404).json({ error: 'Product not found' });
 
-    const finalImage = req.file ? req.file.filename : result[0].image_url;
+    const oldImage = result[0].image_url;
+    const finalImage = legacyFile ? legacyFile.filename : oldImage;
 
     // Keep sellable balance in sync with the entered total (same reasoning as the
     // ZULU product edit — the apparel form has no balance field of its own).
@@ -3146,7 +3345,7 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.sing
 
     const sql = `
       UPDATE pooboo_products
-      SET name=?, description=?, price=?, category=?, age_group=?, gender=?,
+      SET name=?, description=?, price=?, category=?, age_group='', age_groups=?, gender=?,
           sizes=?, colours=?, details=?, tags=?, image_url=?, stock=?,
           balance_stock = GREATEST(balance_stock + ?, 0), product_code=?,
           is_customizable=?, is_active=?
@@ -3155,7 +3354,7 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.sing
 
     db.query(sql, [
       name || '', description || '', parseFloat(price) || 0,
-      category || '', age_group || '', gender || 'unisex',
+      category || '', ageGroupsJson, gender || 'unisex',
       sizesJson, coloursJson, detailsJson, tagsJson,
       finalImage, parseInt(stock) || 0, stockDelta, product_code || '',
       Number(is_customizable) === 1 ? 1 : 0,
@@ -3173,13 +3372,58 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.sing
          sizes=?, details=?, tags=?, age_group=?, gender=?, colours=?, is_customizable=?, is_active=?
          WHERE brand='pooboo' AND product_type='apparel' AND product_code=?`,
         [name || '', description || '', parseFloat(price) || 0, category || '', finalImage,
-         parseInt(stock) || 0, stockDelta, product_code || '', sizesJson, detailsJson, tagsJson, age_group || '',
+         parseInt(stock) || 0, stockDelta, product_code || '', sizesJson, detailsJson, tagsJson, unifiedAgeGroup,
          gender || 'unisex', coloursJson,
          Number(is_customizable) === 1 ? 1 : 0,
          Number(is_active) === 0 ? 0 : 1, product_code || ''],
         (errU) => { if (errU) console.error('POOBOO unified product update sync error:', errU.message); }
       );
-      res.json({ message: 'Product updated successfully' });
+
+      if (newFiles.length) {
+        db.query('SELECT COUNT(*) AS cnt FROM pooboo_product_images WHERE product_id = ?', [id], (cErr, cRes) => {
+          const existingCount = cErr ? 0 : (cRes[0]?.cnt || 0);
+          if (existingCount + newFiles.length > 4) {
+            return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+          }
+          db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_product_images WHERE product_id = ?', [id], (mErr, mRes) => {
+            const start = mErr ? 0 : (mRes[0]?.mx || 0);
+            const rows = newFiles.map((file, i) => [id, file.filename, start + i + 1, labels[i] || '']);
+            db.query('INSERT INTO pooboo_product_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+              if (imgErr) {
+                console.error('Insert pooboo_product_images error:', imgErr);
+                return res.status(500).json({ error: 'Image gallery save failed' });
+              }
+              refreshThumbnailForPoobooProduct(id, () => res.json({ message: 'Product updated successfully' }));
+            });
+          });
+        });
+        return;
+      }
+
+      if (legacyFile) {
+        db.query('SELECT id, image_url FROM pooboo_product_images WHERE product_id = ? AND display_order = 1', [id], (eErr, eRes) => {
+          const oldGalleryImage = eRes && eRes.length ? eRes[0].image_url : null;
+          if (eRes && eRes.length) {
+            db.query('UPDATE pooboo_product_images SET image_url = ? WHERE id = ?', [legacyFile.filename, eRes[0].id], (upErr) => {
+              if (upErr) console.error('Update pooboo_product_images thumbnail row error:', upErr);
+              const toDelete = [];
+              if (oldImage && oldImage !== legacyFile.filename) toDelete.push(oldImage);
+              if (oldGalleryImage && oldGalleryImage !== legacyFile.filename && oldGalleryImage !== oldImage) toDelete.push(oldGalleryImage);
+              if (toDelete.length) deleteStoredImages(toDelete).catch(() => {});
+              refreshThumbnailForPoobooProduct(id, () => res.json({ message: 'Product updated successfully' }));
+            });
+          } else {
+            db.query('INSERT INTO pooboo_product_images (product_id, image_url, display_order, label) VALUES (?, ?, 1, ?)', [id, legacyFile.filename, labels[0] || ''], (inErr) => {
+              if (inErr) console.error('Insert pooboo_product_images thumbnail row error:', inErr);
+              if (oldImage && oldImage !== legacyFile.filename) deleteStoredImages([oldImage]).catch(() => {});
+              refreshThumbnailForPoobooProduct(id, () => res.json({ message: 'Product updated successfully' }));
+            });
+          }
+        });
+        return;
+      }
+
+      refreshThumbnailForPoobooProduct(id, () => res.json({ message: 'Product updated successfully' }));
     });
   });
 });
@@ -3190,16 +3434,83 @@ app.delete('/api/pooboo/products/:id', authenticateToken, requireAdmin, (req, re
   db.query('SELECT product_code, image_url FROM pooboo_products WHERE id = ?', [req.params.id], (err, rows) => {
     const code = rows && rows.length ? rows[0].product_code : null;
     const imageUrl = rows && rows.length ? rows[0].image_url : null;
-    db.query('DELETE FROM pooboo_products WHERE id = ?', [req.params.id], (err) => {
-      if (err) return res.status(500).json({ error: 'Delete failed' });
-      // Also delete from unified table
-      if (code) {
-        db.query("DELETE FROM products WHERE brand='pooboo' AND product_type='apparel' AND product_code=?", [code],
-          (errU) => { if (errU) console.error('POOBOO unified product delete sync error:', errU.message); }
-        );
-      }
-      deleteStoredImages([imageUrl]).then(() => {
-        res.json({ message: 'Product deleted successfully' });
+    db.query('SELECT image_url FROM pooboo_product_images WHERE product_id = ?', [req.params.id], (gErr, gRows) => {
+      const imageUrls = [imageUrl];
+      (gRows || []).forEach(r => imageUrls.push(r.image_url));
+      deleteStoredImages(imageUrls).then(() => {
+        db.query('DELETE FROM pooboo_product_images WHERE product_id = ?', [req.params.id], (imgErr) => {
+          if (imgErr) console.error('Delete pooboo_product_images error:', imgErr);
+          db.query('DELETE FROM pooboo_products WHERE id = ?', [req.params.id], (err2) => {
+            if (err2) return res.status(500).json({ error: 'Delete failed' });
+            if (code) {
+              db.query("DELETE FROM products WHERE brand='pooboo' AND product_type='apparel' AND product_code=?", [code],
+                (errU) => { if (errU) console.error('POOBOO unified product delete sync error:', errU.message); }
+              );
+            }
+            res.json({ message: 'Product deleted successfully' });
+          });
+        });
+      });
+    });
+  });
+});
+
+// ── Pooboo product gallery management (admin only) ──
+
+app.post('/api/admin/pooboo/products/:id/images', authenticateToken, requireAdmin, upload.array('images', 4), persistUploads(), (req, res) => {
+  const id = req.params.id;
+  const files = req.files || [];
+  if (!files.length) return res.status(400).json({ error: 'No image files were uploaded.' });
+  if (files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  const labels = parseImageLabels(req.body.labels);
+  db.query('SELECT COUNT(*) AS cnt FROM pooboo_product_images WHERE product_id = ?', [id], (cErr, cRes) => {
+    if (cErr) return res.status(500).json({ error: 'Database error' });
+    const existingCount = cRes[0]?.cnt || 0;
+    if (existingCount + files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+    db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_product_images WHERE product_id = ?', [id], (mErr, mRes) => {
+      const start = mErr ? 0 : (mRes[0]?.mx || 0);
+      const rows = files.map((file, i) => [id, file.filename, start + i + 1, labels[i] || '']);
+      db.query('INSERT INTO pooboo_product_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+        if (imgErr) { console.error('Add pooboo_product_images error:', imgErr); return res.status(500).json({ error: 'Image gallery save failed' }); }
+        refreshThumbnailForPoobooProduct(id, () => res.json({ message: 'Image(s) added successfully', count: files.length }));
+      });
+    });
+  });
+});
+
+app.delete('/api/admin/pooboo/products/:id/images/:imageId', authenticateToken, requireAdmin, (req, res) => {
+  const { id, imageId } = req.params;
+  db.query('SELECT image_url FROM pooboo_product_images WHERE id = ? AND product_id = ?', [imageId, id], (selErr, rows) => {
+    if (selErr) { console.error('Select pooboo_product_images error:', selErr); return res.status(500).json({ error: 'Database error' }); }
+    db.query('DELETE FROM pooboo_product_images WHERE id = ? AND product_id = ?', [imageId, id], (err, result) => {
+      if (err) { console.error('Delete pooboo_product_images error:', err); return res.status(500).json({ error: 'Database error' }); }
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Image not found' });
+      deleteStoredImages(rows.map((r) => r.image_url)).then(() => {
+        refreshThumbnailForPoobooProduct(id, () => res.json({ message: 'Image deleted successfully' }));
+      });
+    });
+  });
+});
+
+app.post('/api/admin/pooboo/products/:id/images/reorder', authenticateToken, requireAdmin, (req, res) => {
+  const id = req.params.id;
+  const orderedIds = Array.isArray(req.body?.orderedIds) ? req.body.orderedIds : null;
+  const labelsMap = (req.body?.labels && typeof req.body.labels === 'object') ? req.body.labels : null;
+  if (!orderedIds || !orderedIds.length) return res.status(400).json({ error: 'orderedIds array is required.' });
+  db.query('SELECT id, label FROM pooboo_product_images WHERE product_id = ?', [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    const owned = new Set(rows.map(r => r.id));
+    if (orderedIds.some(pid => !owned.has(pid))) return res.status(400).json({ error: 'Invalid image id in orderedIds.' });
+    const labelById = {}; rows.forEach(r => { labelById[r.id] = r.label; });
+    let pending = orderedIds.length; let failed = false;
+    orderedIds.forEach((imageId, index) => {
+      const newLabel = (labelsMap && labelsMap[String(imageId)] !== undefined) ? String(labelsMap[String(imageId)]) : (labelById[imageId] || '');
+      db.query('UPDATE pooboo_product_images SET display_order = ?, label = ? WHERE id = ? AND product_id = ?', [index + 1, newLabel, imageId, id], (uErr) => {
+        if (uErr) { console.error('Reorder pooboo_product_images error:', uErr); failed = true; }
+        if (--pending === 0) {
+          if (failed) return res.status(500).json({ error: 'Failed to update image order' });
+          refreshThumbnailForPoobooProduct(id, () => res.json({ message: 'Image order updated successfully' }));
+        }
       });
     });
   });
@@ -3234,7 +3545,8 @@ app.get('/api/pooboo/fabrics', (req, res) => {
 
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    res.json(results.map(parsePoobooFabric));
+    const parsed = results.map(parsePoobooFabric);
+    attachImagesToPoobooFabrics(parsed, (withImages) => res.json(withImages));
   });
 });
 
@@ -3266,7 +3578,8 @@ app.get('/api/pooboo/fabrics/all', (req, res) => {
 
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    res.json(results.map(parsePoobooFabric));
+    const parsed = results.map(parsePoobooFabric);
+    attachImagesToPoobooFabrics(parsed, (withImages) => res.json(withImages));
   });
 });
 
@@ -3275,12 +3588,16 @@ app.get('/api/pooboo/fabrics/:id', (req, res) => {
   db.query('SELECT * FROM pooboo_fabrics WHERE id = ?', [req.params.id], (err, result) => {
     if (err)            return res.status(500).json({ error: 'Database error' });
     if (!result.length) return res.status(404).json({ error: 'Fabric not found' });
-    res.json(parsePoobooFabric(result[0]));
+    const parsed = parsePoobooFabric(result[0]);
+    fetchPoobooFabricImages([parsed.id], (imgMap) => {
+      parsed.images = imgMap[parsed.id] || [];
+      res.json(parsed);
+    });
   });
 });
 
 // POST /api/pooboo/fabrics — add fabric (admin only)
-app.post('/api/pooboo/fabrics', authenticateToken, requireAdmin, upload.single('image'), persistUploads(), (req, res) => {
+app.post('/api/pooboo/fabrics', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
   const {
     name, fabric_type, product_code, price_per_meter,
     colour, total_meters, balance_stock,
@@ -3291,7 +3608,12 @@ app.post('/api/pooboo/fabrics', authenticateToken, requireAdmin, upload.single('
     return res.status(400).json({ error: 'Name, price per meter, and fabric type are required' });
   }
 
-  const image = req.file ? req.file.filename : null;
+  const uploaded = collectUploadedFiles(req);
+  if (uploaded.length > 4) {
+    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per fabric.' });
+  }
+  const labels = parseImageLabels(req.body.labels);
+  const image = uploaded.length ? uploaded[0].filename : null;
   const balQty = parseInt(balance_stock) || parseInt(total_meters) || 0;
   const tagsJson = normalizeTags(tags);
 
@@ -3326,13 +3648,25 @@ app.post('/api/pooboo/fabrics', authenticateToken, requireAdmin, upload.single('
        balQty, tagsJson, Number(is_active) === 0 ? 0 : 1],
       (errU) => { if (errU) console.error('POOBOO unified fabric sync error:', errU.message); }
     );
-    console.log(`✅ POOBOO fabric added: ${name}`);
-    res.status(201).json({ message: 'Fabric added successfully', id: result.insertId });
+    const fabricId = result.insertId;
+    if (!uploaded.length) {
+      console.log(`✅ POOBOO fabric added: ${name}`);
+      return res.status(201).json({ message: 'Fabric added successfully', id: fabricId });
+    }
+    const rows = uploaded.map((file, i) => [fabricId, file.filename, i + 1, labels[i] || '']);
+    db.query('INSERT INTO pooboo_fabric_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+      if (imgErr) {
+        console.error('Insert pooboo_fabric_images error:', imgErr);
+        return res.status(500).json({ error: 'Fabric created but image gallery save failed' });
+      }
+      console.log(`✅ POOBOO fabric added: ${name}`);
+      res.status(201).json({ message: 'Fabric added successfully', id: fabricId });
+    });
   });
 });
 
 // PUT /api/pooboo/fabrics/:id — update fabric (admin only)
-app.put('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, upload.single('image'), persistUploads(), (req, res) => {
+app.put('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
   const { id } = req.params;
   const {
     name, fabric_type, product_code, price_per_meter,
@@ -3340,10 +3674,19 @@ app.put('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, upload.singl
     description, tags, is_active
   } = req.body;
 
+  const uploaded = collectUploadedFiles(req);
+  if (uploaded.length > 4) {
+    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per fabric.' });
+  }
+  const legacyFile = Array.isArray(req.files?.image) ? req.files.image[0] : null;
+  const newFiles = Array.isArray(req.files?.images) ? req.files.images : [];
+  const labels = parseImageLabels(req.body.labels);
+
   db.query('SELECT image_url FROM pooboo_fabrics WHERE id = ?', [id], (err, result) => {
     if (err || !result.length) return res.status(404).json({ error: 'Fabric not found' });
 
-    const finalImage = req.file ? req.file.filename : result[0].image_url;
+    const oldImage = result[0].image_url;
+    const finalImage = legacyFile ? legacyFile.filename : oldImage;
     const tagsJson = normalizeTags(tags);
 
     const sql = `
@@ -3378,9 +3721,54 @@ app.put('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, upload.singl
         [name || '', description || '', parseFloat(price_per_meter) || 0, colour || '', finalImage,
          product_code || '', fabric_type || '', parseInt(total_meters) || 0,
          parseInt(balance_stock) || 0, tagsJson, Number(is_active) === 0 ? 0 : 1, product_code || ''],
-        (errU) => { if (errU) console.error('POOBOO unified fabric update sync error:', errU.message); }
+          (errU) => { if (errU) console.error('POOBOO unified fabric update sync error:', errU.message); }
       );
-      res.json({ message: 'Fabric updated successfully' });
+
+      if (newFiles.length) {
+        db.query('SELECT COUNT(*) AS cnt FROM pooboo_fabric_images WHERE product_id = ?', [id], (cErr, cRes) => {
+          const existingCount = cErr ? 0 : (cRes[0]?.cnt || 0);
+          if (existingCount + newFiles.length > 4) {
+            return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per fabric.' });
+          }
+          db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_fabric_images WHERE product_id = ?', [id], (mErr, mRes) => {
+            const start = mErr ? 0 : (mRes[0]?.mx || 0);
+            const rows = newFiles.map((file, i) => [id, file.filename, start + i + 1, labels[i] || '']);
+            db.query('INSERT INTO pooboo_fabric_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+              if (imgErr) {
+                console.error('Insert pooboo_fabric_images error:', imgErr);
+                return res.status(500).json({ error: 'Image gallery save failed' });
+              }
+              refreshThumbnailForPoobooFabric(id, () => res.json({ message: 'Fabric updated successfully' }));
+            });
+          });
+        });
+        return;
+      }
+
+      if (legacyFile) {
+        db.query('SELECT id, image_url FROM pooboo_fabric_images WHERE product_id = ? AND display_order = 1', [id], (eErr, eRes) => {
+          const oldGalleryImage = eRes && eRes.length ? eRes[0].image_url : null;
+          if (eRes && eRes.length) {
+            db.query('UPDATE pooboo_fabric_images SET image_url = ? WHERE id = ?', [legacyFile.filename, eRes[0].id], (upErr) => {
+              if (upErr) console.error('Update pooboo_fabric_images thumbnail row error:', upErr);
+              const toDelete = [];
+              if (oldImage && oldImage !== legacyFile.filename) toDelete.push(oldImage);
+              if (oldGalleryImage && oldGalleryImage !== legacyFile.filename && oldGalleryImage !== oldImage) toDelete.push(oldGalleryImage);
+              if (toDelete.length) deleteStoredImages(toDelete).catch(() => {});
+              refreshThumbnailForPoobooFabric(id, () => res.json({ message: 'Fabric updated successfully' }));
+            });
+          } else {
+            db.query('INSERT INTO pooboo_fabric_images (product_id, image_url, display_order, label) VALUES (?, ?, 1, ?)', [id, legacyFile.filename, labels[0] || ''], (inErr) => {
+              if (inErr) console.error('Insert pooboo_fabric_images thumbnail row error:', inErr);
+              if (oldImage && oldImage !== legacyFile.filename) deleteStoredImages([oldImage]).catch(() => {});
+              refreshThumbnailForPoobooFabric(id, () => res.json({ message: 'Fabric updated successfully' }));
+            });
+          }
+        });
+        return;
+      }
+
+      refreshThumbnailForPoobooFabric(id, () => res.json({ message: 'Fabric updated successfully' }));
     });
   });
 });
@@ -3390,15 +3778,83 @@ app.delete('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, (req, res
   db.query('SELECT product_code, image_url FROM pooboo_fabrics WHERE id = ?', [req.params.id], (err, rows) => {
     const code = rows && rows.length ? rows[0].product_code : null;
     const imageUrl = rows && rows.length ? rows[0].image_url : null;
-    db.query('DELETE FROM pooboo_fabrics WHERE id = ?', [req.params.id], (err) => {
-      if (err) return res.status(500).json({ error: 'Delete failed' });
-      if (code) {
-        db.query("DELETE FROM products WHERE brand='pooboo' AND product_type='fabric' AND product_code=?", [code],
-          (errU) => { if (errU) console.error('POOBOO unified fabric delete sync error:', errU.message); }
-        );
-      }
-      deleteStoredImages([imageUrl]).then(() => {
-        res.json({ message: 'Fabric deleted successfully' });
+    db.query('SELECT image_url FROM pooboo_fabric_images WHERE product_id = ?', [req.params.id], (gErr, gRows) => {
+      const imageUrls = [imageUrl];
+      (gRows || []).forEach(r => imageUrls.push(r.image_url));
+      deleteStoredImages(imageUrls).then(() => {
+        db.query('DELETE FROM pooboo_fabric_images WHERE product_id = ?', [req.params.id], (imgErr) => {
+          if (imgErr) console.error('Delete pooboo_fabric_images error:', imgErr);
+          db.query('DELETE FROM pooboo_fabrics WHERE id = ?', [req.params.id], (err2) => {
+            if (err2) return res.status(500).json({ error: 'Delete failed' });
+            if (code) {
+              db.query("DELETE FROM products WHERE brand='pooboo' AND product_type='fabric' AND product_code=?", [code],
+                (errU) => { if (errU) console.error('POOBOO unified fabric delete sync error:', errU.message); }
+              );
+            }
+            res.json({ message: 'Fabric deleted successfully' });
+          });
+        });
+      });
+    });
+  });
+});
+
+// ── Pooboo fabric gallery management (admin only) ──
+
+app.post('/api/admin/pooboo/fabrics/:id/images', authenticateToken, requireAdmin, upload.array('images', 4), persistUploads(), (req, res) => {
+  const id = req.params.id;
+  const files = req.files || [];
+  if (!files.length) return res.status(400).json({ error: 'No image files were uploaded.' });
+  if (files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per fabric.' });
+  const labels = parseImageLabels(req.body.labels);
+  db.query('SELECT COUNT(*) AS cnt FROM pooboo_fabric_images WHERE product_id = ?', [id], (cErr, cRes) => {
+    if (cErr) return res.status(500).json({ error: 'Database error' });
+    const existingCount = cRes[0]?.cnt || 0;
+    if (existingCount + files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per fabric.' });
+    db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_fabric_images WHERE product_id = ?', [id], (mErr, mRes) => {
+      const start = mErr ? 0 : (mRes[0]?.mx || 0);
+      const rows = files.map((file, i) => [id, file.filename, start + i + 1, labels[i] || '']);
+      db.query('INSERT INTO pooboo_fabric_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+        if (imgErr) { console.error('Add pooboo_fabric_images error:', imgErr); return res.status(500).json({ error: 'Image gallery save failed' }); }
+        refreshThumbnailForPoobooFabric(id, () => res.json({ message: 'Image(s) added successfully', count: files.length }));
+      });
+    });
+  });
+});
+
+app.delete('/api/admin/pooboo/fabrics/:id/images/:imageId', authenticateToken, requireAdmin, (req, res) => {
+  const { id, imageId } = req.params;
+  db.query('SELECT image_url FROM pooboo_fabric_images WHERE id = ? AND product_id = ?', [imageId, id], (selErr, rows) => {
+    if (selErr) { console.error('Select pooboo_fabric_images error:', selErr); return res.status(500).json({ error: 'Database error' }); }
+    db.query('DELETE FROM pooboo_fabric_images WHERE id = ? AND product_id = ?', [imageId, id], (err, result) => {
+      if (err) { console.error('Delete pooboo_fabric_images error:', err); return res.status(500).json({ error: 'Database error' }); }
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Image not found' });
+      deleteStoredImages(rows.map((r) => r.image_url)).then(() => {
+        refreshThumbnailForPoobooFabric(id, () => res.json({ message: 'Image deleted successfully' }));
+      });
+    });
+  });
+});
+
+app.post('/api/admin/pooboo/fabrics/:id/images/reorder', authenticateToken, requireAdmin, (req, res) => {
+  const id = req.params.id;
+  const orderedIds = Array.isArray(req.body?.orderedIds) ? req.body.orderedIds : null;
+  const labelsMap = (req.body?.labels && typeof req.body.labels === 'object') ? req.body.labels : null;
+  if (!orderedIds || !orderedIds.length) return res.status(400).json({ error: 'orderedIds array is required.' });
+  db.query('SELECT id, label FROM pooboo_fabric_images WHERE product_id = ?', [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    const owned = new Set(rows.map(r => r.id));
+    if (orderedIds.some(pid => !owned.has(pid))) return res.status(400).json({ error: 'Invalid image id in orderedIds.' });
+    const labelById = {}; rows.forEach(r => { labelById[r.id] = r.label; });
+    let pending = orderedIds.length; let failed = false;
+    orderedIds.forEach((imageId, index) => {
+      const newLabel = (labelsMap && labelsMap[String(imageId)] !== undefined) ? String(labelsMap[String(imageId)]) : (labelById[imageId] || '');
+      db.query('UPDATE pooboo_fabric_images SET display_order = ?, label = ? WHERE id = ? AND product_id = ?', [index + 1, newLabel, imageId, id], (uErr) => {
+        if (uErr) { console.error('Reorder pooboo_fabric_images error:', uErr); failed = true; }
+        if (--pending === 0) {
+          if (failed) return res.status(500).json({ error: 'Failed to update image order' });
+          refreshThumbnailForPoobooFabric(id, () => res.json({ message: 'Image order updated successfully' }));
+        }
       });
     });
   });
@@ -3433,7 +3889,8 @@ app.get('/api/pooboo/accessories', (req, res) => {
 
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    res.json(results.map(parsePoobooAccessory));
+    const parsed = results.map(parsePoobooAccessory);
+    attachImagesToPoobooAccessories(parsed, (withImages) => res.json(withImages));
   });
 });
 
@@ -3470,7 +3927,8 @@ app.get('/api/pooboo/accessories/all', (req, res) => {
 
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    res.json(results.map(parsePoobooAccessory));
+    const parsed = results.map(parsePoobooAccessory);
+    attachImagesToPoobooAccessories(parsed, (withImages) => res.json(withImages));
   });
 });
 
@@ -3479,12 +3937,16 @@ app.get('/api/pooboo/accessories/:id', (req, res) => {
   db.query('SELECT * FROM pooboo_accessories WHERE id = ?', [req.params.id], (err, result) => {
     if (err)            return res.status(500).json({ error: 'Database error' });
     if (!result.length) return res.status(404).json({ error: 'Accessory not found' });
-    res.json(parsePoobooAccessory(result[0]));
+    const parsed = parsePoobooAccessory(result[0]);
+    fetchPoobooAccessoryImages([parsed.id], (imgMap) => {
+      parsed.images = imgMap[parsed.id] || [];
+      res.json(parsed);
+    });
   });
 });
 
 // POST /api/pooboo/accessories — add accessory (admin only)
-app.post('/api/pooboo/accessories', authenticateToken, requireAdmin, upload.single('image'), persistUploads(), (req, res) => {
+app.post('/api/pooboo/accessories', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
   const {
     accessory_type, name, product_code,
     price, colour, stock, balance_stock,
@@ -3495,7 +3957,12 @@ app.post('/api/pooboo/accessories', authenticateToken, requireAdmin, upload.sing
     return res.status(400).json({ error: 'Name, price, and accessory type are required' });
   }
 
-  const image = req.file ? req.file.filename : null;
+  const uploaded = collectUploadedFiles(req);
+  if (uploaded.length > 4) {
+    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per accessory.' });
+  }
+  const labels = parseImageLabels(req.body.labels);
+  const image = uploaded.length ? uploaded[0].filename : null;
   const balQty = parseInt(balance_stock) || parseInt(stock) || 0;
   const tagsJson = normalizeTags(tags);
 
@@ -3530,13 +3997,25 @@ app.post('/api/pooboo/accessories', authenticateToken, requireAdmin, upload.sing
        balQty, tagsJson, Number(is_active) === 0 ? 0 : 1],
       (errU) => { if (errU) console.error('POOBOO unified accessory sync error:', errU.message); }
     );
-    console.log(`✅ POOBOO accessory added: ${name} (${accessory_type})`);
-    res.status(201).json({ message: 'Accessory added successfully', id: result.insertId });
+    const accId = result.insertId;
+    if (!uploaded.length) {
+      console.log(`✅ POOBOO accessory added: ${name} (${accessory_type})`);
+      return res.status(201).json({ message: 'Accessory added successfully', id: accId });
+    }
+    const rows = uploaded.map((file, i) => [accId, file.filename, i + 1, labels[i] || '']);
+    db.query('INSERT INTO pooboo_accessory_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+      if (imgErr) {
+        console.error('Insert pooboo_accessory_images error:', imgErr);
+        return res.status(500).json({ error: 'Accessory created but image gallery save failed' });
+      }
+      console.log(`✅ POOBOO accessory added: ${name} (${accessory_type})`);
+      res.status(201).json({ message: 'Accessory added successfully', id: accId });
+    });
   });
 });
 
 // PUT /api/pooboo/accessories/:id — update accessory (admin only)
-app.put('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, upload.single('image'), persistUploads(), (req, res) => {
+app.put('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
   const { id } = req.params;
   const {
     accessory_type, name, product_code,
@@ -3544,10 +4023,19 @@ app.put('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, upload.s
     description, tags, is_active
   } = req.body;
 
+  const uploaded = collectUploadedFiles(req);
+  if (uploaded.length > 4) {
+    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per accessory.' });
+  }
+  const legacyFile = Array.isArray(req.files?.image) ? req.files.image[0] : null;
+  const newFiles = Array.isArray(req.files?.images) ? req.files.images : [];
+  const labels = parseImageLabels(req.body.labels);
+
   db.query('SELECT image_url FROM pooboo_accessories WHERE id = ?', [id], (err, result) => {
     if (err || !result.length) return res.status(404).json({ error: 'Accessory not found' });
 
-    const finalImage = req.file ? req.file.filename : result[0].image_url;
+    const oldImage = result[0].image_url;
+    const finalImage = legacyFile ? legacyFile.filename : oldImage;
     const tagsJson = normalizeTags(tags);
 
     const sql = `
@@ -3584,7 +4072,52 @@ app.put('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, upload.s
          parseInt(balance_stock) || 0, tagsJson, Number(is_active) === 0 ? 0 : 1, product_code || ''],
         (errU) => { if (errU) console.error('POOBOO unified accessory update sync error:', errU.message); }
       );
-      res.json({ message: 'Accessory updated successfully' });
+
+      if (newFiles.length) {
+        db.query('SELECT COUNT(*) AS cnt FROM pooboo_accessory_images WHERE product_id = ?', [id], (cErr, cRes) => {
+          const existingCount = cErr ? 0 : (cRes[0]?.cnt || 0);
+          if (existingCount + newFiles.length > 4) {
+            return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per accessory.' });
+          }
+          db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_accessory_images WHERE product_id = ?', [id], (mErr, mRes) => {
+            const start = mErr ? 0 : (mRes[0]?.mx || 0);
+            const rows = newFiles.map((file, i) => [id, file.filename, start + i + 1, labels[i] || '']);
+            db.query('INSERT INTO pooboo_accessory_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+              if (imgErr) {
+                console.error('Insert pooboo_accessory_images error:', imgErr);
+                return res.status(500).json({ error: 'Image gallery save failed' });
+              }
+              refreshThumbnailForPoobooAccessory(id, () => res.json({ message: 'Accessory updated successfully' }));
+            });
+          });
+        });
+        return;
+      }
+
+      if (legacyFile) {
+        db.query('SELECT id, image_url FROM pooboo_accessory_images WHERE product_id = ? AND display_order = 1', [id], (eErr, eRes) => {
+          const oldGalleryImage = eRes && eRes.length ? eRes[0].image_url : null;
+          if (eRes && eRes.length) {
+            db.query('UPDATE pooboo_accessory_images SET image_url = ? WHERE id = ?', [legacyFile.filename, eRes[0].id], (upErr) => {
+              if (upErr) console.error('Update pooboo_accessory_images thumbnail row error:', upErr);
+              const toDelete = [];
+              if (oldImage && oldImage !== legacyFile.filename) toDelete.push(oldImage);
+              if (oldGalleryImage && oldGalleryImage !== legacyFile.filename && oldGalleryImage !== oldImage) toDelete.push(oldGalleryImage);
+              if (toDelete.length) deleteStoredImages(toDelete).catch(() => {});
+              refreshThumbnailForPoobooAccessory(id, () => res.json({ message: 'Accessory updated successfully' }));
+            });
+          } else {
+            db.query('INSERT INTO pooboo_accessory_images (product_id, image_url, display_order, label) VALUES (?, ?, 1, ?)', [id, legacyFile.filename, labels[0] || ''], (inErr) => {
+              if (inErr) console.error('Insert pooboo_accessory_images thumbnail row error:', inErr);
+              if (oldImage && oldImage !== legacyFile.filename) deleteStoredImages([oldImage]).catch(() => {});
+              refreshThumbnailForPoobooAccessory(id, () => res.json({ message: 'Accessory updated successfully' }));
+            });
+          }
+        });
+        return;
+      }
+
+      refreshThumbnailForPoobooAccessory(id, () => res.json({ message: 'Accessory updated successfully' }));
     });
   });
 });
@@ -3594,15 +4127,83 @@ app.delete('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, (req,
   db.query('SELECT product_code, image_url FROM pooboo_accessories WHERE id = ?', [req.params.id], (err, rows) => {
     const code = rows && rows.length ? rows[0].product_code : null;
     const imageUrl = rows && rows.length ? rows[0].image_url : null;
-    db.query('DELETE FROM pooboo_accessories WHERE id = ?', [req.params.id], (err) => {
-      if (err) return res.status(500).json({ error: 'Delete failed' });
-      if (code) {
-        db.query("DELETE FROM products WHERE brand='pooboo' AND product_type='accessory' AND product_code=?", [code],
-          (errU) => { if (errU) console.error('POOBOO unified accessory delete sync error:', errU.message); }
-        );
-      }
-      deleteStoredImages([imageUrl]).then(() => {
-        res.json({ message: 'Accessory deleted successfully' });
+    db.query('SELECT image_url FROM pooboo_accessory_images WHERE product_id = ?', [req.params.id], (gErr, gRows) => {
+      const imageUrls = [imageUrl];
+      (gRows || []).forEach(r => imageUrls.push(r.image_url));
+      deleteStoredImages(imageUrls).then(() => {
+        db.query('DELETE FROM pooboo_accessory_images WHERE product_id = ?', [req.params.id], (imgErr) => {
+          if (imgErr) console.error('Delete pooboo_accessory_images error:', imgErr);
+          db.query('DELETE FROM pooboo_accessories WHERE id = ?', [req.params.id], (err2) => {
+            if (err2) return res.status(500).json({ error: 'Delete failed' });
+            if (code) {
+              db.query("DELETE FROM products WHERE brand='pooboo' AND product_type='accessory' AND product_code=?", [code],
+                (errU) => { if (errU) console.error('POOBOO unified accessory delete sync error:', errU.message); }
+              );
+            }
+            res.json({ message: 'Accessory deleted successfully' });
+          });
+        });
+      });
+    });
+  });
+});
+
+// ── Pooboo accessory gallery management (admin only) ──
+
+app.post('/api/admin/pooboo/accessories/:id/images', authenticateToken, requireAdmin, upload.array('images', 4), persistUploads(), (req, res) => {
+  const id = req.params.id;
+  const files = req.files || [];
+  if (!files.length) return res.status(400).json({ error: 'No image files were uploaded.' });
+  if (files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per accessory.' });
+  const labels = parseImageLabels(req.body.labels);
+  db.query('SELECT COUNT(*) AS cnt FROM pooboo_accessory_images WHERE product_id = ?', [id], (cErr, cRes) => {
+    if (cErr) return res.status(500).json({ error: 'Database error' });
+    const existingCount = cRes[0]?.cnt || 0;
+    if (existingCount + files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per accessory.' });
+    db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_accessory_images WHERE product_id = ?', [id], (mErr, mRes) => {
+      const start = mErr ? 0 : (mRes[0]?.mx || 0);
+      const rows = files.map((file, i) => [id, file.filename, start + i + 1, labels[i] || '']);
+      db.query('INSERT INTO pooboo_accessory_images (product_id, image_url, display_order, label) VALUES ?', [rows], (imgErr) => {
+        if (imgErr) { console.error('Add pooboo_accessory_images error:', imgErr); return res.status(500).json({ error: 'Image gallery save failed' }); }
+        refreshThumbnailForPoobooAccessory(id, () => res.json({ message: 'Image(s) added successfully', count: files.length }));
+      });
+    });
+  });
+});
+
+app.delete('/api/admin/pooboo/accessories/:id/images/:imageId', authenticateToken, requireAdmin, (req, res) => {
+  const { id, imageId } = req.params;
+  db.query('SELECT image_url FROM pooboo_accessory_images WHERE id = ? AND product_id = ?', [imageId, id], (selErr, rows) => {
+    if (selErr) { console.error('Select pooboo_accessory_images error:', selErr); return res.status(500).json({ error: 'Database error' }); }
+    db.query('DELETE FROM pooboo_accessory_images WHERE id = ? AND product_id = ?', [imageId, id], (err, result) => {
+      if (err) { console.error('Delete pooboo_accessory_images error:', err); return res.status(500).json({ error: 'Database error' }); }
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Image not found' });
+      deleteStoredImages(rows.map((r) => r.image_url)).then(() => {
+        refreshThumbnailForPoobooAccessory(id, () => res.json({ message: 'Image deleted successfully' }));
+      });
+    });
+  });
+});
+
+app.post('/api/admin/pooboo/accessories/:id/images/reorder', authenticateToken, requireAdmin, (req, res) => {
+  const id = req.params.id;
+  const orderedIds = Array.isArray(req.body?.orderedIds) ? req.body.orderedIds : null;
+  const labelsMap = (req.body?.labels && typeof req.body.labels === 'object') ? req.body.labels : null;
+  if (!orderedIds || !orderedIds.length) return res.status(400).json({ error: 'orderedIds array is required.' });
+  db.query('SELECT id, label FROM pooboo_accessory_images WHERE product_id = ?', [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    const owned = new Set(rows.map(r => r.id));
+    if (orderedIds.some(pid => !owned.has(pid))) return res.status(400).json({ error: 'Invalid image id in orderedIds.' });
+    const labelById = {}; rows.forEach(r => { labelById[r.id] = r.label; });
+    let pending = orderedIds.length; let failed = false;
+    orderedIds.forEach((imageId, index) => {
+      const newLabel = (labelsMap && labelsMap[String(imageId)] !== undefined) ? String(labelsMap[String(imageId)]) : (labelById[imageId] || '');
+      db.query('UPDATE pooboo_accessory_images SET display_order = ?, label = ? WHERE id = ? AND product_id = ?', [index + 1, newLabel, imageId, id], (uErr) => {
+        if (uErr) { console.error('Reorder pooboo_accessory_images error:', uErr); failed = true; }
+        if (--pending === 0) {
+          if (failed) return res.status(500).json({ error: 'Failed to update image order' });
+          refreshThumbnailForPoobooAccessory(id, () => res.json({ message: 'Image order updated successfully' }));
+        }
       });
     });
   });

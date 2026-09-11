@@ -36,6 +36,18 @@
       </button>
     </div>
 
+    <div class="size-selector" *ngIf="showSizeSelector && getAvailableSizes().length">
+      <div class="size-chips">
+        <button
+          *ngFor="let s of getAvailableSizes()"
+          class="size-chip"
+          [class.selected]="selectedSize === s"
+          (click)="selectSize(s); $event.stopPropagation()"
+        >{{ s }}</button>
+      </div>
+      <p class="size-error" *ngIf="sizeError">⚠ Please select a size first</p>
+    </div>
+
     <div class="actions">
       <button class="action-btn" (click)="addToCart(product); $event.stopPropagation()">
         <span>Add to Cart</span>

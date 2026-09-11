@@ -102,6 +102,11 @@ export class PoobooProducts implements OnInit, OnDestroy {
   applyFilters() {
     const term = this.searchTerm.trim().toLowerCase();
 
+    const ageMatches = (p: any, sel: string) => {
+      if (!sel) return true;
+      const groups = Array.isArray(p.age_groups) && p.age_groups.length ? p.age_groups : (p.age_group ? [p.age_group] : []);
+      return groups.includes(sel);
+    };
     // 🏷️ Refresh the dropdown's tag list to the current category/age/gender scope
     // (the active tag filter itself is excluded from the scope so the dropdown
     // doesn't collapse to just the one tag the user already picked).
@@ -109,7 +114,7 @@ export class PoobooProducts implements OnInit, OnDestroy {
       this.products
         .filter(p =>
           (!this.selectedCategory || p.category  === this.selectedCategory) &&
-          (!this.selectedAgeGroup || p.age_group === this.selectedAgeGroup) &&
+          ageMatches(p, this.selectedAgeGroup) &&
           (!this.selectedGender   || p.gender    === this.selectedGender)
         )
         .flatMap(p => p.tags || [])
@@ -117,7 +122,7 @@ export class PoobooProducts implements OnInit, OnDestroy {
 
     let result = this.products.filter(p => {
       const matchCat    = !this.selectedCategory || p.category  === this.selectedCategory;
-      const matchAge    = !this.selectedAgeGroup || p.age_group === this.selectedAgeGroup;
+      const matchAge    = ageMatches(p, this.selectedAgeGroup);
       const matchGender = !this.selectedGender   || p.gender    === this.selectedGender;
       const matchSearch = !term
         || (p.name?.toLowerCase().includes(term))

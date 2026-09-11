@@ -39,8 +39,8 @@
         </div>
       </div>
 
-      <!-- ROW 3: Category + Age Group + Gender -->
-      <div class="form-row three-col">
+      <!-- ROW 3: Category + Gender -->
+      <div class="form-row">
         <div class="form-group">
           <label>Category</label>
           <select [(ngModel)]="category" name="category">
@@ -49,18 +49,34 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Age Group</label>
-          <select [(ngModel)]="age_group" name="age_group">
-            <option value="">Select age group</option>
-            <option *ngFor="let a of ageGroups" [value]="a">{{ a }}</option>
-          </select>
-        </div>
-        <div class="form-group">
           <label>Gender</label>
           <select [(ngModel)]="gender" name="gender">
             <option *ngFor="let g of genders" [value]="g">{{ g | titlecase }}</option>
           </select>
         </div>
+      </div>
+
+      <!-- Age Groups — tick box (multi, preset 8) -->
+      <div class="form-group full-width">
+        <label>Age Groups <span class="hint">— tick all that apply (2–8) for same product with different sizes</span></label>
+        <div class="preset-tags-row" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+          <button
+            type="button"
+            *ngFor="let age of presetAgeGroups"
+            class="preset-tag-btn"
+            [class.active]="isAgeSelected(age)"
+            (click)="toggleAgeGroup(age)"
+          >
+            {{ age }}
+          </button>
+        </div>
+        <div class="selected-tags-row" *ngIf="selectedAgeGroups.length" style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="selected-tag-chip" *ngFor="let age of selectedAgeGroups" style="background:#f0ece4;padding:4px 8px;border-radius:12px;font-size:12px;">
+            {{ age }}
+            <button type="button" (click)="toggleAgeGroup(age)" style="margin-left:4px;">✕</button>
+          </span>
+        </div>
+        <p class="field-note" style="font-size:11px;color:#888;margin-top:4px;">e.g. tick 2–3 years, 3–5 years, 5–7 years for a product available across those ages. Products will show as available for each selected group.</p>
       </div>
 
       <!-- ROW 4: Sizes + Colours -->
@@ -124,20 +140,29 @@
         </div>
       </div>
 
-      <!-- Image Upload -->
+      <!-- Images — multi (max 4) -->
       <div class="form-group full-width">
-        <label>Product Image</label>
-        <div class="image-upload-area" (click)="fileInput.click()">
-          <div *ngIf="!imagePreview" class="upload-placeholder">
-            <span class="upload-icon">📷</span>
-            <span>Click to upload image</span>
+        <label>Product Images <span class="hint">— up to {{ maxImages }}</span></label>
+        <div class="image-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;">
+          <div class="image-tile" *ngFor="let img of selectedImages; let i = index" style="position:relative;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+            <div class="image-tile-preview" style="position:relative;">
+              <img [src]="img.preview" alt="Preview {{ i + 1 }}" style="width:100%;height:120px;object-fit:cover;" />
+              <span class="image-tile-index" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;">0{{ i + 1 }}</span>
+              <button type="button" class="remove-img" (click)="removeImage(i)" title="Remove image" style="position:absolute;top:4px;right:4px;background:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;">✕</button>
+            </div>
+            <select class="image-label" [(ngModel)]="img.label" name="imageLabel-{{i}}" style="width:100%;padding:4px;font-size:12px;">
+              <option value="">No label</option>
+              <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
+            </select>
           </div>
-          <div *ngIf="imagePreview" class="image-preview-wrap">
-            <img [src]="imagePreview" class="image-preview" alt="Preview" />
-            <button type="button" class="remove-img" (click)="$event.stopPropagation(); removeImage()">✕</button>
+          <div class="image-add-tile" *ngIf="selectedImages.length < maxImages" (click)="fileInput.click()" style="border:2px dashed #ccc;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;cursor:pointer;padding:12px;">
+            <input #fileInput type="file" accept="image/*" multiple (change)="onFilesChange($event)" hidden />
+            <span class="upload-icon">📷</span>
+            <p style="margin:4px 0 0;font-size:13px;">Add image</p>
+            <small>{{ selectedImages.length }}/{{ maxImages }}</small>
           </div>
         </div>
-        <input #fileInput type="file" accept="image/*" (change)="onFileChange($event)" hidden />
+        <p class="image-hint" style="font-size:11px;color:#888;margin-top:6px;">Add up to {{ maxImages }} images (Front, Back, Side, Full). First image is listing thumbnail. JPG/PNG/WEBP up to 5MB.</p>
       </div>
 
       <!-- Toggles -->

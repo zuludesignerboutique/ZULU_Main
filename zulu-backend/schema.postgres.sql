@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS pooboo_products (
   price           DECIMAL(10,2) NOT NULL DEFAULT 0,
   category        VARCHAR(150)  NULL,
   age_group       VARCHAR(50)   NOT NULL DEFAULT '',
+  age_groups      JSONB         NOT NULL DEFAULT '[]',
   gender          VARCHAR(50)   NOT NULL DEFAULT 'unisex',
   sizes           JSONB         NULL,
   colours         JSONB         NULL,
@@ -291,6 +292,45 @@ CREATE TABLE IF NOT EXISTS company_settings (
 -- Insert default row (id=1)
 INSERT INTO company_settings (id, name) VALUES (1, 'ZULU Boutique')
 ON CONFLICT (id) DO NOTHING;
+
+-- ─────────────────────────────────────────────────────────────────────
+-- POOBOO MULTI-IMAGE GALLERIES (Option B — separate tables per type)
+-- Mirrors product_images pattern (display_order + label) for isolation.
+-- 4 images max enforced in app layer (backend + frontend).
+-- ─────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS pooboo_product_images (
+  id            SERIAL PRIMARY KEY,
+  product_id    INTEGER     NOT NULL REFERENCES pooboo_products(id) ON DELETE CASCADE,
+  image_url     VARCHAR(255) NOT NULL,
+  display_order INTEGER     NOT NULL DEFAULT 1,
+  label         VARCHAR(50) NOT NULL DEFAULT '',
+  created_at    TIMESTAMP   NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_pooboo_product_images_product ON pooboo_product_images (product_id);
+CREATE INDEX IF NOT EXISTS idx_pooboo_product_images_order ON pooboo_product_images (product_id, display_order);
+
+CREATE TABLE IF NOT EXISTS pooboo_fabric_images (
+  id            SERIAL PRIMARY KEY,
+  product_id    INTEGER     NOT NULL REFERENCES pooboo_fabrics(id) ON DELETE CASCADE,
+  image_url     VARCHAR(255) NOT NULL,
+  display_order INTEGER     NOT NULL DEFAULT 1,
+  label         VARCHAR(50) NOT NULL DEFAULT '',
+  created_at    TIMESTAMP   NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_pooboo_fabric_images_product ON pooboo_fabric_images (product_id);
+CREATE INDEX IF NOT EXISTS idx_pooboo_fabric_images_order ON pooboo_fabric_images (product_id, display_order);
+
+CREATE TABLE IF NOT EXISTS pooboo_accessory_images (
+  id            SERIAL PRIMARY KEY,
+  product_id    INTEGER     NOT NULL REFERENCES pooboo_accessories(id) ON DELETE CASCADE,
+  image_url     VARCHAR(255) NOT NULL,
+  display_order INTEGER     NOT NULL DEFAULT 1,
+  label         VARCHAR(50) NOT NULL DEFAULT '',
+  created_at    TIMESTAMP   NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_pooboo_accessory_images_product ON pooboo_accessory_images (product_id);
+CREATE INDEX IF NOT EXISTS idx_pooboo_accessory_images_order ON pooboo_accessory_images (product_id, display_order);
 
 -- ─────────────────────────────────────────────────────────────────────
 -- CATEGORY LANDING PAGE — configurable card settings + images

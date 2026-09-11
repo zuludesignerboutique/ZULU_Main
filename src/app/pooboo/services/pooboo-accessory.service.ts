@@ -30,4 +30,18 @@ export class PoobooAccessoryService {
     if (type) params = params.set('type', type);
     return this.http.get<string[]>(`${this.base}/tags/list`, { params });
   }
+
+  private adminBase = '/api/admin/pooboo/accessories';
+  addImages(productId: number, files: File[], labels: string[] = []): Observable<any> {
+    const fd = new FormData();
+    files.forEach(f => fd.append('images', f));
+    fd.append('labels', JSON.stringify(labels));
+    return this.http.post(`${this.adminBase}/${productId}/images`, fd);
+  }
+  deleteImage(productId: number, imageId: number): Observable<any> {
+    return this.http.delete(`${this.adminBase}/${productId}/images/${imageId}`);
+  }
+  reorderImages(productId: number, orderedIds: number[], labels: Record<number, string> = {}): Observable<any> {
+    return this.http.post(`${this.adminBase}/${productId}/images/reorder`, { orderedIds, labels });
+  }
 }
