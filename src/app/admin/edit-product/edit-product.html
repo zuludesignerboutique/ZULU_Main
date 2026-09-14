@@ -169,11 +169,12 @@
                 <button type="button" class="remove-img" (click)="deleteImage(img)" title="Delete image">✕</button>
               </div>
               <div class="gallery-item-controls">
-                <select class="image-label" [(ngModel)]="img.label" name="existingLabel-{{img.id}}"
-                  (ngModelChange)="saveOrderAndLabels()">
-                  <option value="">No label</option>
-                  <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
-                </select>
+                <input type="text" class="image-label" [(ngModel)]="img.label" name="existingLabel-{{img.id}}"
+                  [attr.list]="'imageLabelOptions-exist-' + img.id" placeholder="No label" maxlength="30"
+                  (ngModelChange)="saveOrderAndLabels()" />
+                <datalist [id]="'imageLabelOptions-exist-' + img.id">
+                  <option *ngFor="let l of imageLabels" [value]="l"></option>
+                </datalist>
                 <div class="gallery-move">
                   <button type="button" (click)="moveImage(i, -1)" [disabled]="i === 0" title="Move up">↑</button>
                   <button type="button" (click)="moveImage(i, 1)" [disabled]="i === existingImages.length - 1" title="Move down">↓</button>
@@ -190,10 +191,11 @@
                 <span class="gallery-item-index">NEW</span>
                 <button type="button" class="remove-img" (click)="removeNewImage(i)" title="Remove">✕</button>
               </div>
-              <select class="image-label" [(ngModel)]="img.label" name="newLabel-{{i}}">
-                <option value="">No label</option>
-                <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
-              </select>
+              <input type="text" class="image-label" [(ngModel)]="img.label" name="newLabel-{{i}}"
+                [attr.list]="'imageLabelOptions-new-' + i" placeholder="No label" maxlength="30" />
+              <datalist [id]="'imageLabelOptions-new-' + i">
+                <option *ngFor="let l of imageLabels" [value]="l"></option>
+              </datalist>
             </div>
           </div>
 

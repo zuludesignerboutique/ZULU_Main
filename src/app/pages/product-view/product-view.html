@@ -112,7 +112,12 @@
       </div>
 
       <!-- Short description — sits directly under the price -->
-      <p class="product-summary" *ngIf="product?.description">{{ product.description }}</p>
+      <div class="product-summary-wrap" *ngIf="product?.description" [class.expanded]="descriptionExpanded">
+        <p class="product-summary">{{ product.description }}</p>
+        <button class="read-more-btn" *ngIf="isDescriptionLong" (click)="toggleDescription()">
+          {{ descriptionExpanded ? 'Read less ↑' : 'Read more ↓' }}
+        </button>
+      </div>
 
       <!-- Colour chip -->
       <div class="colour-row" *ngIf="product?.colour || product?.color">

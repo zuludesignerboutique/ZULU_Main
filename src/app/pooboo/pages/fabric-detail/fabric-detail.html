@@ -4,7 +4,7 @@
   <div *ngIf="loading" class="state-msg">Loading...</div>
   <div *ngIf="error"   class="state-msg error">{{ error }}</div>
 
-  <div class="container detail-wrap" *ngIf="!loading && product">
+  <div class="detail-wrap" *ngIf="!loading && product">
 
     <button class="btn-back" (click)="goBack()">← Back to Fabrics</button>
 

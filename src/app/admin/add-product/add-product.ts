@@ -25,7 +25,7 @@ export class AddProduct implements OnInit {
   product = {
     name: '', description: '', price: 0,
     category: '', subcategory: '',
-    stock: 0, product_code: '', size: '', tag: ''
+    stock: 0, product_code: '', size: '', tag: '', colour: ''
   };
 
   readonly maxImages = 4;
@@ -515,6 +515,7 @@ export class AddProduct implements OnInit {
     formData.append('stock',        String(this.product.stock));
     formData.append('product_code', this.product.product_code);
     formData.append('size',         this.product.size);
+    formData.append('colour',       this.product.colour || '');
     formData.append('tag',          this.product.tag || '');
     this.selectedImages.forEach(img => formData.append('images', img.file));
     formData.append('labels', JSON.stringify(this.selectedImages.map(img => img.label)));

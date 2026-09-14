@@ -1488,12 +1488,54 @@
 }
 
 // ── INLINE PRODUCT SUMMARY (under price, above colour/size) ──
-.product-summary {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--muted);
+.product-summary-wrap {
   margin: 4px 0 24px;
   max-width: 46ch;
+
+  .product-summary {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  // Collapsed: 4 lines max
+  &:not(.expanded) .product-summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  // Expanded: show full text
+  &.expanded .product-summary {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  // On desktop, never collapse
+  @media (min-width: 769px) {
+    &:not(.expanded) .product-summary {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
+  }
+}
+
+.read-more-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0 0;
+  letter-spacing: 0.02em;
+
+  &:hover { text-decoration: underline; }
 }
 
 // ── COLOUR ROW — label no longer needs the trailing colon ──

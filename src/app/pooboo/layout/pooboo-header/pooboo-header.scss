@@ -19,6 +19,8 @@ $soft-bg: #FFF8F5;
   padding: 6px 0;
   text-align: center;
 
+  @media (max-width: 480px) { display: none; }
+
   a {
     color: $yellow;
     text-decoration: underline;
@@ -59,9 +61,10 @@ $soft-bg: #FFF8F5;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 0 32px;
   height: 68px;
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
 
   @media (max-width: 576px) {
@@ -141,7 +144,9 @@ $soft-bg: #FFF8F5;
 .pb-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  flex-shrink: 1;
+  min-width: 0;
 
   @media (max-width: 992px) { display: none; }
 }
@@ -157,10 +162,11 @@ $soft-bg: #FFF8F5;
   font-weight: 700;
   color: $dark;
   text-decoration: none;
-  padding: 8px 14px;
+  padding: 8px 11px;
   border-radius: 8px;
   transition: all 0.2s;
   letter-spacing: 0.3px;
+  white-space: nowrap;
 
   &:hover {
     background: rgba($coral, 0.08);
@@ -173,20 +179,27 @@ $soft-bg: #FFF8F5;
   }
 
   &.pb-nav-highlight {
-    color: $coral;
-    background: rgba($coral, 0.08);
-    border: 1.5px dashed rgba($coral, 0.4);
+    color: $white;
+    background: $coral;
+    box-shadow: 0 3px 10px rgba($coral, 0.3);
 
     &:hover {
-      background: $coral;
+      background: color.adjust($coral, $lightness: -8%);
       color: $white;
-      border-color: $coral;
+    }
+
+    &.active {
+      background: color.adjust($coral, $lightness: -8%);
+      color: $white;
     }
   }
 
   &.pb-nav-stores {
     font-size: 12px;
     color: #888;
+    margin-left: 8px;
+    padding-left: 16px;
+    border-left: 1px solid rgba($coral, 0.15);
     &:hover { color: $sky; background: rgba($sky, 0.08); }
   }
 }
@@ -195,7 +208,7 @@ $soft-bg: #FFF8F5;
 .pb-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 
   @media (max-width: 576px) { gap: 6px; }
@@ -204,7 +217,7 @@ $soft-bg: #FFF8F5;
 .pb-cta-btn {
   display: inline-flex;
   align-items: center;
-  padding: 9px 18px;
+  padding: 9px 16px;
   background: $coral;
   color: $white;
   font-family: 'Nunito', sans-serif;

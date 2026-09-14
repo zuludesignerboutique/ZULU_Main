@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, HostListener, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -47,6 +47,10 @@ export class ProductView implements OnInit, OnDestroy {
   isHoverDevice: boolean = true;
   customizeTooltipOpen: boolean = false;
 
+  // ── Read more / less for description ──────────────
+  descriptionExpanded = false;
+  isDescriptionLong = false;
+
   imageBase: string = '/uploads/';
 
   // ── Gallery (multi-image support) ───────────────
@@ -67,7 +71,8 @@ export class ProductView implements OnInit, OnDestroy {
     private cartService: CartService,
     private wishlistService: WishlistService,
     private auth: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private cdr: ChangeDetectorRef
   ) {
     this.navStateProduct =
       this.router.getCurrentNavigation()?.extras?.state?.['product'] ?? null;
@@ -99,6 +104,7 @@ export class ProductView implements OnInit, OnDestroy {
       this.isLoading = false;
       this.saveProductToCache(stateProduct);
       this.loadWishlistState();
+      this.checkDescriptionLength();
       this.fetchProductSilently(id);
       return;
     }
@@ -109,6 +115,7 @@ export class ProductView implements OnInit, OnDestroy {
       this.selectedImageUrl = null;
       this.isLoading = false;
       this.loadWishlistState();
+      this.checkDescriptionLength();
       this.fetchProductSilently(id);
       return;
     }
@@ -208,6 +215,8 @@ export class ProductView implements OnInit, OnDestroy {
             this.product = found;
             this.selectedImageUrl = null;
             this.saveProductToCache(found);
+            this.checkDescriptionLength();
+            this.cdr.detectChanges();
           }
         },
         error: () => {}
@@ -419,7 +428,7 @@ export class ProductView implements OnInit, OnDestroy {
     const code = this.product?.product_code ? ` (${this.product.product_code})` : '';
     const size = this.selectedSize ? ` | Size: ${this.selectedSize}` : '';
     const msg = `Hi! I'm interested in ${name}${code} ${price}${size}. Please share more details.`;
-    return `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    return `https://wa.me/${this.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
   }
 
   // ── WhatsApp Customization ───────────────────────
@@ -480,6 +489,16 @@ export class ProductView implements OnInit, OnDestroy {
   get roundedRating(): number {
     const r = Number(this.product?.rating);
     return Number.isFinite(r) ? Math.round(r) : 0;
+  }
+
+  // ── Read more / less ─────────────────────────────
+  checkDescriptionLength() {
+    this.isDescriptionLong = (this.product?.description || '').length > 120;
+    if (!this.isDescriptionLong) this.descriptionExpanded = false;
+  }
+
+  toggleDescription() {
+    this.descriptionExpanded = !this.descriptionExpanded;
   }
 
   // ── Colour helper ─────────────────────────────────

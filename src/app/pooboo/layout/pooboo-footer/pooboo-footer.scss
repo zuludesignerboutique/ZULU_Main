@@ -15,11 +15,11 @@ $white:  #ffffff;
 }
 
 .pb-footer-inner {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 0 32px;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 2fr;
+  grid-template-columns: 1.6fr 1fr 1fr 1.4fr;
   gap: 48px;
 
   @media (max-width: 900px) {
@@ -138,6 +138,7 @@ $white:  #ffffff;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-width: 260px;
 }
 
 .pb-store-card {
@@ -182,7 +183,7 @@ $white:  #ffffff;
 
 // Bottom bar
 .pb-footer-bottom {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 48px auto 0;
   padding: 20px 32px;
   border-top: 1px solid rgba($white, 0.08);
@@ -233,7 +234,7 @@ $font-color: #ffffff;
   // Font styling
   font-family: "Times New Roman", Times, Baskerville, Georgia, serif;
   font-weight: bold;
-  font-size: 5rem; 
+  font-size: clamp(2rem, 8vw, 5rem);
   letter-spacing: 0.15em;
   color: $font-color;
   

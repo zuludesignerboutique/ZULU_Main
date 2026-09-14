@@ -130,6 +130,14 @@
               <input type="text" [(ngModel)]="product.size" name="size" placeholder="e.g. S, M, L, XL" />
             </div>
           </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label>Colour</label>
+              <input type="text" [(ngModel)]="product.colour" name="colour"
+                placeholder="e.g. Blue" />
+            </div>
+          </div>
         </div>
 
         <!-- Section 4: Images -->
@@ -143,10 +151,11 @@
                 <span class="image-tile-index">0{{ i + 1 }}</span>
                 <button type="button" class="remove-img" (click)="removeImage(i)" title="Remove image">✕</button>
               </div>
-              <select class="image-label" [(ngModel)]="img.label" name="imageLabel-{{i}}">
-                <option value="">No label</option>
-                <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
-              </select>
+              <input type="text" class="image-label" [(ngModel)]="img.label" name="imageLabel-{{i}}"
+                [attr.list]="'imageLabelOptions-add-' + i" placeholder="No label" maxlength="30" />
+              <datalist [id]="'imageLabelOptions-add-' + i">
+                <option *ngFor="let l of imageLabels" [value]="l"></option>
+              </datalist>
             </div>
 
             <div class="image-add-tile" *ngIf="selectedImages.length < maxImages" (click)="fileInput.click()">

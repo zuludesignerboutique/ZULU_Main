@@ -1,7 +1,7 @@
 @use "sass:color";
-$coral: #FF6B6B;
-$coral-dark: #E85555;
-$yellow: #FFD93D;
+$coral: #FF6B35;
+$coral-dark: #E05530;
+$yellow: #FFD600;
 $dark: #1A1A2E;
 $off-white: #FFF8F5;
 $text-muted: #8A8A9A;
@@ -12,7 +12,7 @@ $border: #EDE8E8;
 // ---- Hero ----
 .enquiry-hero {
   text-align: center;
-  padding: 3.5rem 1.5rem 2.5rem;
+  padding: 56px 24px 40px;
   background: linear-gradient(160deg, $off-white 60%, color.adjust($yellow, $lightness: 20%) 100%);
 
   .hero-badge {
@@ -310,6 +310,6 @@ $border: #EDE8E8;
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 480px) {
-  .enquiry-hero { padding: 2.5rem 1.2rem 2rem; }
-  .contact-form { padding: 1.5rem 1.2rem; }
+  .enquiry-hero { padding: 40px 19px 32px; }
+  .contact-form { padding: 24px 19px; }
 }

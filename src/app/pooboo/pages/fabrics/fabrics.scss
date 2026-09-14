@@ -9,7 +9,7 @@ $soft-bg: #FFF8F5;
 
 // ── SHARED CONTAINER ──────────────────────────────
 .pb-container {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 32px;
 
@@ -71,6 +71,7 @@ $soft-bg: #FFF8F5;
   border-bottom: 1px solid rgba($coral, 0.1);
 
   @media (max-width: 576px) { padding: 16px 0 8px; }
+  @media (max-width: 992px) { position: static; }
 }
 
 .pb-fab-filters {
@@ -449,6 +450,8 @@ $soft-bg: #FFF8F5;
 .pb-fab-cta-visual {
   display: flex;
   justify-content: center;
+
+  @media (max-width: 768px) { display: none; }
 }
 
 .pb-fab-cta-card {
