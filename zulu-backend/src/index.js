@@ -96,7 +96,10 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
+// Default express.json() limit is 100kb, which is plenty for every JSON
+// route in this app (image uploads go through multer/FormData, not here).
+// Set explicitly so it's documented rather than relying on the default.
+app.use(express.json({ limit: '1mb' }));
 
 /* =========================
    DATABASE (Supabase / PostgreSQL)
@@ -217,7 +220,37 @@ app.post('/api/razorpay/verify-payment', (req, res) => {
 
 const storageApi = require('./storage');
 
-const upload = multer({ storage: multer.memoryStorage() });
+// fileSize is per-file (bytes). Vercel's request-body cap is ~4.5MB total, so
+// 4MB per file leaves headroom for multipart overhead even on a single-image
+// upload. No global `files` cap here — each route already sets its own
+// per-field maxCount via upload.fields()/upload.array() (e.g. 1 cover + 4
+// gallery = 5 on create, up to 20 on the admin gallery, up to 5 on category
+// cards) — a global files limit would wrongly reject all of those.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 4 * 1024 * 1024 }
+});
+
+// Multer (and body-parser, for express.json()) throw *before* any route
+// handler runs, so a too-large upload was previously falling through to
+// Express's default HTML error page — which the frontend then tried to
+// JSON.parse, producing the "[object Object]" toast. This normalizes those
+// into the same { error: '...' } shape every route already returns.
+function handleUploadErrors(err, req, res, next) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'One or more images are too large. Please use images under 4MB each.' });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({ error: 'Too many images selected for this upload.' });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  if (err && (err.type === 'entity.too.large' || err.status === 413)) {
+    return res.status(413).json({ error: 'Upload is too large.' });
+  }
+  next(err);
+}
 
 // Persist any uploaded buffers to Supabase Storage (or the local ./uploads
 // fallback) and assign `file.filename` so the existing route code is unchanged.
@@ -2004,7 +2037,7 @@ app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ n
         // Enforce the 4-image cap when appending new gallery files
         if (newFiles.length) {
           db.query('SELECT COUNT(*) AS cnt FROM product_images WHERE product_id = ?', [id], (cErr, cRes) => {
-            const existingCount = cErr ? 0 : (cRes[0]?.cnt || 0);
+            const existingCount = cErr ? 0 : parseInt(cRes[0]?.cnt || '0', 10);
             if (existingCount + newFiles.length > 4) {
               return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
             }
@@ -2098,7 +2131,7 @@ app.post('/api/admin/products/:id/images', authenticateToken, requireAdmin, uplo
 
   db.query('SELECT COUNT(*) AS cnt FROM product_images WHERE product_id = ?', [id], (cErr, cRes) => {
     if (cErr) return res.status(500).json({ error: 'Database error' });
-    const existingCount = cRes[0]?.cnt || 0;
+    const existingCount = parseInt(cRes[0]?.cnt || '0', 10);
     if (existingCount + files.length > 4) {
       return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
     }
@@ -3381,7 +3414,7 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.fiel
 
       if (newFiles.length) {
         db.query('SELECT COUNT(*) AS cnt FROM pooboo_product_images WHERE product_id = ?', [id], (cErr, cRes) => {
-          const existingCount = cErr ? 0 : (cRes[0]?.cnt || 0);
+          const existingCount = cErr ? 0 : parseInt(cRes[0]?.cnt || '0', 10);
           if (existingCount + newFiles.length > 4) {
             return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
           }
@@ -3465,7 +3498,7 @@ app.post('/api/admin/pooboo/products/:id/images', authenticateToken, requireAdmi
   const labels = parseImageLabels(req.body.labels);
   db.query('SELECT COUNT(*) AS cnt FROM pooboo_product_images WHERE product_id = ?', [id], (cErr, cRes) => {
     if (cErr) return res.status(500).json({ error: 'Database error' });
-    const existingCount = cRes[0]?.cnt || 0;
+    const existingCount = parseInt(cRes[0]?.cnt || '0', 10);
     if (existingCount + files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
     db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_product_images WHERE product_id = ?', [id], (mErr, mRes) => {
       const start = mErr ? 0 : (mRes[0]?.mx || 0);
@@ -3726,7 +3759,7 @@ app.put('/api/pooboo/fabrics/:id', authenticateToken, requireAdmin, upload.field
 
       if (newFiles.length) {
         db.query('SELECT COUNT(*) AS cnt FROM pooboo_fabric_images WHERE product_id = ?', [id], (cErr, cRes) => {
-          const existingCount = cErr ? 0 : (cRes[0]?.cnt || 0);
+          const existingCount = cErr ? 0 : parseInt(cRes[0]?.cnt || '0', 10);
           if (existingCount + newFiles.length > 4) {
             return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per fabric.' });
           }
@@ -3809,7 +3842,7 @@ app.post('/api/admin/pooboo/fabrics/:id/images', authenticateToken, requireAdmin
   const labels = parseImageLabels(req.body.labels);
   db.query('SELECT COUNT(*) AS cnt FROM pooboo_fabric_images WHERE product_id = ?', [id], (cErr, cRes) => {
     if (cErr) return res.status(500).json({ error: 'Database error' });
-    const existingCount = cRes[0]?.cnt || 0;
+    const existingCount = parseInt(cRes[0]?.cnt || '0', 10);
     if (existingCount + files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per fabric.' });
     db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_fabric_images WHERE product_id = ?', [id], (mErr, mRes) => {
       const start = mErr ? 0 : (mRes[0]?.mx || 0);
@@ -4075,7 +4108,7 @@ app.put('/api/pooboo/accessories/:id', authenticateToken, requireAdmin, upload.f
 
       if (newFiles.length) {
         db.query('SELECT COUNT(*) AS cnt FROM pooboo_accessory_images WHERE product_id = ?', [id], (cErr, cRes) => {
-          const existingCount = cErr ? 0 : (cRes[0]?.cnt || 0);
+          const existingCount = cErr ? 0 : parseInt(cRes[0]?.cnt || '0', 10);
           if (existingCount + newFiles.length > 4) {
             return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per accessory.' });
           }
@@ -4158,7 +4191,7 @@ app.post('/api/admin/pooboo/accessories/:id/images', authenticateToken, requireA
   const labels = parseImageLabels(req.body.labels);
   db.query('SELECT COUNT(*) AS cnt FROM pooboo_accessory_images WHERE product_id = ?', [id], (cErr, cRes) => {
     if (cErr) return res.status(500).json({ error: 'Database error' });
-    const existingCount = cRes[0]?.cnt || 0;
+    const existingCount = parseInt(cRes[0]?.cnt || '0', 10);
     if (existingCount + files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per accessory.' });
     db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_accessory_images WHERE product_id = ?', [id], (mErr, mRes) => {
       const start = mErr ? 0 : (mRes[0]?.mx || 0);
@@ -5222,6 +5255,12 @@ app.get('/api/test-routing', (req, res) => res.json({ ok: true, ver: 2 }));
 // Only listen when run directly (`node src/index.js`). When this module is
 // required by another process (e.g. a Vercel serverless function via
 // serverless-http, or a test harness), it must NOT bind a port itself.
+// Global error-handling middleware — must be defined with 4 args and after
+// every route (including in the Vercel/serverless-http path, not just the
+// local app.listen path below) so Express routes upload/body-parser errors
+// here instead of falling back to its default HTML error page.
+app.use(handleUploadErrors);
+
 if (require.main === module) {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {

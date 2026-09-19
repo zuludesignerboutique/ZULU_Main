@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../services/product.service';
 import { ToastService } from '../../services/toast.service';
+import { ImageUploadService, CompressedImage } from '../../services/image-upload.service';
 
 // A file picked by the admin that hasn't been saved to the server yet.
 interface NewImage {
@@ -88,7 +89,8 @@ export class EditProduct implements OnInit {
     private productService: ProductService,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private imageUpload: ImageUploadService
   ) {}
 
   ngOnInit() {
@@ -132,7 +134,7 @@ export class EditProduct implements OnInit {
   }
 
   // ── Upload new images ────────────────────────────
-  onNewFilesChange(event: any) {
+  async onNewFilesChange(event: any) {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
     if (!files.length) return;
@@ -152,14 +154,20 @@ export class EditProduct implements OnInit {
       this.imageMsg = '';
     }
 
-    toAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.newImages.push({ file, preview: e.target.result, label: '' });
-        this.ngZone.run(() => this.cdr.detectChanges());
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(toAdd);
+      compressed.forEach(c => this.newImages.push({ file: c.file, preview: c.preview, label: '' }));
+    } catch (e) {
+      console.warn('Image compression failed, uploading originals:', e);
+      toAdd.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.newImages.push({ file, preview: e.target.result, label: '' });
+          this.ngZone.run(() => this.cdr.detectChanges());
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
     input.value = '';
     this.ngZone.run(() => this.cdr.detectChanges());
@@ -188,7 +196,7 @@ export class EditProduct implements OnInit {
       },
       error: (err) => {
         this.imageBusy = false;
-        this.setImageMsg(err?.error?.error || 'Failed to add images. Please try again.', true);
+        this.setImageMsg(this.imageUpload.extractUploadError(err), true);
       }
     });
   }
@@ -227,7 +235,7 @@ export class EditProduct implements OnInit {
       },
       error: (err) => {
         this.imageBusy = false;
-        this.setImageMsg(err?.error?.error || 'Failed to delete image. Please try again.', true);
+        this.setImageMsg(this.imageUpload.extractUploadError(err), true);
       }
     });
   }
@@ -267,7 +275,7 @@ export class EditProduct implements OnInit {
       },
       error: (err) => {
         this.imageBusy = false;
-        this.setImageMsg(err?.error?.error || 'Failed to save image order.', true);
+        this.setImageMsg(this.imageUpload.extractUploadError(err), true);
       }
     });
   }
@@ -343,7 +351,7 @@ export class EditProduct implements OnInit {
               console.error('Image upload error:', err);
               this.toast.error(
                 'Product details were saved, but the new images failed to upload: ' +
-                (err?.error?.error || 'please try "Upload new images" again before leaving this page.')
+                this.imageUpload.extractUploadError(err)
               );
               // Stay on the page — newImages is untouched, so nothing is lost
               // and the admin can retry the upload immediately.

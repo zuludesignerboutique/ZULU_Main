@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CategoryService, Category, Subcategory, InUseProduct } from '../../services/category.service';
+import { ImageUploadService, CompressedImage } from '../../services/image-upload.service';
 
 // ── Multi-image upload state ───────────────────────
 // A single selected image (file + preview + optional label).
@@ -82,7 +83,8 @@ export class AddProduct implements OnInit {
     private http: HttpClient,
     private router: Router,
     private categoryService: CategoryService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private imageUpload: ImageUploadService
   ) {}
 
   ngOnInit() {
@@ -450,7 +452,7 @@ export class AddProduct implements OnInit {
   }
 
   // ── Image handling (multiple, max 4) ─────────────
-  onFilesChange(event: Event) {
+  async onFilesChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
     if (!files.length) return;
@@ -470,20 +472,25 @@ export class AddProduct implements OnInit {
       this.errorMsg = '';
     }
 
-    toAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.selectedImages.push({
-          file,
-          preview: (e.target?.result as string) || '',
-          label: ''
-        });
-        this.cdr.detectChanges();
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(toAdd);
+      compressed.forEach(c => this.selectedImages.push({ file: c.file, preview: c.preview, label: '' }));
+    } catch (e) {
+      console.warn('Image compression failed, uploading originals:', e);
+      toAdd.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.selectedImages.push({
+            file,
+            preview: (e.target?.result as string) || '',
+            label: ''
+          });
+          this.cdr.detectChanges();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
-    // Reset so selecting the same file again still fires the change event
     input.value = '';
     this.cdr.detectChanges();
   }
@@ -529,7 +536,7 @@ export class AddProduct implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.errorMsg = err?.error?.error || 'Failed to add product. Please try again.';
+        this.errorMsg = this.imageUpload.extractUploadError(err);
         this.cdr.detectChanges();
         console.error(err);
       }

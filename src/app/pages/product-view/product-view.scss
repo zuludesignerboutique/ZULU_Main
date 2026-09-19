@@ -1513,15 +1513,6 @@
     -webkit-line-clamp: unset;
     overflow: visible;
   }
-
-  // On desktop, never collapse
-  @media (min-width: 769px) {
-    &:not(.expanded) .product-summary {
-      display: block;
-      -webkit-line-clamp: unset;
-      overflow: visible;
-    }
-  }
 }
 
 .read-more-btn {
