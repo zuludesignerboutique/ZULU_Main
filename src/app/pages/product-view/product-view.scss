@@ -1444,18 +1444,62 @@
 // REFERENCE-LAYOUT REWORK (reworked arrangement)
 // ══════════════════════════════════════════════════
 
-// ── GALLERY THUMBS — uniform square row of 4, like reference ──
+// ── GALLERY THUMBS — single-row carousel, 4 visible, scroll rest ──
 .image-panel {
+  .gallery-carousel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
   .gallery-thumbs {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    flex-wrap: nowrap;
     gap: 10px;
-    flex-wrap: unset;
+    flex: 1;
+    min-width: 0;
+    margin-top: 0;
+    padding: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar { display: none; }
   }
 
   .gallery-thumb {
+    flex: 0 0 calc((100% - 30px) / 4);
     width: auto;
+    min-width: 0;
+    max-width: 110px;
     aspect-ratio: 1/1;
+    scroll-snap-align: start;
+  }
+
+  .carousel-arrow {
+    flex-shrink: 0;
+    width: 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background 0.2s var(--ease);
+
+    &:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-dim);
+    }
   }
 }
 

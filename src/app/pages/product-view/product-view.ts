@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, HostListener, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -55,6 +55,8 @@ export class ProductView implements OnInit, OnDestroy {
 
   // ── Gallery (multi-image support) ───────────────
   selectedImageUrl: string | null = null;
+
+  @ViewChild('thumbTrack') thumbTrack?: ElementRef<HTMLElement>;
 
   private navStateProduct: any = null;
   private destroy$ = new Subject<void>();
@@ -246,8 +248,23 @@ export class ProductView implements OnInit, OnDestroy {
     return (this.selectedImageUrl || this.galleryImages[0]?.image_url) === image?.image_url;
   }
 
-  selectImage(image: any) {
+  selectImage(image: any, index?: number) {
     this.selectedImageUrl = image?.image_url || null;
+    // Keep the active thumb visible inside the single-row carousel
+    if (typeof index === 'number' && isPlatformBrowser(this.platformId)) {
+      try {
+        const track = this.thumbTrack?.nativeElement;
+        const child = track?.children?.[index] as HTMLElement | undefined;
+        child?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      } catch {}
+    }
+  }
+
+  scrollThumbs(dir: 1 | -1) {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const el = this.thumbTrack?.nativeElement;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' });
   }
 
   // Re-created when the URL changes so the fade-in animation replays

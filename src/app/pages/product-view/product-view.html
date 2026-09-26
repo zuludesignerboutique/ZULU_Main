@@ -34,18 +34,34 @@
         </ng-template>
       </div>
 
-      <!-- ══ GALLERY THUMBNAILS ══ -->
-      <div class="gallery-thumbs" *ngIf="galleryImages.length > 1">
+      <!-- ══ GALLERY THUMBNAILS — single-row carousel ══ -->
+      <div class="gallery-carousel" *ngIf="galleryImages.length > 1">
         <button
-          class="gallery-thumb"
-          *ngFor="let img of galleryImages"
-          [class.active]="isActiveImage(img)"
-          (click)="selectImage(img)"
-          [attr.aria-label]="img.label || ('View image ' + (galleryImages.indexOf(img) + 1))"
-        >
-          <img [src]="imageSrc(img.image_url)" [alt]="img.label || product?.name" loading="lazy" />
-          <span class="gallery-thumb-label" *ngIf="img.label">{{ img.label }}</span>
-        </button>
+          class="carousel-arrow prev"
+          *ngIf="galleryImages.length > 4"
+          (click)="scrollThumbs(-1)"
+          aria-label="Scroll thumbnails left"
+          type="button"
+        >‹</button>
+        <div class="gallery-thumbs" #thumbTrack>
+          <button
+            class="gallery-thumb"
+            *ngFor="let img of galleryImages; let i = index"
+            [class.active]="isActiveImage(img)"
+            (click)="selectImage(img, i)"
+            [attr.aria-label]="img.label || ('View image ' + (i + 1))"
+          >
+            <img [src]="imageSrc(img.image_url)" [alt]="img.label || product?.name" loading="lazy" />
+            <span class="gallery-thumb-label" *ngIf="img.label">{{ img.label }}</span>
+          </button>
+        </div>
+        <button
+          class="carousel-arrow next"
+          *ngIf="galleryImages.length > 4"
+          (click)="scrollThumbs(1)"
+          aria-label="Scroll thumbnails right"
+          type="button"
+        >›</button>
       </div>
 
       <div class="panel-index">
