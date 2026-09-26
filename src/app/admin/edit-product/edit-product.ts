@@ -26,7 +26,7 @@ export class EditProduct implements OnInit {
   product: any = {};
   isSaving: boolean = false;
 
-  readonly maxImages = 4;
+  readonly maxImages = 6;
   readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
   // Suggested tags shown as quick-pick chips + datalist autocomplete.
   // Purely a UX shortcut — product.tag is free text, so a custom value
@@ -183,6 +183,12 @@ export class EditProduct implements OnInit {
   // images" button — for adding images without touching other fields)
   addPendingImages() {
     if (!this.newImages.length || !this.product?.id) return;
+    const totalBytes = this.newImages.reduce((n, img) => n + (img.file?.size || 0), 0);
+    if (totalBytes > 4 * 1024 * 1024) {
+      const mb = (totalBytes / 1024 / 1024).toFixed(1);
+      this.setImageMsg(`Selected images total ${mb} MB — please remove 1 image or re-pick smaller ones (limit 4 MB total).`, true);
+      return;
+    }
     this.imageBusy = true;
     this.imageMsg = '';
     this.imageMsgError = false;
@@ -197,6 +203,9 @@ export class EditProduct implements OnInit {
       error: (err) => {
         this.imageBusy = false;
         this.setImageMsg(this.imageUpload.extractUploadError(err), true);
+        // Detailed count errors carry fresh existingCount — refresh so the
+        // next pick uses a non-stale totalImageCount.
+        if (err?.error?.remaining !== undefined) this.reloadGallery();
       }
     });
   }
@@ -339,6 +348,16 @@ export class EditProduct implements OnInit {
         // If images were picked but never uploaded via the standalone button,
         // upload them now instead of silently dropping them on navigate.
         if (this.newImages.length) {
+          const totalBytes = this.newImages.reduce((n, img) => n + (img.file?.size || 0), 0);
+          if (totalBytes > 4 * 1024 * 1024) {
+            const mb = (totalBytes / 1024 / 1024).toFixed(1);
+            this.isSaving = false;
+            this.toast.error(
+              'Product details were saved, but the new images were not uploaded: ' +
+              `selected images total ${mb} MB (limit 4 MB total) — please remove 1 and retry.`
+            );
+            return;
+          }
           this.uploadPendingImages(this.product.id).subscribe({
             next: () => {
               this.isSaving = false;

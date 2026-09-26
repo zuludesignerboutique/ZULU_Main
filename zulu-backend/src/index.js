@@ -223,8 +223,8 @@ const storageApi = require('./storage');
 // fileSize is per-file (bytes). Vercel's request-body cap is ~4.5MB total, so
 // 4MB per file leaves headroom for multipart overhead even on a single-image
 // upload. No global `files` cap here — each route already sets its own
-// per-field maxCount via upload.fields()/upload.array() (e.g. 1 cover + 4
-// gallery = 5 on create, up to 20 on the admin gallery, up to 5 on category
+// per-field maxCount via upload.fields()/upload.array() (e.g. 1 cover + 6
+// gallery = 7 on create, up to 20 on the admin gallery, up to 5 on category
 // cards) — a global files limit would wrongly reject all of those.
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -1915,11 +1915,11 @@ app.get('/api/products/:id', (req, res) => {
 });
 
 // ADD product (admin only)
-app.post('/api/products', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
+app.post('/api/products', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 6 }]), persistUploads(), (req, res) => {
 
   const uploaded = collectUploadedFiles(req);
-  if (uploaded.length > 4) {
-    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  if (uploaded.length > 6) {
+    return res.status(400).json({ error: 'A maximum of 6 images can be uploaded per product.' });
   }
 
   const labels = parseImageLabels(req.body.labels);
@@ -1981,7 +1981,7 @@ app.post('/api/products', authenticateToken, requireAdmin, upload.fields([{ name
 });
 
 // UPDATE product (admin only)
-app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
+app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 6 }]), persistUploads(), (req, res) => {
   const id = req.params.id;
   const name         = req.body.name || '';
   const description  = req.body.description || '';
@@ -1999,8 +1999,8 @@ app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ n
   const detailsJson  = normalizeDetails(req.body.details);
 
   const uploaded = collectUploadedFiles(req);
-  if (uploaded.length > 4) {
-    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  if (uploaded.length > 6) {
+    return res.status(400).json({ error: 'A maximum of 6 images can be uploaded per product.' });
   }
 
   // `image` = legacy single-file thumbnail replace; `images` = new multi-upload
@@ -2034,12 +2034,13 @@ app.put("/api/products/:id", authenticateToken, requireAdmin, upload.fields([{ n
       (uErr) => {
         if (uErr) return res.status(500).json({ error: "Update failed" });
 
-        // Enforce the 4-image cap when appending new gallery files
+        // Enforce the 6-image cap when appending new gallery files
         if (newFiles.length) {
           db.query('SELECT COUNT(*) AS cnt FROM product_images WHERE product_id = ?', [id], (cErr, cRes) => {
             const existingCount = cErr ? 0 : parseInt(cRes[0]?.cnt || '0', 10);
-            if (existingCount + newFiles.length > 4) {
-              return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+            if (existingCount + newFiles.length > 6) {
+              const remaining = Math.max(0, 6 - existingCount);
+              return res.status(400).json({ error: `Only ${remaining} more image(s) allowed — this product already has ${existingCount}/6.`, existingCount, remaining });
             }
             db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM product_images WHERE product_id = ?', [id], (mErr, mRes) => {
               const start = mErr ? 0 : (mRes[0]?.mx || 0);
@@ -2116,15 +2117,15 @@ app.delete("/api/products/:id", authenticateToken, requireAdmin, (req, res) => {
 // ══════════════════════════════════════════════════════
 
 // POST /api/admin/products/:id/images — add new image(s) to an existing product
-app.post('/api/admin/products/:id/images', authenticateToken, requireAdmin, upload.array('images', 4), persistUploads(), (req, res) => {
+app.post('/api/admin/products/:id/images', authenticateToken, requireAdmin, upload.array('images', 6), persistUploads(), (req, res) => {
   const id = req.params.id;
   const files = req.files || [];
 
   if (!files.length) {
     return res.status(400).json({ error: 'No image files were uploaded.' });
   }
-  if (files.length > 4) {
-    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  if (files.length > 6) {
+    return res.status(400).json({ error: 'A maximum of 6 images can be uploaded per product.' });
   }
 
   const labels = parseImageLabels(req.body.labels);
@@ -2132,8 +2133,9 @@ app.post('/api/admin/products/:id/images', authenticateToken, requireAdmin, uplo
   db.query('SELECT COUNT(*) AS cnt FROM product_images WHERE product_id = ?', [id], (cErr, cRes) => {
     if (cErr) return res.status(500).json({ error: 'Database error' });
     const existingCount = parseInt(cRes[0]?.cnt || '0', 10);
-    if (existingCount + files.length > 4) {
-      return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+    if (existingCount + files.length > 6) {
+      const remaining = Math.max(0, 6 - existingCount);
+      return res.status(400).json({ error: `Only ${remaining} more image(s) allowed — this product already has ${existingCount}/6.`, existingCount, remaining });
     }
 
     db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM product_images WHERE product_id = ?', [id], (mErr, mRes) => {
@@ -3268,7 +3270,7 @@ app.get('/api/pooboo/products/:id', (req, res) => {
 });
 
 // POST /api/pooboo/products — add apparel product (admin only)
-app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
+app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 6 }]), persistUploads(), (req, res) => {
   const {
     name, description, price,
     category, age_group, age_groups, gender,
@@ -3281,8 +3283,8 @@ app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.fields(
   }
 
   const uploaded = collectUploadedFiles(req);
-  if (uploaded.length > 4) {
-    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  if (uploaded.length > 6) {
+    return res.status(400).json({ error: 'A maximum of 6 images can be uploaded per product.' });
   }
   const labels = parseImageLabels(req.body.labels);
   const image       = uploaded.length ? uploaded[0].filename : null;
@@ -3342,7 +3344,7 @@ app.post('/api/pooboo/products', authenticateToken, requireAdmin, upload.fields(
 });
 
 // PUT /api/pooboo/products/:id — update apparel product (admin only)
-app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 4 }]), persistUploads(), (req, res) => {
+app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'images', maxCount: 6 }]), persistUploads(), (req, res) => {
   const { id } = req.params;
   const {
     name, description, price,
@@ -3359,8 +3361,8 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.fiel
   const unifiedAgeGroup = ageGroupsJson[0] || '';
 
   const uploaded = collectUploadedFiles(req);
-  if (uploaded.length > 4) {
-    return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  if (uploaded.length > 6) {
+    return res.status(400).json({ error: 'A maximum of 6 images can be uploaded per product.' });
   }
   const legacyFile = Array.isArray(req.files?.image) ? req.files.image[0] : null;
   const newFiles = Array.isArray(req.files?.images) ? req.files.images : [];
@@ -3415,8 +3417,9 @@ app.put('/api/pooboo/products/:id', authenticateToken, requireAdmin, upload.fiel
       if (newFiles.length) {
         db.query('SELECT COUNT(*) AS cnt FROM pooboo_product_images WHERE product_id = ?', [id], (cErr, cRes) => {
           const existingCount = cErr ? 0 : parseInt(cRes[0]?.cnt || '0', 10);
-          if (existingCount + newFiles.length > 4) {
-            return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+          if (existingCount + newFiles.length > 6) {
+            const remaining = Math.max(0, 6 - existingCount);
+            return res.status(400).json({ error: `Only ${remaining} more image(s) allowed — this product already has ${existingCount}/6.`, existingCount, remaining });
           }
           db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_product_images WHERE product_id = ?', [id], (mErr, mRes) => {
             const start = mErr ? 0 : (mRes[0]?.mx || 0);
@@ -3490,16 +3493,19 @@ app.delete('/api/pooboo/products/:id', authenticateToken, requireAdmin, (req, re
 
 // ── Pooboo product gallery management (admin only) ──
 
-app.post('/api/admin/pooboo/products/:id/images', authenticateToken, requireAdmin, upload.array('images', 4), persistUploads(), (req, res) => {
+app.post('/api/admin/pooboo/products/:id/images', authenticateToken, requireAdmin, upload.array('images', 6), persistUploads(), (req, res) => {
   const id = req.params.id;
   const files = req.files || [];
   if (!files.length) return res.status(400).json({ error: 'No image files were uploaded.' });
-  if (files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+  if (files.length > 6) return res.status(400).json({ error: 'A maximum of 6 images can be uploaded per product.' });
   const labels = parseImageLabels(req.body.labels);
   db.query('SELECT COUNT(*) AS cnt FROM pooboo_product_images WHERE product_id = ?', [id], (cErr, cRes) => {
     if (cErr) return res.status(500).json({ error: 'Database error' });
     const existingCount = parseInt(cRes[0]?.cnt || '0', 10);
-    if (existingCount + files.length > 4) return res.status(400).json({ error: 'A maximum of 4 images can be uploaded per product.' });
+    if (existingCount + files.length > 6) {
+      const remaining = Math.max(0, 6 - existingCount);
+      return res.status(400).json({ error: `Only ${remaining} more image(s) allowed — this product already has ${existingCount}/6.`, existingCount, remaining });
+    }
     db.query('SELECT COALESCE(MAX(display_order),0) AS mx FROM pooboo_product_images WHERE product_id = ?', [id], (mErr, mRes) => {
       const start = mErr ? 0 : (mRes[0]?.mx || 0);
       const rows = files.map((file, i) => [id, file.filename, start + i + 1, labels[i] || '']);

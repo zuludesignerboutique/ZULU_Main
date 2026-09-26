@@ -52,7 +52,7 @@ export class PoobooAddProduct {
   customTagInput = '';
 
   // Images — multi (max 4)
-  readonly maxImages = 4;
+  readonly maxImages = 6;
   readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
   selectedImages: SelectedImage[] = [];
 
@@ -161,6 +161,14 @@ export class PoobooAddProduct {
   onSubmit() {
     if (!this.name || !this.price) {
       this.errorMsg = 'Name and price are required.';
+      return;
+    }
+
+    const totalBytes = this.selectedImages.reduce((n, img) => n + (img.file?.size || 0), 0);
+    if (totalBytes > 4 * 1024 * 1024) {
+      const mb = (totalBytes / 1024 / 1024).toFixed(1);
+      this.errorMsg = `Selected images total ${mb} MB — please remove 1 image or re-pick smaller ones (limit 4 MB total).`;
+      this.cdr.detectChanges();
       return;
     }
 

@@ -48,7 +48,7 @@ export class PoobooEditProduct implements OnInit {
   customTagInput  = '';
 
   // Images — multi (max 4)
-  readonly maxImages = 4;
+  readonly maxImages = 6;
   readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
   existingImages: any[] = [];
   newImages: NewImage[] = [];
@@ -189,6 +189,12 @@ export class PoobooEditProduct implements OnInit {
 
   addPendingImages() {
     if (!this.newImages.length || !this.productId) return;
+    const totalBytes = this.newImages.reduce((n: number, img: any) => n + (img.file?.size || 0), 0);
+    if (totalBytes > 4 * 1024 * 1024) {
+      const mb = (totalBytes / 1024 / 1024).toFixed(1);
+      this.setImageMsg(`Selected images total ${mb} MB — please remove 1 image or re-pick smaller ones (limit 4 MB total).`, true);
+      return;
+    }
     this.imageBusy = true;
     this.imageMsg = '';
     this.imageMsgError = false;
@@ -202,6 +208,7 @@ export class PoobooEditProduct implements OnInit {
       error: (err) => {
         this.imageBusy = false;
         this.setImageMsg(this.imageUpload.extractUploadError(err), true);
+        if (err?.error?.remaining !== undefined) this.reloadGallery();
       }
     });
   }
@@ -330,6 +337,19 @@ export class PoobooEditProduct implements OnInit {
     this.http.put(`${this.api}/api/pooboo/products/${this.productId}`, formData).subscribe({
       next: () => {
         if (this.newImages.length) {
+          const totalBytes = this.newImages.reduce((n: number, img: any) => n + (img.file?.size || 0), 0);
+          if (totalBytes > 4 * 1024 * 1024) {
+            const mb = (totalBytes / 1024 / 1024).toFixed(1);
+            this.ngZone.run(() => {
+              this.submitting = false;
+              this.toast.error(
+                'Product details were saved, but the new images were not uploaded: ' +
+                `selected images total ${mb} MB (limit 4 MB total) — please remove 1 and retry.`
+              );
+              this.cd.detectChanges();
+            });
+            return;
+          }
           this.uploadPendingImages(this.productId).subscribe({
             next: () => {
               this.ngZone.run(() => {

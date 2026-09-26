@@ -29,7 +29,7 @@ export class AddProduct implements OnInit {
     stock: 0, product_code: '', size: '', tag: '', colour: ''
   };
 
-  readonly maxImages = 4;
+  readonly maxImages = 6;
   readonly imageLabels = ['Front', 'Back', 'Side', 'Full'];
   // Suggested tags shown as quick-pick chips + datalist autocomplete.
   // Purely a UX shortcut — the field is free text, so any value works.
@@ -508,6 +508,16 @@ export class AddProduct implements OnInit {
 
     if (!this.product.name || !this.product.price || !this.product.category || !this.product.subcategory) {
       this.errorMsg = 'Please fill in all required fields (Name, Price, Category, Subcategory).';
+      return;
+    }
+
+    // 6 compressed photos can still exceed Vercel's ~4.5MB total request cap.
+    // Block early instead of sending a doomed 413 request.
+    const totalBytes = this.selectedImages.reduce((n, img) => n + (img.file?.size || 0), 0);
+    if (totalBytes > 4 * 1024 * 1024) {
+      const mb = (totalBytes / 1024 / 1024).toFixed(1);
+      this.errorMsg = `Selected images total ${mb} MB — please remove 1 image or re-pick smaller ones (limit 4 MB total).`;
+      this.cdr.detectChanges();
       return;
     }
 
