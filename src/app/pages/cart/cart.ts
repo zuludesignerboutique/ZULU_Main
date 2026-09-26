@@ -27,6 +27,29 @@ export class CartComponent implements OnInit {
     this.cartItems.forEach(item => this.selectedKeys.add(this.itemKey(item)));
   }
 
+  // ✅ newest-added first — service appends via push, so reverse for display
+  // without migrating existing localStorage carts
+  get orderedItems(): any[] {
+    return [...this.cartItems].reverse();
+  }
+
+  // ✅ brand-aware deep link, mirroring wishlist getViewLink
+  getProductLink(item: any): string[] {
+    const brand = item.brand ?? 'zulu';
+    const type = item.product_type ?? 'apparel';
+    if (brand === 'pooboo') {
+      if (type === 'fabric') return ['/pooboo/fabrics', String(item.id)];
+      if (type === 'accessory') {
+        const cat = item.category || item.accessory_type;
+        return cat
+          ? ['/pooboo/accessories', cat, String(item.id)]
+          : ['/pooboo/accessories'];
+      }
+      return ['/pooboo/products', String(item.id)];
+    }
+    return ['/product', String(item.id)];
+  }
+
   // ✅ ZULU and Pooboo products can share the same numeric id (separate DB tables),
   // so the row identity must include brand, not just id+size
   itemKey(item: any): string {
@@ -59,7 +82,7 @@ export class CartComponent implements OnInit {
   }
 
   get selectedItems(): any[] {
-    return this.cartItems.filter(item => this.isSelected(item));
+    return this.orderedItems.filter(item => this.isSelected(item));
   }
 
   get selectedCount(): number {

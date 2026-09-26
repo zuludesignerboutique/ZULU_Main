@@ -27,8 +27,10 @@ export class PoobooProductDetail implements OnInit {
   addedToCart    = false;
 
   // Gallery state — mirrors ZULU's product-view thumbnail-strip pattern.
-  galleryImages  : string[] = [];
-  selectedImage  = '';
+  // Keeps { image_url, label } objects (not plain strings) so thumbnail
+  // badges can show the admin-entered label like ZULU does.
+  galleryImages  : any[] = [];
+  selectedImage: any = null;
 
   constructor(
     private http  : HttpClient,
@@ -51,17 +53,18 @@ export class PoobooProductDetail implements OnInit {
         }
         // Build the gallery list from product.images[] (new multi-image table),
         // falling back to the legacy single image_url if no gallery rows exist.
+        // Keep label alongside image_url so thumbnails can badge it (ZULU parity).
         if (Array.isArray(this.product.images) && this.product.images.length) {
           this.galleryImages = this.product.images
             .slice()
             .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
-            .map((img: any) => img.image_url);
+            .map((img: any) => ({ image_url: img.image_url, label: img.label || '' }));
         } else if (this.product.image_url) {
-          this.galleryImages = [this.product.image_url];
+          this.galleryImages = [{ image_url: this.product.image_url, label: '' }];
         } else {
           this.galleryImages = [];
         }
-        this.selectedImage = this.galleryImages[0] || '';
+        this.selectedImage = this.galleryImages[0] || null;
         // Auto-select only if single option (strict >1 enforcement)
         if (data.sizes?.length === 1) this.selectedSize = data.sizes[0];
         else this.selectedSize = '';
@@ -80,12 +83,17 @@ export class PoobooProductDetail implements OnInit {
     });
   }
 
-  getImageUrl(img: string | null): string {
-    if (!img) return 'assets/images/placeholder.png';
-    return img.startsWith('http') ? img : `${this.api}/uploads/${img}`;
+  getImageUrl(img: string | any | null): string {
+    const url = typeof img === 'string' ? img : img?.image_url;
+    if (!url) return 'assets/images/placeholder.png';
+    return url.startsWith('http') ? url : `${this.api}/uploads/${url}`;
   }
 
-  selectImage(img: string) { this.selectedImage = img; this.cdr.detectChanges(); }
+  selectImage(img: any) { this.selectedImage = img; this.cdr.detectChanges(); }
+
+  isActiveImage(img: any): boolean {
+    return (this.selectedImage?.image_url || this.galleryImages[0]?.image_url) === img?.image_url;
+  }
 
   selectSize(s: string) { this.selectedSize = s; this.sizeError = false; this.cdr.detectChanges(); }
   selectAge(a: string) { this.selectedAgeGroup = a; this.ageError = false; this.cdr.detectChanges(); }

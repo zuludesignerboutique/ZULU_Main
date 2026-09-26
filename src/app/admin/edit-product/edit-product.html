@@ -170,7 +170,7 @@
               </div>
               <div class="gallery-item-controls">
                 <input type="text" class="image-label" [(ngModel)]="img.label" name="existingLabel-{{img.id}}"
-                  [attr.list]="'imageLabelOptions-exist-' + img.id" placeholder="No label" maxlength="30"
+                  [attr.list]="'imageLabelOptions-exist-' + img.id" placeholder="No label — or type your own" maxlength="50"
                   (ngModelChange)="saveOrderAndLabels()" />
                 <datalist [id]="'imageLabelOptions-exist-' + img.id">
                   <option *ngFor="let l of imageLabels" [value]="l"></option>
@@ -192,7 +192,7 @@
                 <button type="button" class="remove-img" (click)="removeNewImage(i)" title="Remove">✕</button>
               </div>
               <input type="text" class="image-label" [(ngModel)]="img.label" name="newLabel-{{i}}"
-                [attr.list]="'imageLabelOptions-new-' + i" placeholder="No label" maxlength="30" />
+                [attr.list]="'imageLabelOptions-new-' + i" placeholder="No label — or type your own" maxlength="50" />
               <datalist [id]="'imageLabelOptions-new-' + i">
                 <option *ngFor="let l of imageLabels" [value]="l"></option>
               </datalist>

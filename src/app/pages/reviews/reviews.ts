@@ -8,6 +8,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ReviewService } from '../../services/review.service';
 import { Review } from '../../core/models/review.model';
 import { AuthService } from '../../services/auth.service';
+import { ImageUploadService } from '../../services/image-upload.service';
 
 @Component({
   selector: 'app-reviews',
@@ -22,6 +23,7 @@ export class Reviews implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private imageUpload = inject(ImageUploadService);
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -162,14 +164,22 @@ export class Reviews implements OnInit, OnDestroy {
     this.reviewForm.patchValue({ rating: value });
   }
 
-  onPhotoSelected(event: Event): void {
+  async onPhotoSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      this.selectedPhoto.set(file);
-      const reader = new FileReader();
-      reader.onload = (e) => this.selectedPhotoPreview.set(e.target?.result as string);
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await this.imageUpload.compressImage(file);
+        this.selectedPhoto.set(compressed);
+        const reader = new FileReader();
+        reader.onload = (e) => this.selectedPhotoPreview.set(e.target?.result as string);
+        reader.readAsDataURL(compressed);
+      } catch {
+        this.selectedPhoto.set(file);
+        const reader = new FileReader();
+        reader.onload = (e) => this.selectedPhotoPreview.set(e.target?.result as string);
+        reader.readAsDataURL(file);
+      }
     }
   }
 
@@ -211,7 +221,7 @@ export class Reviews implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to submit review:', err);
-        this.submitError.set('Something went wrong. Please try again.');
+        this.submitError.set(this.imageUpload.extractUploadError(err));
         this.isSubmitting.set(false);
       }
     });

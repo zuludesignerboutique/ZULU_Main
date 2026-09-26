@@ -14,7 +14,7 @@
       <!-- LEFT: Image + thumbnail strip -->
       <div class="detail-image-col">
         <div class="image-frame">
-          <img [src]="getImageUrl(selectedImage)" [alt]="product.name" class="detail-img" />
+          <img [src]="getImageUrl(selectedImage)" [alt]="selectedImage?.label || product.name" class="detail-img" />
           <div *ngIf="product.is_customizable" class="custom-badge">✂ Customizable</div>
         </div>
 
@@ -22,9 +22,11 @@
         <div class="thumbnail-strip" *ngIf="galleryImages.length > 1">
           <button *ngFor="let img of galleryImages"
                   class="thumb"
-                  [class.active]="selectedImage === img"
-                  (click)="selectImage(img)">
-            <img [src]="getImageUrl(img)" [alt]="product.name" />
+                  [class.active]="isActiveImage(img)"
+                  (click)="selectImage(img)"
+                  [attr.aria-label]="img.label || product.name">
+            <img [src]="getImageUrl(img.image_url)" [alt]="img.label || product.name" loading="lazy" />
+            <span class="thumb-label" *ngIf="img.label">{{ img.label }}</span>
           </button>
         </div>
       </div>

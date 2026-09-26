@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../services/toast.service';
+import { ImageUploadService } from '../../services/image-upload.service';
 
 interface GalleryRow {
   id: number;
@@ -50,7 +51,8 @@ export class AdminGallery implements OnInit, OnDestroy {
     private http: HttpClient,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private imageUpload: ImageUploadService
   ) {}
 
   ngOnInit() {
@@ -82,17 +84,32 @@ export class AdminGallery implements OnInit, OnDestroy {
 
   // ── Pick photos → caption each → upload all ─────────────────
 
-  onFilesSelected(event: Event) {
+  async onFilesSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = input.files ? Array.from(input.files) : [];
-    files.forEach(file => {
-      this.pending.push({
-        file,
-        previewUrl: URL.createObjectURL(file),
-        title: '',
-        description: ''
+    if (!files.length) return;
+    // Compress client-side so a multi-photo batch stays under Vercel's
+    // ~4.5MB total request cap (phone photos are routinely 3-8MB each).
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(files);
+      compressed.forEach(c => {
+        this.pending.push({
+          file: c.file,
+          previewUrl: URL.createObjectURL(c.file),
+          title: '',
+          description: ''
+        });
       });
-    });
+    } catch {
+      files.forEach(file => {
+        this.pending.push({
+          file,
+          previewUrl: URL.createObjectURL(file),
+          title: '',
+          description: ''
+        });
+      });
+    }
     input.value = ''; // allow re-selecting the same file(s) later
   }
 
@@ -108,6 +125,17 @@ export class AdminGallery implements OnInit, OnDestroy {
 
   uploadPending() {
     if (!this.pending.length || this.isUploading) return;
+    // Even compressed, 20 photos can exceed Vercel's ~4.5MB total cap.
+    // Warn early instead of sending a doomed 413 request.
+    const totalBytes = this.pending.reduce((n, p) => n + (p.file?.size || 0), 0);
+    if (totalBytes > 4 * 1024 * 1024) {
+      const mb = (totalBytes / 1024 / 1024).toFixed(1);
+      this.ngZone.run(() => {
+        this.toast.error(`Selected photos total ${mb} MB — please upload in smaller batches under 4 MB.`);
+        this.cdr.detectChanges();
+      });
+      return;
+    }
     this.isUploading = true;
 
     const formData = new FormData();
@@ -126,11 +154,11 @@ export class AdminGallery implements OnInit, OnDestroy {
           this.loadImages();
         });
       },
-      error: () => {
+      error: (err) => {
         this.ngZone.run(() => {
           this.isUploading = false;
           this.cdr.detectChanges();
-          this.toast.error('Upload failed. Please try again.');
+          this.toast.error(this.imageUpload.extractUploadError(err));
         });
       }
     });

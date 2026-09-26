@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
+import { ImageUploadService } from '../../../services/image-upload.service';
 
 interface SelectedImage {
   file: File;
@@ -104,6 +105,7 @@ export class PoobooAdminFabrics implements OnInit {
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
+    private imageUpload: ImageUploadService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -140,7 +142,7 @@ export class PoobooAdminFabrics implements OnInit {
   }
 
   // ── Image handling ────────────────────────────────────
-  onFabricFilesChange(event: Event): void {
+  async onFabricFilesChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
     if (!files.length) return;
@@ -160,16 +162,24 @@ export class PoobooAdminFabrics implements OnInit {
       this.errorMsg = '';
     }
 
-    toAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.zone.run(() => {
-          this.f_selectedImages.push({ file, preview: e.target?.result as string || '', label: '' });
-          this.cdr.detectChanges();
-        });
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(toAdd);
+      this.zone.run(() => {
+        compressed.forEach(c => this.f_selectedImages.push({ file: c.file, preview: c.preview, label: '' }));
+        this.cdr.detectChanges();
+      });
+    } catch {
+      toAdd.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.zone.run(() => {
+            this.f_selectedImages.push({ file, preview: e.target?.result as string || '', label: '' });
+            this.cdr.detectChanges();
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
     input.value = '';
     this.cdr.detectChanges();
   }
@@ -217,7 +227,7 @@ export class PoobooAdminFabrics implements OnInit {
         }, 800);
       },
       error: (err) => {
-        this.errorMsg   = err?.error?.error || '❌ Failed to add fabric. Please try again.';
+        this.errorMsg   = this.imageUpload.extractUploadError(err);
         this.submitting = false;
         this.cdr.detectChanges();
       }

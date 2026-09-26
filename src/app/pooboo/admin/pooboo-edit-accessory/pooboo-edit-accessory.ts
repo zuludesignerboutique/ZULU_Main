@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { PoobooAccessoryService } from '../../services/pooboo-accessory.service';
 import { ToastService } from '../../../services/toast.service';
+import { ImageUploadService } from '../../../services/image-upload.service';
 
 interface NewImage { file: File; preview: string; label: string; }
 
@@ -67,6 +68,7 @@ export class PoobooEditAccessory implements OnInit {
     private cdr: ChangeDetectorRef,
     private accessoryService: PoobooAccessoryService,
     private toast: ToastService,
+    private imageUpload: ImageUploadService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -103,7 +105,7 @@ export class PoobooEditAccessory implements OnInit {
     });
   }
 
-  onNewFilesChange(event:any){
+  async onNewFilesChange(event:any){
     const input=event.target as HTMLInputElement;
     const files=Array.from(input.files||[]);
     if(!files.length) return;
@@ -111,11 +113,16 @@ export class PoobooEditAccessory implements OnInit {
     if(remaining<=0){ this.setImageMsg(`You can upload a maximum of ${this.maxImages} images per accessory.`, true); input.value=''; this.zone.run(()=>this.cdr.detectChanges()); return; }
     const toAdd=files.slice(0,remaining);
     if(toAdd.length < files.length) this.setImageMsg(`Only ${this.maxImages} images are allowed per accessory. ${toAdd.length} image(s) added.`, true); else this.imageMsg='';
-    toAdd.forEach(file=>{
-      const reader=new FileReader();
-      reader.onload=(e:any)=>{ this.newImages.push({ file, preview: e.target.result, label: '' }); this.zone.run(()=>this.cdr.detectChanges()); };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(toAdd);
+      compressed.forEach(c=> this.newImages.push({ file: c.file, preview: c.preview, label: '' }));
+    } catch {
+      toAdd.forEach(file=>{
+        const reader=new FileReader();
+        reader.onload=(e:any)=>{ this.newImages.push({ file, preview: e.target.result, label: '' }); this.zone.run(()=>this.cdr.detectChanges()); };
+        reader.readAsDataURL(file);
+      });
+    }
     input.value=''; this.zone.run(()=>this.cdr.detectChanges());
   }
   removeNewImage(index:number){ this.newImages.splice(index,1); this.imageMsg=''; this.zone.run(()=>this.cdr.detectChanges()); }
@@ -124,7 +131,7 @@ export class PoobooEditAccessory implements OnInit {
     this.imageBusy=true; this.imageMsg=''; this.imageMsgError=false;
     this.uploadPendingImages(this.productId).subscribe({
       next: ()=>{ this.imageBusy=false; this.newImages=[]; this.setImageMsg('Image(s) added successfully.', false); this.reloadGallery(); },
-      error: (err)=>{ this.imageBusy=false; this.setImageMsg(err?.error?.error || 'Failed to add images. Please try again.', true); }
+      error: (err)=>{ this.imageBusy=false; this.setImageMsg(this.imageUpload.extractUploadError(err), true); }
     });
   }
   private uploadPendingImages(productId:number){ return this.accessoryService.addImages(productId, this.newImages.map(n=>n.file), this.newImages.map(n=>n.label)); }
@@ -135,7 +142,7 @@ export class PoobooEditAccessory implements OnInit {
     this.imageBusy=true; this.imageMsg=''; this.imageMsgError=false;
     this.accessoryService.deleteImage(this.productId, image.id).subscribe({
       next: ()=>{ this.imageBusy=false; this.existingImages=this.existingImages.filter(i=>i.id!==image.id); this.setImageMsg('Image deleted successfully.', false); this.zone.run(()=>this.cdr.detectChanges()); },
-      error: (err)=>{ this.imageBusy=false; this.setImageMsg(err?.error?.error || 'Failed to delete image. Please try again.', true); }
+      error: (err)=>{ this.imageBusy=false; this.setImageMsg(this.imageUpload.extractUploadError(err), true); }
     });
   }
   moveImage(index:number, direction:-1|1){
@@ -149,7 +156,7 @@ export class PoobooEditAccessory implements OnInit {
     this.imageBusy=true; this.imageMsg=''; this.imageMsgError=false;
     this.accessoryService.reorderImages(this.productId, orderedIds, labels).subscribe({
       next: ()=>{ this.imageBusy=false; this.setImageMsg('Image order saved.', false); this.zone.run(()=>this.cdr.detectChanges()); },
-      error: (err)=>{ this.imageBusy=false; this.setImageMsg(err?.error?.error || 'Failed to save image order.', true); }
+      error: (err)=>{ this.imageBusy=false; this.setImageMsg(this.imageUpload.extractUploadError(err), true); }
     });
   }
   private reloadGallery(){
@@ -185,7 +192,7 @@ export class PoobooEditAccessory implements OnInit {
         if (this.newImages.length) {
           this.uploadPendingImages(this.productId).subscribe({
             next: ()=>{ this.zone.run(()=>{ this.successMsg='✅ Accessory updated successfully!'; this.submitting=false; this.cdr.detectChanges(); setTimeout(()=>this.router.navigate(['/admin/pooboo/accessories']),800); }); },
-            error: (err)=>{ this.zone.run(()=>{ this.submitting=false; this.toast.error('Accessory details were saved, but the new images failed to upload: ' + (err?.error?.error || 'please try "Upload new images" again.')); this.cdr.detectChanges(); }); }
+            error: (err)=>{ this.zone.run(()=>{ this.submitting=false; this.toast.error('Accessory details were saved, but the new images failed to upload: ' + this.imageUpload.extractUploadError(err)); this.cdr.detectChanges(); }); }
           });
           return;
         }

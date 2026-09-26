@@ -152,7 +152,7 @@
                 <button type="button" class="remove-img" (click)="removeImage(i)" title="Remove image">✕</button>
               </div>
               <input type="text" class="image-label" [(ngModel)]="img.label" name="imageLabel-{{i}}"
-                [attr.list]="'imageLabelOptions-add-' + i" placeholder="No label" maxlength="30" />
+                [attr.list]="'imageLabelOptions-add-' + i" placeholder="No label — or type your own" maxlength="50" />
               <datalist [id]="'imageLabelOptions-add-' + i">
                 <option *ngFor="let l of imageLabels" [value]="l"></option>
               </datalist>

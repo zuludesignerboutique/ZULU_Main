@@ -100,6 +100,25 @@
   max-width: 520px;
   line-height: 1.6;
   margin: 6px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cart-title-link,
+.cart-img a {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cart-title-link:hover {
+  text-decoration: underline;
+}
+
+.cart-img img {
+  cursor: pointer;
 }
 
 .cart-price {

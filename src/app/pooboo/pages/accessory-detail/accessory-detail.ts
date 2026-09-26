@@ -80,6 +80,7 @@ export class AccessoryDetail implements OnInit {
         image_url: this.product.image_url,
         brand: 'pooboo',
         product_type: 'accessory',
+        category: this.product.accessory_type || '',
         product_code: this.product.product_code || ''
       } as any,
       undefined,

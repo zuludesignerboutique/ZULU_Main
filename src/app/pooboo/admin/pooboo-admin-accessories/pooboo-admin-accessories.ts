@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
+import { ImageUploadService } from '../../../services/image-upload.service';
 
 interface SelectedImage {
   file: File;
@@ -75,6 +76,7 @@ export class PoobooAdminAccessories implements OnInit {
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
+    private imageUpload: ImageUploadService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -150,7 +152,7 @@ export class PoobooAdminAccessories implements OnInit {
   }
 
   // ── Image handling ────────────────────────────────────
-  onAccFilesChange(event: Event): void {
+  async onAccFilesChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
     if (!files.length) return;
@@ -167,16 +169,24 @@ export class PoobooAdminAccessories implements OnInit {
     } else {
       this.errorMsg = '';
     }
-    toAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.zone.run(() => {
-          this.a_selectedImages.push({ file, preview: e.target?.result as string || '', label: '' });
-          this.cdr.detectChanges();
-        });
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(toAdd);
+      this.zone.run(() => {
+        compressed.forEach(c => this.a_selectedImages.push({ file: c.file, preview: c.preview, label: '' }));
+        this.cdr.detectChanges();
+      });
+    } catch {
+      toAdd.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.zone.run(() => {
+            this.a_selectedImages.push({ file, preview: e.target?.result as string || '', label: '' });
+            this.cdr.detectChanges();
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
     input.value = '';
     this.cdr.detectChanges();
   }
@@ -249,7 +259,7 @@ export class PoobooAdminAccessories implements OnInit {
       },
       error: (err) => {
         console.error('Add accessory error:', err);
-        this.errorMsg   = err?.error?.error ? `❌ ${err.error.error}` : '❌ Failed to add accessory. Please try again.';
+        this.errorMsg   = this.imageUpload.extractUploadError(err);
         this.submitting = false;
         this.cdr.detectChanges();
       }

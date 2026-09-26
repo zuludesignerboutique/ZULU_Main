@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { PoobooProductService } from '../../services/pooboo-product.service';
 import { ToastService } from '../../../services/toast.service';
+import { ImageUploadService } from '../../../services/image-upload.service';
 
 interface NewImage {
   file: File;
@@ -83,7 +84,8 @@ export class PoobooEditProduct implements OnInit {
     private cd     : ChangeDetectorRef,
     private ngZone : NgZone,
     private productService: PoobooProductService,
-    private toast: ToastService
+    private toast: ToastService,
+    private imageUpload: ImageUploadService
   ) {}
 
   ngOnInit() {
@@ -145,7 +147,7 @@ export class PoobooEditProduct implements OnInit {
   }
 
   // ── Upload new images ──
-  onNewFilesChange(event: any) {
+  async onNewFilesChange(event: any) {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
     if (!files.length) return;
@@ -162,14 +164,19 @@ export class PoobooEditProduct implements OnInit {
     } else {
       this.imageMsg = '';
     }
-    toAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.newImages.push({ file, preview: e.target.result, label: '' });
-        this.ngZone.run(() => this.cd.detectChanges());
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(toAdd);
+      compressed.forEach(c => this.newImages.push({ file: c.file, preview: c.preview, label: '' }));
+    } catch {
+      toAdd.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.newImages.push({ file, preview: e.target.result, label: '' });
+          this.ngZone.run(() => this.cd.detectChanges());
+        };
+        reader.readAsDataURL(file);
+      });
+    }
     input.value = '';
     this.ngZone.run(() => this.cd.detectChanges());
   }
@@ -194,7 +201,7 @@ export class PoobooEditProduct implements OnInit {
       },
       error: (err) => {
         this.imageBusy = false;
-        this.setImageMsg(err?.error?.error || 'Failed to add images. Please try again.', true);
+        this.setImageMsg(this.imageUpload.extractUploadError(err), true);
       }
     });
   }
@@ -219,7 +226,7 @@ export class PoobooEditProduct implements OnInit {
       },
       error: (err) => {
         this.imageBusy = false;
-        this.setImageMsg(err?.error?.error || 'Failed to delete image. Please try again.', true);
+        this.setImageMsg(this.imageUpload.extractUploadError(err), true);
       }
     });
   }
@@ -249,7 +256,7 @@ export class PoobooEditProduct implements OnInit {
       },
       error: (err) => {
         this.imageBusy = false;
-        this.setImageMsg(err?.error?.error || 'Failed to save image order.', true);
+        this.setImageMsg(this.imageUpload.extractUploadError(err), true);
       }
     });
   }
@@ -335,7 +342,7 @@ export class PoobooEditProduct implements OnInit {
             error: (err) => {
               this.ngZone.run(() => {
                 this.submitting = false;
-                this.toast.error('Product details were saved, but the new images failed to upload: ' + (err?.error?.error || 'please try "Upload new images" again.'));
+                this.toast.error('Product details were saved, but the new images failed to upload: ' + this.imageUpload.extractUploadError(err));
                 this.cd.detectChanges();
               });
             }

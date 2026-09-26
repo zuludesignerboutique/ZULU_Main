@@ -150,10 +150,11 @@
               <span class="image-tile-index" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;">0{{ i + 1 }}</span>
               <button type="button" class="remove-img" (click)="removeImage(i)" title="Remove image" style="position:absolute;top:4px;right:4px;background:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;">✕</button>
             </div>
-            <select class="image-label" [(ngModel)]="img.label" name="imageLabel-{{i}}" style="width:100%;padding:4px;font-size:12px;">
-              <option value="">No label</option>
-              <option *ngFor="let l of imageLabels" [value]="l">{{ l }}</option>
-            </select>
+            <input type="text" class="image-label" [(ngModel)]="img.label" name="imageLabel-{{i}}"
+              [attr.list]="'imageLabelOptions-add-' + i" placeholder="No label — or type your own" maxlength="50" style="width:100%;padding:4px;font-size:12px;" />
+            <datalist [id]="'imageLabelOptions-add-' + i">
+              <option *ngFor="let l of imageLabels" [value]="l"></option>
+            </datalist>
           </div>
           <div class="image-add-tile" *ngIf="selectedImages.length < maxImages" (click)="fileInput.click()" style="border:2px dashed #ccc;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;cursor:pointer;padding:12px;">
             <input #fileInput type="file" accept="image/*" multiple (change)="onFilesChange($event)" hidden />

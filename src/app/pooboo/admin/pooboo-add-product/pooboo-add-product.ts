@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
+import { ImageUploadService } from '../../../services/image-upload.service';
 
 interface SelectedImage {
   file: File;
@@ -73,10 +74,10 @@ export class PoobooAddProduct {
     { value: 'hair-clips',     label: '🩷 Hair Clips' },
   ];
 
-  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute, private cdr: ChangeDetectorRef, private imageUpload: ImageUploadService) {}
 
 
-  onFilesChange(event: Event) {
+  async onFilesChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
     if (!files.length) return;
@@ -96,18 +97,23 @@ export class PoobooAddProduct {
       this.errorMsg = '';
     }
 
-    toAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.selectedImages.push({
-          file,
-          preview: (e.target?.result as string) || '',
-          label: ''
-        });
-        this.cdr.detectChanges();
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const compressed = await this.imageUpload.compressAndPreview(toAdd);
+      compressed.forEach(c => this.selectedImages.push({ file: c.file, preview: c.preview, label: '' }));
+    } catch {
+      toAdd.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.selectedImages.push({
+            file,
+            preview: (e.target?.result as string) || '',
+            label: ''
+          });
+          this.cdr.detectChanges();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
     input.value = '';
     this.cdr.detectChanges();
@@ -209,7 +215,7 @@ export class PoobooAddProduct {
         setTimeout(() => this.router.navigate(['/admin/pooboo/products']), 1200);
       },
       error: (err) => {
-        this.errorMsg   = err?.error?.error || '❌ Failed to add product. Please try again.';
+        this.errorMsg   = this.imageUpload.extractUploadError(err);
         this.submitting = false;
         this.cdr.detectChanges();
       }
